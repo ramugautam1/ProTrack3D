@@ -17,6 +17,8 @@ def get_label_info(csv_path):
     # Returns
         Two lists: one for the class names and the other for the label values
     """
+    return ['Cell', 'Background'], [[255], [0]]
+
     filename, file_extension = os.path.splitext(csv_path)
     if not file_extension == ".csv":
         return ValueError("File is not a CSV!")

@@ -147,7 +147,8 @@ def train(model,epochs,gt_path,op_path):
     args = parser.parse_args()
     
     img_size = 32
-    class_names_list, label_values = helpers.get_label_info(os.path.join(dataset_path, "class_dict.csv"))
+    # class_names_list, label_values = helpers.get_label_info(os.path.join(dataset_path, "class_dict.csv"))
+    class_names_list, label_values = helpers.get_label_info(dataset_path + "/class_dict.csv")
     class_names_string = ""
     for class_name in class_names_list:
         if not class_name == class_names_list[-1]:

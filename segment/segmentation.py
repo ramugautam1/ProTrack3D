@@ -114,7 +114,7 @@ def train(model,epochs,gt_path,op_path):
     mode = 'train'
     op_path = op_path
 
-    ckpt_path = os.getcwd() + "/checkpoints/" + model + '/' + dataset+num_epochs
+    ckpt_path = os.getcwd() + "/checkpoints/" + model + '/' + dataset+str(num_epochs)
 
     if not os.path.isdir(ckpt_path):
         os.makedirs(ckpt_path)
@@ -125,7 +125,7 @@ def train(model,epochs,gt_path,op_path):
     parser.add_argument('--continue_training', type=str2bool, default=False, help='Whether to continue training from a checkpoint')
     parser.add_argument('--checkpoint_step', type=int, default=1, help='How often to save checkpoints (epochs)')
     parser.add_argument('--validation_step', type=int, default=1, help='How often to perform validation (epochs)')
-    parser.add_argument('--batch_size', type=int, default=16, help='Number of images in each batch')
+    parser.add_argument('--batch_size', type=int, default=8, help='Number of images in each batch')
     parser.add_argument('--class_weight_reference', type=str, default="reference/Ecad2020", help='reference you are using.')
     parser.add_argument('--num_val_images', type=int, default=200, help='Number of ramdom validation samples')
     

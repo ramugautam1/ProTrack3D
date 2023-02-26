@@ -11,7 +11,7 @@ import math
 import glob as glob
 import nibabel as nib
 from skimage import measure
-
+import re
 from correlation20220708 import correlation
 # from testCorr import correlation
 from functions import dashline, starline, niftiread, niftiwrite, niftiwriteF, intersect, setdiff, isempty, rand, nan_2d
@@ -39,7 +39,7 @@ def trackStep2(track_op_folder,  imageName, protein1Name, protein2Name, initialp
     if not os.path.isdir(folder):
         print(os.makedirs(folder))
 
-    excelFilename = folder + 'TrackingID' + str(timm) + '.xlsx'  # the excel file name to write the tracking result
+    excelFilename = folder + 'TrackingID' + re.sub(r'\W+', '_', str(timm)) + '.xlsx'  # the excel file name to write the tracking result
 
     workbook = xlsxwriter.Workbook(excelFilename)
 

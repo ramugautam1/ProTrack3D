@@ -98,7 +98,7 @@ def trackStep1(segmentationOutputAddress, trackingOutputAddress, startTime, endT
         #Remove small itty bitty masks
         Fullsize2 = Fullsize.astype(bool)
 
-        Fullsize2 = np.double(morphology.remove_small_objects(Fullsize2, 9))
+        Fullsize2 = np.double(morphology.remove_small_objects(Fullsize2, 5))
 
         stack_after = Fullsize2
 

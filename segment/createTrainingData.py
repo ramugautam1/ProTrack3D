@@ -171,8 +171,8 @@ def generateValidationData(validationFiles,vfolder):
 
 def create(addr):
     Files1 = sorted(glob.glob(addr + '/' + '*.tif'))
-    trainingFiles = Files1[:-2]
-    validationFiles = Files1[-2:]
+    trainingFiles = Files1[:-3]
+    validationFiles = Files1[-3:]
 
     tfolder = os.path.dirname(trainingFiles[0])
     tfolder += '/' + os.path.basename(trainingFiles[0])[0:5] + 'TrainData'

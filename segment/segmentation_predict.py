@@ -191,7 +191,7 @@ def predictionSampleGeneration(image,startpoint,endpoint):
                 for ix in range(I3d2[2]):
                     V_s[:, :, ix] = V_sample_t[a:b, c:d, ix]
 
-                V_s = (V_s - np.min(V_s)) / (np.max(V_s) - np.min(V_s)) * 0.7 + 0.5
+                V_s = (V_s - np.min(V_s)) / (np.max(V_s) - np.min(V_s)) * 0.5 + 0.5
 
                 for ix in range(I3d2[2]):
                     V_o[:, :, ix] = V_sample_t[a:b, c:d, ix]
@@ -365,7 +365,7 @@ def predict(model,image, startpoint, endpoint, modelCheckpointName, op_folder):
             sys.stdout.write("\rRunning predict image %d / %d" % (ind + 1, len(input_image_pred)))
             sys.stdout.flush()
 
-            st = time.time()
+            # st = time.time()
             #output_image = sess.run(network, feed_dict={net_input: input_image})
             output_image, stack = sess.run(network, feed_dict={net_input: input_image})
 
@@ -420,9 +420,35 @@ def predict(model,image, startpoint, endpoint, modelCheckpointName, op_folder):
                 nib.save(new_image, "%s/%s/%s/%s/Z0%s_class.nii" % (addrSegRes, os.path.basename(image).split('.')[0]+'_SegmentationOutput', model, tt, str(ind)))
             else:
                 nib.save(new_image, "%s/%s/%s/%s/Z%s_class.nii" % (addrSegRes, os.path.basename(image).split('.')[0]+'_SegmentationOutput', model, tt, str(ind)))
+    t1 = 0
+    t2 = endpoint - startpoint + 1
+    segAddr = addrSegRes + '/' + os.path.basename(image).split('.')[0]+'_SegmentationOutput'+'/'+ model +'/'
 
+    Image = np.zeros((512, 320, 13, t2)).astype(np.uint16)
 
+    for time in range(t1, t2):
+        addr = segAddr + str(time + 1) + '/'
 
+        Files1 = sorted(glob.glob(addr + '*.nii'))
 
+        Fullsize = np.zeros((512, 320, 13)).astype(np.uint16)
+
+        c_file = 0
+
+        for i1 in range(0, 512, 32):
+            for i2 in range(0, 320, 32):
+                V_arr = np.asarray(nib.load(Files1[c_file]).dataobj).astype(np.uint16).squeeze()
+                a = i1;
+                b = i1 + 32;
+                c = i2;
+                d = i2 + 32
+                Fullsize[a:b, c:d, :] = V_arr
+                c_file += 4
+
+        Image[:, :, :, time] = Fullsize
+
+    Image = (1 - Image) * 65535
+
+    nib.save(nib.Nifti1Image(np.uint16(Image), affine=np.eye(4)), segAddr + 'CombinedSO.nii')
 
     gc.collect()

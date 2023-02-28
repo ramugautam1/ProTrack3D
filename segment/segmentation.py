@@ -461,6 +461,19 @@ def train(model,epochs,gt_path,op_path):
             print("Validation F1 score = ", avg_f1)
             print("Validation IoU score = ", avg_iou)
 
+        if(epoch>1 and epoch%5==0):
+            fig = plt.figure(figsize=(11, 8))
+            ax1 = fig.add_subplot(111)
+
+            ax1.plot(range(epoch+1), avg_iou_list)
+            ax1.set_title("Average validation IoU vs epochs")
+            ax1.set_xlabel("Epoch")
+            ax1.set_ylabel("Avg. val. IoU")
+
+            plt.savefig("%s/IoU_vs_epochs.png" % (ckpt_path))
+
+            plt.clf()
+
         epoch_time = time.time() - epoch_st
         remain_time = epoch_time * (num_epochs - 1 - epoch)
         m, s = divmod(remain_time, 60)

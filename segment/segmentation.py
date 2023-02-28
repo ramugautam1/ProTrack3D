@@ -114,7 +114,7 @@ def train(model,epochs,gt_path,op_path):
     mode = 'train'
     op_path = op_path
 
-    ckpt_path = os.getcwd() + "/checkpoints/" + model + '/' + dataset+str(num_epochs)
+    ckpt_path = os.getcwd() + "/checkpoints/" + model + '/' + dataset
 
     if not os.path.isdir(ckpt_path):
         os.makedirs(ckpt_path)

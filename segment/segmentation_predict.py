@@ -113,8 +113,6 @@ def predictionSampleGeneration(image,startpoint,endpoint):
     if not os.path.isdir(sampleAddress):
         os.mkdir(sampleAddress)
 
-    I3d = [32, 35, 15]
-    I3d2 = [32, 32, 15]
     t1 = startpoint
     t2 = endpoint
 
@@ -132,10 +130,10 @@ def predictionSampleGeneration(image,startpoint,endpoint):
 
     I3d = np.array(np.shape(V_sample)[:3])
     I3d2 = [32,32,I3d[2]]
-    V_sample[V_sample>(np.mean(V_sample)+20*np.std(V_sample))] = np.mean(V_sample)+20*np.std(V_sample)
+    # V_sample[V_sample>(np.mean(V_sample)+20*np.std(V_sample))] = np.mean(V_sample)+20*np.std(V_sample)
 
 
-###############################
+ ###############
     # V_sample_0 = np.zeros((512, np.shape(V_sample)[1], 15, np.shape(V_sample)[-1]))
     # if np.shape(V_sample)[2]==13:
     #     # V_sample_0[:,:,0,:] = V_sample[:,:,1,:]
@@ -147,32 +145,19 @@ def predictionSampleGeneration(image,startpoint,endpoint):
 
     # ####
     # V_sample = skimage.transform.resize(V_sample,(512,280,15,np.shape(V_sample)[-1]))
+ ##############
 
-    V_sample  = (V_sample-np.min(V_sample))/(np.max(V_sample)-np.min(V_sample))*0.7 + 0.5 #should be *0.5 but missed a lot of objects
-    V_to_save = V_sample[:,:,:,:]
+    # Following code block is just to save the niftii file for the given time points. Don't affect the segmentation.
+    ################
+    V_sampleX  = (V_sample-np.min(V_sample))/(np.max(V_sample)-np.min(V_sample))*0.5 + 0.5
+
+    V_to_save = V_sampleX[:,:,:,:]
     # V_to_view = V_sample[:,:,1:14,:]
 
     V_to_save = V_to_save*32768-49152
     V_to_save = nib.Nifti1Image(V_to_save,np.eye(4))
     nib.save(V_to_save,image[:-4]+'.nii')
-
-    # V_to_view = V_to_view[:,:,:,:]
-
-
-
-
-    # V_sample = V_sample+32768
-    #
-    # V_sample = V_sample.astype(np.float)
-    #
-    # V_sample /= 65536
-    # V_sample += 0.5
-###############################
-    # print(type(V_sample))
-    # print(type(V_sample[1,1,1,1,1]))
-    # print(np.max(V_sample))
-    # print(np.min(V_sample))
-    # print(np.mean(V_sample))
+    ################
 
     for t in range(0, t2-t1+1):
         c_all = 1
@@ -205,6 +190,8 @@ def predictionSampleGeneration(image,startpoint,endpoint):
 
                 for ix in range(I3d2[2]):
                     V_s[:, :, ix] = V_sample_t[a:b, c:d, ix]
+
+                V_s = (V_s - np.min(V_s)) / (np.max(V_s) - np.min(V_s)) * 0.7 + 0.5
 
                 for ix in range(I3d2[2]):
                     V_o[:, :, ix] = V_sample_t[a:b, c:d, ix]

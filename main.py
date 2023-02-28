@@ -140,7 +140,7 @@ ana_menu.add_command(label='Analysis III', font=('System', 15))
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Homepage
-homepage_greet = tk.Label(homepage, text='WELCOME TO FIAPP')
+homepage_greet = tk.Label(homepage, text='WELCOME TO ProTrack3D')
 homepage_greet.configure(font=Font_tuple)
 homepage_greet.place(x=50, y=100)
 buttonH1 = tk.Button(homepage, text="Segmentation", width=15, command=lambda: show_frame(seg_page), font=('System', 20))

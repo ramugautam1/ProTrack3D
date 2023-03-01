@@ -6,6 +6,7 @@ import tifffile
 import nibabel as nib
 import re
 import csv
+import random
 import skimage
 
 
@@ -170,9 +171,50 @@ def generateValidationData(validationFiles,vfolder):
                     file.close()
 
 def create(addr):
-    Files1 = sorted(glob.glob(addr + '/' + '*.tif'))
-    trainingFiles = Files1[:-2]
-    validationFiles = Files1[-2:]
+    if not os.path.isdir(addr + '/new'):
+        os.makedirs(addr + '/new')
+
+    Files = sorted(glob.glob(addr + '/'+'*.tif'))
+    count = len(Files)
+
+    prename = Files[0][-7:-5]
+    print(prename)
+
+    for a, file in enumerate(Files):
+        V_sample = tifffile.imread(file)
+
+        dims = np.shape(V_sample)
+
+        FinalImage = np.zeros(np.shape(V_sample))
+
+        images = []
+
+        for i in range(0, int(dims[-1] / 8)):
+            for j in range(0, int(dims[-2] / 8)):
+                im = V_sample[:, :, j * 8:(j + 1) * 8, i * 8:(i + 1) * 8]
+                images.append(im)
+
+        random.shuffle(images)
+        num = 0
+        for i in range(0, int(dims[-1] / 8)):
+            for j in range(0, int(dims[-2] / 8)):
+                FinalImage[:, :, j * 8:(j + 1) * 8, i * 8:(i + 1) * 8] = images[num]
+                num += 1
+
+        FinalImage = np.uint16(FinalImage)
+
+        if a < (count - 2):
+            tifffile.imwrite(addr + '/new/' + prename + 't_orig_' + str(a) + '.tif', V_sample, imagej=True)
+            tifffile.imwrite(addr + '/new/' + prename + 't_shuffled' + str(a) + '.tif', FinalImage, imagej=True)
+        elif a == (count - 2):
+            tifffile.imwrite(addr + '/new/' + prename + 'v_orig_' + str(a) + '.tif', V_sample, imagej=True)
+        else:
+            tifffile.imwrite(addr + '/new/' + prename + 'v_orig_' + str(a) + '.tif', V_sample, imagej=True)
+            tifffile.imwrite(addr + '/new/' + prename + 'v_shuffled' + str(a) + '.tif', FinalImage, imagej=True)
+
+    Files1 = sorted(glob.glob(addr + '/new/' + '*.tif'))
+    trainingFiles = Files1[:-3]
+    validationFiles = Files1[-3:]
 
     tfolder = os.path.dirname(trainingFiles[0])
     tfolder += '/' + os.path.basename(trainingFiles[0])[0:5] + 'TrainData'

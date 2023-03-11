@@ -127,7 +127,8 @@ def generateFamilyTrees(excelFile, ftFolder):
                 parent = df.iloc[idx - 2, 2 * (timelist[index] - 2)]
             parentlist.append(parent)
 
-        print(u'\u2713') if len(indexlist) == len(timelist) == len(timeendlist) == len(parentlist) else print('error')
+        print(u'\u2713') if len(indexlist) == len(timelist) == len(
+            timeendlist) == len(parentlist) else print('error')
         set.append(indexlist)
         set.append(timelist)
         set.append(timeendlist)
@@ -141,8 +142,7 @@ def generateFamilyTrees(excelFile, ftFolder):
 
         mydf.to_csv(csvFolder+'/ft_data_tid_'+str(tid)+'.csv')
 
-
-    #added a tab to line just under
+    # added a tab to line just under
         ftlst.append(set)
 
     print(np.shape(ftlst))
@@ -192,16 +192,20 @@ def generateFamilyTrees(excelFile, ftFolder):
             if i not in notplottedlist:  # min time filter
                 for k in range(ft[1][i] - 1, ft[2][i]):
                     ax.scatter(k + 1, i + 1, c=colors[i], s=400)
-                    ax.text(ft[2][i] + 1, i + 1, str(ft[0][i]), fontsize=30 if i == 0 else 20)
+                    ax.text(ft[2][i] + 1, i + 1, str(ft[0][i]),
+                            fontsize=30 if i == 0 else 20)
                 plt.plot()
                 for iii in range(1, len(ft[0])):
                     if iii not in notplottedlist:  # min time filter
                         l = ft[0].index(ft[3][iii])
-                        plt.plot([ft[1][iii] - 1, ft[1][iii]], [l + 1, iii + 1], c=colors[iii], linewidth=1)
-                plt.plot([ft[1][i], ft[2][i]], [i + 1, i + 1], c='k', linewidth=1)
+                        plt.plot([ft[1][iii] - 1, ft[1][iii]],
+                                 [l + 1, iii + 1], c=colors[iii], linewidth=1)
+                plt.plot([ft[1][i], ft[2][i]], [
+                         i + 1, i + 1], c='k', linewidth=1)
 
         prefix = '00' if ft[0][0] < 10 else '0' if ft[0][0] < 100 else ''
-        filename = saveFolder + '/' + 'FT_ID_' + prefix + str(ft[0][0]) + '.png'
+        filename = saveFolder + '/' + 'FT_ID_' + \
+            prefix + str(ft[0][0]) + '.png'
         plt.savefig(filename)
         plt.close(fig)
         plt.close('all')

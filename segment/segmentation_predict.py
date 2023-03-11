@@ -446,6 +446,7 @@ def predict(model,image, startpoint, endpoint, modelCheckpointName, op_folder):
                 c_file += 4
 
         Image[:, :, :, time] = Fullsize
+        nib.save(nib.Nifti1Image(np.uint16((1-Fullsize)*65535), affine=np.eye(4)), addr + 'ZZZcombined_'+str(time+1)+'.nii')
 
     Image = (1 - Image) * 65535
 

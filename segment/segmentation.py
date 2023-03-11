@@ -235,7 +235,7 @@ def train(model,epochs,gt_path,op_path):
         losses = dice_loss(net_output, network[0])
     loss = tf.reduce_mean(losses)
 
-    opt = tf.train.AdamOptimizer(0.0002).minimize(loss, var_list=[var for var in tf.trainable_variables()])
+    opt = tf.train.AdamOptimizer(0.00015).minimize(loss, var_list=[var for var in tf.trainable_variables()])
     
     
     
@@ -264,7 +264,7 @@ def train(model,epochs,gt_path,op_path):
     path1 = csv_path_training[:csv_path_training.rfind('/')] + '/'
 
     df = pd.read_csv(csv_path_training)
-
+    np.random.shuffle(df.values)
     # Load test data
     X_train, y_train = loadDataGeneral(df, path1, img_size)
     print(X_train.shape, y_train.shape)

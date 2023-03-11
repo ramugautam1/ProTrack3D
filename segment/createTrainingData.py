@@ -53,7 +53,7 @@ def generateTrainData(trainingFiles,tfolder):
         fname = re.sub(r'\W+', '', filename)
 
         idx_train = tfolder + '/' + 'idx_train.csv'
-        print(idx_train)
+
         # idx_valid = vfolder + '/' + 'idx_valid.csv'
 
         # with open(idx_valid,'w') as idxvalid:
@@ -177,7 +177,9 @@ def create(addr):
     Files = sorted(glob.glob(addr + '/'+'*.tif'))
     count = len(Files)
 
-    prename = Files[0][-7:-5]
+
+
+    prename = os.path.basename(Files[0])[0:5]
     print(prename)
 
     for a, file in enumerate(Files):
@@ -202,25 +204,27 @@ def create(addr):
                 num += 1
 
         FinalImage = np.uint16(FinalImage)
-
-        if a < (count - 2):
+        if(a<1):
             tifffile.imwrite(addr + '/new/' + prename + 't_orig_' + str(a) + '.tif', V_sample, imagej=True)
             tifffile.imwrite(addr + '/new/' + prename + 't_shuffled' + str(a) + '.tif', FinalImage, imagej=True)
-        elif a == (count - 2):
-            tifffile.imwrite(addr + '/new/' + prename + 'v_orig_' + str(a) + '.tif', V_sample, imagej=True)
+        elif a < (count - 2):
+            tifffile.imwrite(addr + '/new/' + prename + 't_orig_' + str(a) + '.tif', V_sample, imagej=True)
+        # elif a == (count - 2):
+        #     tifffile.imwrite(addr + '/new/' + prename + 'v_orig_' + str(a) + '.tif', V_sample, imagej=True)
+        #     tifffile.imwrite(addr + '/new/' + prename + 'v_shuffled' + str(a) + '.tif', FinalImage, imagej=True)
         else:
             tifffile.imwrite(addr + '/new/' + prename + 'v_orig_' + str(a) + '.tif', V_sample, imagej=True)
-            tifffile.imwrite(addr + '/new/' + prename + 'v_shuffled' + str(a) + '.tif', FinalImage, imagej=True)
+
 
     Files1 = sorted(glob.glob(addr + '/new/' + '*.tif'))
-    trainingFiles = Files1[:-3]
-    validationFiles = Files1[-3:]
+    trainingFiles = Files1[:-2]
+    validationFiles = Files1[-2:]
 
     tfolder = os.path.dirname(trainingFiles[0])
-    tfolder += '/' + os.path.basename(trainingFiles[0])[0:5] + 'TrainData'
+    tfolder += '/' + prename + 'TrainData'
 
     vfolder = os.path.dirname(trainingFiles[0])
-    vfolder += '/' + os.path.basename(trainingFiles[0])[0:5] + 'ValidData'
+    vfolder += '/' + prename + 'ValidData'
 
     generateTrainData(trainingFiles,tfolder)
     generateValidationData(validationFiles,vfolder)

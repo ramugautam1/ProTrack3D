@@ -14,7 +14,7 @@ from skimage import measure
 import re
 from correlation20220708 import correlation
 # from testCorr import correlation
-from functions import dashline, starline, niftiread, niftiwrite, niftiwriteF, intersect, setdiff, isempty, rand, nan_2d
+from functions import dashline, starline, niftiread, niftiwrite, niftiwriteF, intersect, setdiff, isempty, rand, nan_2d,niftireadI, niftiwriteu16
 
 
 def trackStep2(track_op_folder,  imageName, protein1Name, protein2Name, initialpoint=1, startpoint=1, endpoint=40, trackbackT=2):
@@ -628,6 +628,22 @@ def trackStep2(track_op_folder,  imageName, protein1Name, protein2Name, initialp
         xlswriter12.to_excel(writer, sheet_name='Sheet12', startrow=1, index=False, header=False)
     # writer.save();
     starline()
+
+    print('Combining tracking results.....')
+    tempMat = niftireadI(track_op_folder+'1/Fullsize_label_1.nii')
+    x,y,z =  np.shape(tempMat)
+    finalMatrix = np.zeros(shape=(x,y,z,endpoint-startpoint+2))
+    # print(np.shape(finalMatrix))
+    for timepoint in range(startpoint,endpoint+2):
+        if timepoint == 1:
+            tMatrix = niftireadI(track_op_folder + str(timepoint) + '/Fullsize_label_1.nii')
+        else:
+            tMatrix = niftireadI(track_op_folder + str(timepoint) + '/Fullsize_2_aftertracking_' + str(timepoint) + '.nii')
+
+        finalMatrix[:,:,:,timepoint-1] = tMatrix
+
+    niftiwriteu16(finalMatrix,track_op_folder+'TrackedCombined.nii')
+
     print('Step 2 Complete.')
     starline()
 

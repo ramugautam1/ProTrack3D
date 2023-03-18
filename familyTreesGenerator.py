@@ -4,7 +4,36 @@ import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import os
+from functions import niftiwriteF, niftiread
 
+
+def keep_values(matrix, idlist):
+    newMatrix = np.copy(matrix)
+    newMatrix[~np.isin(newMatrix, idlist)] = 0
+
+    # niftiwriteF(newMatrix, '/home/nirvan/Desktop/deletes/newM.nii')
+    return newMatrix
+
+
+def getExtremeIndices(arr):
+    nonZeroIndices = np.nonzero(arr)
+    n_dim = arr.ndim
+    dims = []
+    for i in range(0, n_dim):
+        dims.append((np.min(nonZeroIndices[i]), np.max(nonZeroIndices[i])))
+    print(dims)
+    return dims
+
+
+def plot_3d_matrix(matrix, idlist, lims, colors, ax):
+    for i, id in enumerate(idlist):
+        x, y, z = np.where(matrix == id)
+        if (len(x) > 2 and len(y) > 2):
+            print(id)
+            ax.plot_trisurf(x, y, z, color=colors[i], alpha=0.5)
+    ax.set_xlim(99, 151)
+    ax.set_xlim(147, 180)
+    ax.set_xlim(1, 13)
 
 def intersect(a, b):
     a1, ia = np.unique(a, return_index=True)
@@ -21,7 +50,7 @@ def generateFamilyTrees(excelFile, ftFolder):
     csvFolder = saveFolder+'/csvFiles'
     if not os.path.exists(saveFolder):
         os.makedirs(saveFolder)
-
+    trackFolder = os.path.dirname(excelFile)
     if not os.path.exists(csvFolder):
         os.makedirs(csvFolder)
 
@@ -65,7 +94,7 @@ def generateFamilyTrees(excelFile, ftFolder):
 
         set = []
         indexlist = []
-        print("target id: " + str(tid), end=' ')
+        print("target id: " + str(tid), end='\r')
         for ix in range(0, df.shape[0]):
             for jx in range(0, df.shape[1], 2):
                 if df.iloc[ix, jx] == tid and ix + 2 not in indexlist:
@@ -127,8 +156,7 @@ def generateFamilyTrees(excelFile, ftFolder):
                 parent = df.iloc[idx - 2, 2 * (timelist[index] - 2)]
             parentlist.append(parent)
 
-        print(u'\u2713') if len(indexlist) == len(timelist) == len(
-            timeendlist) == len(parentlist) else print('error')
+        # print(u'\u2713') if len(indexlist) == len(timelist) == len(timeendlist) == len(parentlist) else print('error')
         set.append(indexlist)
         set.append(timelist)
         set.append(timeendlist)
@@ -171,7 +199,7 @@ def generateFamilyTrees(excelFile, ftFolder):
               '#FA1493', '#EFBC8F']
 
     for index, ft in enumerate(ftlst):
-        fig = plt.figure(figsize=(52, 27))
+        fig = plt.figure(num=1, clear=True,figsize=(52, 27))
         ax = plt.subplot()
         ax.set_xlim(0, max(ft[2]) + 5)
         ax.set_ylim(0, len(ft[0]) + 1)
@@ -207,5 +235,71 @@ def generateFamilyTrees(excelFile, ftFolder):
         filename = saveFolder + '/' + 'FT_ID_' + \
             prefix + str(ft[0][0]) + '.png'
         plt.savefig(filename)
-        plt.close(fig)
-        plt.close('all')
+
+########################################################################################################################
+    if not os.path.isdir(ftFolder+'/FamilyTrees_3D'):
+        os.makedirs(ftFolder+'/FamilyTrees_3D')
+
+    print('Generating 3D Family Trees.')
+
+    for ft in ftlst:
+        # parentId = 57
+
+        # df = pd.read_csv('/home/nirvan/Desktop/AAAA/bazF/csvFiles/ft_data_tid_57.csv')
+
+        parentId = ft[0][0]
+        df = pd.read_csv(ftFolder+'/csvFiles/ft_data_tid_'+str(parentId) + '.csv')
+        # df = df[abs(df.iloc[:, 2] - df.iloc[:, 3]) >= 4]
+
+
+        idlist = df.iloc[:, 1].tolist()
+
+        matrix = niftiread(trackFolder+'/TrackedCombined.nii')
+        newMatrix = keep_values(matrix, idlist)
+
+        indicesRange = getExtremeIndices(newMatrix)
+
+        colors = ['#0000CD', '#EE3B3B', '#8EE5EE', '#FF6103', '#458B00', '#FFB90F', '#006400', '#B23AEE', '#00BFFF',
+                  '#00C957', '#8B6914',
+                  '#FF1493', '#8FBC8F', '#CD661D', '#8B8878', '#FF7256', '#0000CD', '#EE3B3B', '#8EE5EE', '#FF6103',
+                  '#458B00', '#FFB90F',
+                  '#E06E00', '#B23EEE', '#E0BFFF', '#0EC957', '#8E6914', '#FA1493', '#EFBC8F', '#CE661D', '#8E8878',
+                  '#FE7256', '#EE3B3B',
+                  '#8EE5EE', '#FF6103', '#458B00', '#FFB90F', '#006400', '#B23AEE', '#00BFFF', '#00C957', '#8B6914',
+                  '#FF1493', '#8FBC8F',
+                  '#CD661D', '#8B8878', '#FF7256', '#0000CD', '#EE3B3B', '#8EE5EE', '#FF6103', '#458B00', '#FFB90F',
+                  '#E06E00', '#B23EEE',
+                  '#E0BFFF', '#0EC957', '#8E6914', '#FA1493', '#EFBC8F', '#CE661D', '#8E8878', '#FE7256', '#8E6914',
+                  '#FA1493', '#EFBC8F']
+        # fig = plt.figure(figsize=(160, 90))
+        fig = plt.figure(num=1, clear=True)
+        totalTimes = np.shape(matrix)[-1]
+        print('Saving 3D Family Tree for ID: ')
+        for i in range(totalTimes):
+            matrix = newMatrix[:, :, :, i]
+            # fig = plt.figure(i)
+            ax = fig.add_subplot(int(np.ceil(math.sqrt(totalTimes))), int(np.ceil(totalTimes/np.ceil(math.sqrt(totalTimes)))), i + 1, projection='3d')
+            # plot_3d_matrix(matrix, idlist, indicesRange, colors, ax)
+
+            for j, id in enumerate(idlist):
+                labels = [str(id) for id in idlist]
+                x, y, z = np.where(matrix == id)
+                if (len(x) > 2 and len(y) > 2):
+                    # print(id)
+                    label = str(id)
+                    print('label ' + label)
+                    ax.plot_trisurf(x, y, z, color=colors[j], alpha=0.5, label=label)
+            ax.set_xlim(indicesRange[0][0]-10, indicesRange[0][1]+10)
+            ax.set_ylim(indicesRange[1][0]-10, indicesRange[1][1]+10)
+            ax.set_zlim(indicesRange[2][0]-2, indicesRange[2][1]+2)
+
+            ax.legend(labels=labels)
+
+        prefix = '00' if parentId < 10 else '0' if parentId < 100 else ''
+        filename = ftFolder + '/FamilyTrees_3D/' + 'FT3D_ID_' + prefix + str(parentId) + '_' + str(ft[0]) + '.png'
+        plt.savefig(filename)
+
+        print(str(ft[0]), end='\r')
+
+    print('Done!!!')
+

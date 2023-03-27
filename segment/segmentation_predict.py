@@ -128,6 +128,10 @@ def predictionSampleGeneration(image,startpoint,endpoint):
 
     V_sample = V_sample[:,:,:,t1-1:t2]
 
+    # Multiple of 32 in X and Y dimensions
+    x_, y_, z_ = np.shape(V_sample)
+    V_sample = V_sample[:x_-x_%32,:y_-y_%32, :, :]
+
     I3d = np.array(np.shape(V_sample)[:3])
     I3d2 = [32,32,I3d[2]]
     # V_sample[V_sample>(np.mean(V_sample)+20*np.std(V_sample))] = np.mean(V_sample)+20*np.std(V_sample)

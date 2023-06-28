@@ -153,7 +153,6 @@ def trackStep2(track_op_folder,  imageName, protein1Name, protein2Name, initialp
                 Fullsize_regression_1 = niftiread(addr1 + 'Weights_' + t1 + '.nii')
                 correlation(Fullsize_1, Fullsize_2, Fullsize_regression_1, Fullsize_regression_2, t2, i1,
                             spatial_extend_matrix, addr2, padding)
-                # dashline()
 
         if time > 2:
             del Fullsize_1, Fullsize_regression_1, Fullsize_2, Fullsize_regression_2
@@ -228,8 +227,8 @@ def trackStep2(track_op_folder,  imageName, protein1Name, protein2Name, initialp
 
         # ------------------------------- OK Tested Until Here-----------------------------------
 
-        if time > 1:
-            del correlation_map_padding_show1, correlation_map_padding_show1_2, correlation_map_padding_hide1, correlation_map_padding_hide1_2
+        # if time > 1:
+        #     del correlation_map_padding_show1, correlation_map_padding_show1_2, correlation_map_padding_hide1, correlation_map_padding_hide1_2
 
         # Get the object characteristics
         # Fullsize_2_mark_BW = Fullsize_2_mark

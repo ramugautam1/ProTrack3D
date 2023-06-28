@@ -4,7 +4,7 @@ import cv2
 import math as math
 import os
 import sys
-import time
+import time as theTime
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import nibabel as nib
@@ -47,14 +47,11 @@ def trackStep1(segmentationOutputAddress, trackingOutputAddress, startTime, endT
     trackAddr = trackingOutputAddress
 
     for time in range(t1, t2 + 1):
-        print(f'    time point   {time}')
-        tic = datetime.now()
+        tic = theTime.perf_counter()
         tt = str(time)
 
         addr = segAddr + tt + '/'
         addr2 = trackAddr + str(time) + '/'
-        print(addr)
-        print(addr2)
 
         if not os.path.isdir(addr2):
             os.makedirs(addr2)
@@ -98,7 +95,7 @@ def trackStep1(segmentationOutputAddress, trackingOutputAddress, startTime, endT
         #Remove small itty bitty masks
         Fullsize2 = Fullsize.astype(bool)
 
-        Fullsize2 = np.double(morphology.remove_small_objects(Fullsize2, 9))
+        Fullsize2 = np.double(morphology.remove_small_objects(Fullsize2, 3))
 
         stack_after = Fullsize2
 
@@ -149,13 +146,9 @@ def trackStep1(segmentationOutputAddress, trackingOutputAddress, startTime, endT
 
         # myCube = np.zeros(shape=(512, 280, 15))
 
-
-        print('Drawing figure.', end='')
         for i in range(0, VoxelList.shape[0]):
             value = i
             Registration.append([value, stats1['centroid-0'][i], stats1['centroid-1'][i], stats1['centroid-2'][i]])
-            if(i%200 == 0):
-                print('.', end='')
 
             # s = str(i+1)
             # for j in range(0, np.size(VoxelList[i], axis=0)):
@@ -175,7 +168,7 @@ def trackStep1(segmentationOutputAddress, trackingOutputAddress, startTime, endT
 
         # ax.voxels(myCube)
 
-        print('\nSaving Files...')
+        # print('\nSaving Files...')
         # plt.show()
 
         # fig.savefig(addr2 + str(time) + '_3Dconnection2' + '.png')
@@ -183,13 +176,10 @@ def trackStep1(segmentationOutputAddress, trackingOutputAddress, startTime, endT
         niftiwriteF(Weights, addr2 + 'Weights_' + tt + '.nii')
 
         niftiwriteF(np.array(Registration), addr2 + 'Registration_' + tt + '.nii')
-
-        print('Done.')
-
-        toc = datetime.now()
-
-        print(f'{tt}        completed        time: {toc-tic}')
-        dashline()
+        toc = theTime.perf_counter()
+        remaining = round((toc - tic) * (t2 - time))
+        print(f'\rProcessing timepoint : {time}/{t2}. total objects: {len(VoxelList)}. Step 1 estimated to complete in {remaining // 60} min {remaining % 60} sec  ',
+            end='', flush=True)
 
         # print(gc.get_count())
         # del myCube, Fullsize, Fullsize_regression, Fullsize2, Fullsize_input, Weights, fig, stack_after, stack_after_BW, stack_after_label, tic, toc, Registration, VoxelList, orgnum, CC, addr, addr2
@@ -199,7 +189,3 @@ def trackStep1(segmentationOutputAddress, trackingOutputAddress, startTime, endT
 
     toctoc = datetime.now()
     print(f'Step 1 completed in {toctoc-tictic}')
-
-    del stats1, orgnum, i1, i2, iy, tt
-
-    gc.collect()

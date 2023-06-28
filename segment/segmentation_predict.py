@@ -108,7 +108,8 @@ def str2bool(v):
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
-def predictionSampleGeneration(image,startpoint,endpoint):
+def predictionSampleGeneration(image, startpoint, endpoint):
+    global mydimensions
     sampleAddress = os.path.dirname(image) + '/' + os.path.basename(image).split('.')[0] + '_PredSamples'
     if not os.path.isdir(sampleAddress):
         os.mkdir(sampleAddress)
@@ -129,8 +130,9 @@ def predictionSampleGeneration(image,startpoint,endpoint):
     V_sample = V_sample[:,:,:,t1-1:t2]
 
     # Multiple of 32 in X and Y dimensions
-    x_, y_, z_ = np.shape(V_sample)
+    x_, y_, z_,t_ = np.shape(V_sample)
     V_sample = V_sample[:x_-x_%32,:y_-y_%32, :, :]
+    mydimensions = np.shape(V_sample)
 
     I3d = np.array(np.shape(V_sample)[:3])
     I3d2 = [32,32,I3d[2]]
@@ -359,12 +361,10 @@ def predict(model,image, startpoint, endpoint, modelCheckpointName, op_folder):
         # Load test data
         input_image_pred, gt= loadDataGeneral(df, path2, img_size)
         print(input_image_pred[0].shape,gt[0].shape)
-
         # Run testing on ALL test images
         for ind in range(len(input_image_pred)):
             input_image = np.expand_dims(
                 np.float32(input_image_pred[ind]), axis=0) # / 255.0
-            print(input_image.shape)
 
             sys.stdout.write("\rRunning predict image %d / %d" % (ind + 1, len(input_image_pred)))
             sys.stdout.flush()
@@ -424,23 +424,26 @@ def predict(model,image, startpoint, endpoint, modelCheckpointName, op_folder):
                 nib.save(new_image, "%s/%s/%s/%s/Z0%s_class.nii" % (addrSegRes, os.path.basename(image).split('.')[0]+'_SegmentationOutput', model, tt, str(ind)))
             else:
                 nib.save(new_image, "%s/%s/%s/%s/Z%s_class.nii" % (addrSegRes, os.path.basename(image).split('.')[0]+'_SegmentationOutput', model, tt, str(ind)))
+
+    # Stitch the outputs to original dimensions and save it to the folder
+
     t1 = 0
     t2 = endpoint - startpoint + 1
     segAddr = addrSegRes + '/' + os.path.basename(image).split('.')[0]+'_SegmentationOutput'+'/'+ model +'/'
 
-    Image = np.zeros((512, 320, 13, t2)).astype(np.uint16)
+    Image = np.zeros((mydimensions[0], mydimensions[1], mydimensions[2], t2)).astype(np.uint16)
 
     for time in range(t1, t2):
         addr = segAddr + str(time + 1) + '/'
 
         Files1 = sorted(glob.glob(addr + '*.nii'))
 
-        Fullsize = np.zeros((512, 320, 13)).astype(np.uint16)
+        Fullsize = np.zeros((mydimensions[0], mydimensions[1], mydimensions[2])).astype(np.uint16)
 
         c_file = 0
 
-        for i1 in range(0, 512, 32):
-            for i2 in range(0, 320, 32):
+        for i1 in range(0, mydimensions[0], 32):
+            for i2 in range(0, mydimensions[1], 32):
                 V_arr = np.asarray(nib.load(Files1[c_file]).dataobj).astype(np.uint16).squeeze()
                 a = i1;
                 b = i1 + 32;
@@ -449,10 +452,48 @@ def predict(model,image, startpoint, endpoint, modelCheckpointName, op_folder):
                 Fullsize[a:b, c:d, :] = V_arr
                 c_file += 4
 
-        Image[:, :, :, time] = Fullsize
-        nib.save(nib.Nifti1Image(np.uint16((1-Fullsize)*65535), affine=np.eye(4)), addr + 'ZZZcombined_'+str(time+1)+'.nii')
+        ########## Filtering #################
+        print(f'\rFiltering noise. {time} / {t2}', end='', flush=True)
 
-    Image = (1 - Image) * 65535
+        Fullsize=1-Fullsize
+        # Create a binary image of pixels greater than 0
+        binary_image = (Fullsize > 0)
+        # Label connected components
+        labeled_image = skimage.measure.label(binary_image)
+        # count objects
+        num_objects = np.max(labeled_image)
+        # unique labels
+        object_labels = np.unique(labeled_image)[1:]
+        # Create a list to hold all tiny objects
+        tinylist=[]
+        # Calculate size of each component
+        component_sizes = np.bincount(labeled_image.ravel())
+        for label in object_labels:
+            # find coordinates of object in labeled image
+            object_coords = np.where(labeled_image == label)
+            # calculate number of voxels in object
+            num_voxels = len(object_coords[0])
+            # calculate depth in z direction
+            z_min = np.min(object_coords[2])
+            z_max = np.max(object_coords[2])
+            z_depth = z_max - z_min + 1
+            if (num_voxels <= 4 or (z_depth == 1 and num_voxels <= 4)):# and z_max != mydimensions[2] - 1)) : #final layer could contrain fragments of objects out of image field
+                tinylist.append(label)
+
+        for star in tinylist:
+            labeled_image[labeled_image == star] = 0
+
+        labeled_image = labeled_image.astype('uint16')
+        labeled_image[labeled_image > 0] = 65535
+        Fullsize = labeled_image
+
+        #####################################
+
+        Image[:, :, :, time] = Fullsize
+        ########## Uncomment to save a combined image at every timepoint #############################################################################################################################################################
+        # nib.save(nib.Nifti1Image(np.uint16(Fullsize), affine=np.eye(4)), addr + 'ZZZcombined_'+str(time+1)+'.nii')
+
+    # Image = (1 - Image) * 65535
 
     nib.save(nib.Nifti1Image(np.uint16(Image), affine=np.eye(4)), segAddr + 'CombinedSO.nii')
 

@@ -17,12 +17,19 @@ def niftiread(arg):
 def niftireadI(arg):
     return np.asarray(nib.load(arg).dataobj).astype(np.int16).squeeze()
 
+def niftireadu16(arg):
+    return np.asarray(nib.load(arg).dataobj).astype(np.uint16).squeeze()
 
+def niftireadu32(arg):
+    return np.asarray(nib.load(arg).dataobj).astype(np.uint32).squeeze()
 def niftiwrite(a, b):
     nib.save(nib.Nifti1Image(np.uint32(a),affine=np.eye(4)),b)
 
 def niftiwriteu16(a,b):
     nib.save(nib.Nifti1Image(np.uint16(a),affine=np.eye(4)),b)
+
+def niftiwriteu32(a, b):
+    nib.save(nib.Nifti1Image(np.uint32(a), affine=np.eye(4)), b)
 
 
 def niftiwriteF(a, b):

@@ -54,6 +54,44 @@ def generateFamilyTrees(excelFile, ftFolder):
     if not os.path.exists(csvFolder):
         os.makedirs(csvFolder)
 
+    # #get mergelist
+    # df1 = pd.read_excel(excelFile, sheet_name='Sheet10')
+    # df = pd.read_excel(excelFile, sheet_name='Sheet10', usecols=[i for i in range(1, df1.shape[1], 2)])
+    # df = df1.iloc[:, 1::2]
+    # df2 = pd.read_excel(excelFile, sheet_name='Sheet1')
+    # mergelist_all = []
+    # for i, row in enumerate(df.values):
+    #     for j, val in enumerate(row):
+    #         if not pd.isna(val):
+    #             k = 0
+    #             if k == 0:
+    #                 for ix, rowx in enumerate(df2.values):
+    #                     for jx, valx in enumerate(rowx):
+    #                         if k == 0:
+    #                             if not pd.isna(valx) and valx == val:
+    #                                 k = 1
+    #                                 thetime = int(df2.columns[jx])
+    #
+    #             mergelist_all.append((int(df.columns[j]), int(val), i + 2, thetime))
+    # print(str(len(mergelist_all)) + ' merge events in total.')
+    #
+    # merge_time_list = []
+    # merged_list = []
+    # merged_into_list = []
+    # merged_id_starttime = []
+    # for event in mergelist_all:
+    #     merge_time_list.append(event[0])
+    #     merged_list.append(event[1])
+    #     merged_into_list.append(event[2])
+    #     merged_id_starttime.append(event[3])
+    #
+    # temp_df = pd.DataFrame(mergelist_all, columns=['merge_time', 'merged', 'merged_into', 'merged_id_starttime'])
+    # # drop rows where merged and merged_into columns are identical
+    # mergelist_all_df = temp_df.drop_duplicates(subset=['merged', 'merged_into']).reset_index(drop=True)
+    #
+    # mergelist_all_df.to_csv(csvFolder + '/mergelist.csv', index=False)
+    #############################################################################################
+
     # df = pd.read_excel('/home/nirvan/Desktop/Projects/EcadMyo_08_all/Tracking_Result_EcadMyo_08/TrackingID2022-08-02 18:11:23.905684.xlsx', sheet_name='Sheet1')
     df = pd.read_excel(excelFile, sheet_name='Sheet1')
     # print(df.head())
@@ -161,6 +199,21 @@ def generateFamilyTrees(excelFile, ftFolder):
         set.append(timelist)
         set.append(timeendlist)
         set.append(parentlist)
+        #############################################################################
+
+        # # TRYING TO INCORPORATE MERGE DATA INTO FT
+        #
+        # all_merged_index=[]
+        # all_merge_time_index=[]
+        #
+        # for id in indexlist:
+        #     if id in merged_into_list:
+        #         id_index = [i for i in range(len(merged_into_list)) if merged_into_list[i]==id]
+        #         merged_index = [merged_list[i] for i in id_index]
+        #         merge_time_index = [merge_time_list[i] for i in id_index]
+
+
+        #############################################################################
 
         mydf = pd.DataFrame()
         mydf['index'] = indexlist
@@ -172,6 +225,11 @@ def generateFamilyTrees(excelFile, ftFolder):
 
     # added a tab to line just under
         ftlst.append(set)
+
+        if tid>10:
+            print(ftlst)
+            break
+
 
     print(np.shape(ftlst))
 
@@ -212,7 +270,7 @@ def generateFamilyTrees(excelFile, ftFolder):
 
         notplottedlist = []
         for ind, itm in enumerate(ft[0]):
-            if ind != 0 and (itm not in ft[3]) and ((ft[2][ind] - ft[1][ind]) < 4):
+            if ind != 0 and (itm not in ft[3]) and ((ft[2][ind] - ft[1][ind]) < 3):
                 notplottedlist.append(ind)
         print(notplottedlist)
 

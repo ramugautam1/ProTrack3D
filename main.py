@@ -6,7 +6,8 @@ import tkinter.font as font
 from tkinter import ttk
 from segment import segmentation, segmentation_predict
 import os
-from familyTreesGenerator import generateFamilyTrees
+# from familyTreesGenerator import generateFamilyTrees
+from CompletelyNewFamilyTreeGen import generateFamilyTrees
 from convert2nii import czi2nii, tif2nii
 
 Font_tuple = ("Courier", 45, "bold")
@@ -485,7 +486,7 @@ entryTr5.insert(0, '41')
 entryTr6 = ttk.Entry(track_page, textvariable=trbT, font=('System', 15))
 entryTr6.insert(0, '2')
 entryTr7 = ttk.Entry(track_page, textvariable=ost, font=('System', 15))
-entryTr7.insert(0, '27')
+entryTr7.insert(0, '9')
 # entryTr8 = ttk.Entry(track_page, textvariable=p1n, font=('System',15,'bold'))
 # entryTr9 = ttk.Entry(track_page, textvariable=p2n, font=('System',15,'bold'))
 
@@ -549,6 +550,8 @@ objId = tk.StringVar()
 def selectExcelFile():
     excelFile.set(fd.askopenfilename(defaultextension='.xlsx', filetypes=[("Excel Files", "*.xlsx")]))
 
+def selectCsvFile():
+    excelFile.set(fd.askopenfilename(defaultextension='.csv', filetypes=[("CSV Files", "*.csv")]))
 
 def selectFtOutputFolder():
     ftOpFolder.set(fd.askdirectory())
@@ -566,7 +569,8 @@ fam_page_greet.place(x=50, y=120)
 
 buttonFt1 = tk.Button(fam_page, text="Back", command=lambda: show_frame(homepage), font=('System', 15))
 
-buttonFt2 = tk.Button(fam_page, text="Select Tracking Results", command=lambda: selectExcelFile(), font=('System', 15))
+# buttonFt2 = tk.Button(fam_page, text="Select Tracking Results", command=lambda: selectExcelFile(), font=('System', 15))
+buttonFt2 = tk.Button(fam_page, text="Select Tracking Results", command=lambda: selectCsvFile(), font=('System', 15))
 entryFt2 = tk.Entry(fam_page, textvariable=excelFile, font=('System', 15))
 buttonFt3 = tk.Button(fam_page, text="Select Folder to Save Family Trees", command=lambda: selectFtOutputFolder(),
                       font=('System', 15))
@@ -634,6 +638,7 @@ buttonCC2 = tk.Button(cross_corr_page, text="Select Segmentation Results Folder"
 entryCC2 = tk.Entry(cross_corr_page, textvariable=segOPfolderCC, font=('System', 15))
 buttonCC3 = tk.Button(cross_corr_page, text="Select Tracking Results", command=lambda: selectExcelFileCC(),
                       font=('System', 15))
+
 entryCC3 = tk.Entry(cross_corr_page, textvariable=excelFileCC, font=('System', 15))
 buttonCC4 = tk.Button(cross_corr_page, text='Select Family Tree Folder', font=('System', 15),
                       command=lambda: selectFTFolderCC())

@@ -55,6 +55,8 @@ def prepare(imageName, protein1Name, protein2Name):
             ttag = '00'
         elif (i < 99):
             ttag = '0'
+        elif (i<999):
+            ttag = ' '
         if np.size(np.shape(originalImage))>4:
             slice1 = originalImage[:, :, :, i, 0]
             slice2 = originalImage[:, :, :, i, 1]

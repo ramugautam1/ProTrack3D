@@ -13,21 +13,21 @@ import segment.FCN as FCN
 # import models.DenseASPP3D, models.DeepLabV3_plus3D
 
 import matplotlib.pyplot as plt
-import numpy as np # Path to csv-file. File should contain X-ray filenames as first column,
-        # mask filenames as second column.
+import numpy as np  # Path to csv-file. File should contain X-ray filenames as first column,
+# mask filenames as second column.
 import nibabel as nib
 # from keras.models import load_model
 import math as math
 from skimage.color import hsv2rgb, rgb2hsv, gray2rgb
 from skimage import io, exposure
 
-
 from skimage.color import hsv2rgb, rgb2hsv, gray2rgb
 from skimage import io, exposure
 import tensorflow.compat.v1 as tf
+
 tf.disable_v2_behavior()
 
-import os,time,cv2, sys, math
+import os, time, cv2, sys, math
 import numpy as np
 import cv2, glob
 import time, datetime
@@ -38,6 +38,7 @@ import subprocess
 import segment.helpers as helpers
 import pandas as pd
 import segment.createTrainingData as createTrainingData
+
 
 def IoU(y_true, y_pred):
     assert y_true.dtype == bool and y_pred.dtype == bool
@@ -55,6 +56,7 @@ def Dice(y_true, y_pred):
     y_pred_f = y_pred.flatten()
     intersection = np.logical_and(y_true_f, y_pred_f).sum()
     return (2. * intersection + 1.) / (y_true.sum() + y_pred.sum() + 1.)
+
 
 def dice_loss(y_true, y_pred):
     y_true = tf.cast(y_true, tf.float32)
@@ -80,7 +82,7 @@ def focal_loss(y_true, logits, alpha=0.25, gamma=2):
         weight_b = (1 - alpha) * y_pred ** gamma * (1 - targets)
 
         return (tf.math.log1p(tf.exp(-tf.abs(logits))) + tf.nn.relu(-logits)) * (
-                    weight_a + weight_b) + logits * weight_b
+                weight_a + weight_b) + logits * weight_b
 
     y_pred = tf.math.sigmoid(logits)
     loss = focal_loss_with_logits(logits=logits, targets=y_true, alpha=alpha, gamma=gamma, y_pred=y_pred)
@@ -90,7 +92,7 @@ def focal_loss(y_true, logits, alpha=0.25, gamma=2):
 
 def saggital(img):
     """Extracts midle layer in saggital axis and rotates it appropriately."""
-    return img[:,  int(img.shape[1] / 2), ::-1].T
+    return img[:, int(img.shape[1] / 2), ::-1].T
 
 
 def str2bool(v):
@@ -101,13 +103,15 @@ def str2bool(v):
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
-def train(model,epochs,gt_path,op_path):
-    dataset_path,valdataset_path = createTrainingData.create(gt_path)
-  
-    dataset = os.path.basename(dataset_path)
+
+def train(model, epochs, gt_path, op_path):
+    continue_training = True  # If loading a pretrained model, set this true here and under the parser ( arouund line 126)
+    same_model = True
+    dataset_path, valdataset_path = createTrainingData.create(addr=gt_path, continue_training=continue_training,
+                                                              same_model=same_model)
+
+    dataset = os.path.basename(dataset_path)[:-7]
     valdataset = os.path.basename(valdataset_path)
-
-
 
     num_epochs = epochs
     model = model
@@ -118,18 +122,19 @@ def train(model,epochs,gt_path,op_path):
 
     if not os.path.isdir(ckpt_path):
         os.makedirs(ckpt_path)
-    
-    
+
     parser = argparse.ArgumentParser()
-    parser.add_argument('--class_balancing', type=str2bool, default=True, help='Whether to use median frequency class weights to balance the classes in the loss')
-    parser.add_argument('--continue_training', type=str2bool, default=False, help='Whether to continue training from a checkpoint')
+    parser.add_argument('--class_balancing', type=str2bool, default=True,
+                        help='Whether to use median frequency class weights to balance the classes in the loss')
+    parser.add_argument('--continue_training', type=str2bool, default=True,
+                        help='Whether to continue training from a checkpoint')
     parser.add_argument('--checkpoint_step', type=int, default=1, help='How often to save checkpoints (epochs)')
     parser.add_argument('--validation_step', type=int, default=1, help='How often to perform validation (epochs)')
-    parser.add_argument('--batch_size', type=int, default=8, help='Number of images in each batch')
-    parser.add_argument('--class_weight_reference', type=str, default="reference/Ecad2020", help='reference you are using.')
+    parser.add_argument('--batch_size', type=int, default=5, help='Number of images in each batch')
+    parser.add_argument('--class_weight_reference', type=str, default="reference/Ecad2020",
+                        help='reference you are using.')
     parser.add_argument('--num_val_images', type=int, default=200, help='Number of ramdom validation samples')
-    
-    
+
     """
     Currently, FC-DenseNet is the best model.
     PSPNet must take input size 192 for 3D
@@ -145,7 +150,7 @@ def train(model,epochs,gt_path,op_path):
     Output size for Aju2020: 35x32x15
     """
     args = parser.parse_args()
-    
+
     img_size = 32
     # class_names_list, label_values = helpers.get_label_info(os.path.join(dataset_path, "class_dict.csv"))
     class_names_list, label_values = helpers.get_label_info(dataset_path + "/class_dict.csv")
@@ -155,16 +160,16 @@ def train(model,epochs,gt_path,op_path):
             class_names_string = class_names_string + class_name + ", "
         else:
             class_names_string = class_names_string + class_name
-    
+
     num_classes = len(label_values)
-    
+
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
-    sess=tf.Session(config=config)
-    
-    net_input = tf.placeholder(tf.float32, shape=[None, img_size, img_size, 13, 1])
-    net_output = tf.placeholder(tf.float32, shape=[None, img_size, img_size, 13, num_classes])
-    
+    sess = tf.Session(config=config)
+
+    net_input = tf.placeholder(tf.float32, shape=[None, img_size, img_size, 16, 1])
+    net_output = tf.placeholder(tf.float32, shape=[None, img_size, img_size, 16, num_classes])
+
     network = None
     init_fn = None
     print(model)
@@ -212,7 +217,7 @@ def train(model,epochs,gt_path,op_path):
     # elif model == "DenseASPP-ResNet50" or model == "DenseASPP-Res101" or model == "DenseASPP-Res152":
     #     network = models.DenseASPP3D.build_dense_aspp(net_input, num_classes=num_classes, preset_model=model)
     '''
-#---------------------------------------------------------------------------------------------------------------------------------------------
+    # ---------------------------------------------------------------------------------------------------------------------------------------------
 
     losses = None
     if args.class_balancing:
@@ -220,10 +225,11 @@ def train(model,epochs,gt_path,op_path):
         class_weights = utils.compute_class_weights(labels_dir=args.class_weight_reference,
                                                     label_values=label_values)
         print(class_weights)
-        print(net_output,network[0])
+        print(net_output, network[0])
         weights = tf.reduce_sum(class_weights * net_output, axis=-1)
         unweighted_loss = None
-        unweighted_loss = 100 * tf.nn.softmax_cross_entropy_with_logits(logits=network[0], labels=net_output) #+ 10 * focal_loss(logits=network[0], y_true=net_output)
+        unweighted_loss = 100 * tf.nn.softmax_cross_entropy_with_logits(logits=network[0],
+                                                                        labels=net_output)  # + 10 * focal_loss(logits=network[0], y_true=net_output)
         # unweighted_loss = dice_loss(net_output, network[0])
         # unweighted_loss = focal_loss(logits=network[0], y_true=net_output)
         losses = unweighted_loss * weights
@@ -235,25 +241,27 @@ def train(model,epochs,gt_path,op_path):
         losses = dice_loss(net_output, network[0])
     loss = tf.reduce_mean(losses)
 
-    opt = tf.train.AdamOptimizer(0.00015).minimize(loss, var_list=[var for var in tf.trainable_variables()])
-    
-    
-    
-    
+    opt = tf.train.AdamOptimizer(0.0002).minimize(loss, var_list=[var for var in tf.trainable_variables()])
+
     saver = tf.train.Saver(max_to_keep=1000)
     sess.run(tf.global_variables_initializer())
 
     if init_fn is not None:
         init_fn(sess)
 
-
     model_checkpoint_name = ckpt_path + "/latest_model_" + "_" + dataset + ".ckpt"
 
-
-    if args.continue_training or not mode == "train":
-        print('Loaded latest model checkpoint')
-        print(model_checkpoint_name)
-        saver.restore(sess, model_checkpoint_name)
+    if (args.continue_training or not mode == "train") and not same_model:
+        # print('Loaded latest model checkpoint')
+        # print(model_checkpoint_name)
+        # saver.restore(sess, model_checkpoint_name)
+        print('Loading Baz trained model....')
+        mcn = "C:/Users/ramu_admin/Desktop/ProTrack3D/checkpoints/FC-DenseNet/6thAprBTr" + "/latest_model_" + "_" + "6thAprBTr" + ".ckpt"
+        saver.restore(sess, mcn)
+    elif (args.continue_training or not mode == "train") and same_model:
+        print('Loading the previous check point....')
+        mcn = model_checkpoint_name
+        saver.restore(sess, mcn)
 
     # Load the data
     print("Loading the data ...")
@@ -278,7 +286,6 @@ def train(model,epochs,gt_path,op_path):
     # Load val data
     X_val, y_val = loadDataGeneral(df, path2, img_size)
 
-
     # n_val = X_val.shape[0]
     # inpShape_val = X_val.shape[1:]
     # print(X_val.shape, y_val.shape)
@@ -286,14 +293,18 @@ def train(model,epochs,gt_path,op_path):
     avg_loss_per_epoch = []
     val_indices = []
     num_vals = min(args.num_val_images, len(X_val))
-    #num_vals = len(X_val)
+    # num_vals = len(X_val)
     random.seed(16)
     val_indices = random.sample(range(0, len(X_val)), num_vals)
 
     avg_scores_per_epoch = []
 
     # Do the training here
-    avg_iou_list=[]
+    avg_iou_list = []
+    ########## testing ##########
+    highest_IoU = 0
+    high_epoch = 0
+    #############################
     for epoch in range(0, num_epochs):
         current_losses = []
 
@@ -316,9 +327,9 @@ def train(model,epochs,gt_path,op_path):
                 input_image = X_train[index]
                 output_image = y_train[index]
                 with tf.device('/cpu:0'):
-                    #input_image, output_image = data_augmentation(input_image, output_image)
+                    # input_image, output_image = data_augmentation(input_image, output_image)
                     # Prep the data. Make sure the labels are in one-hot format
-                    input_image = np.float32(input_image) #/ 255.0
+                    input_image = np.float32(input_image)  # / 255.0
                     output_image = np.float32(helpers.one_hot_it(label=output_image, label_values=label_values))
 
                     # input_image_batch.append(np.expand_dims(input_image, axis=0))
@@ -326,8 +337,7 @@ def train(model,epochs,gt_path,op_path):
                     input_image_batch.append(input_image)
                     output_image_batch.append(output_image)
 
-
-            #print(type(input_image_batch[0].shape))
+            # print(type(input_image_batch[0].shape))
             if args.batch_size == 1:
                 input_image_batch = np.asarray(input_image_batch[0])
                 output_image_batch = np.asarray(output_image_batch[0])
@@ -336,17 +346,17 @@ def train(model,epochs,gt_path,op_path):
                 # output_image_batch = np.squeeze(np.stack(output_image_batch, axis=0))
                 input_image_batch = np.asarray(np.stack(input_image_batch, axis=0))
                 output_image_batch = np.asarray(np.stack(output_image_batch, axis=0))
-            #print(type(input_image_batch), input_image_batch.shape)
+            # print(type(input_image_batch), input_image_batch.shape)
 
             # Do the training
-            _, current= sess.run([opt, loss],
-                            feed_dict={net_input: input_image_batch, net_output: output_image_batch})
-            #_, current, stack = sess.run([opt, loss], feed_dict={net_input: input_image_batch, net_output: output_image_batch})
+            _, current = sess.run([opt, loss],
+                                  feed_dict={net_input: input_image_batch, net_output: output_image_batch})
+            # _, current, stack = sess.run([opt, loss], feed_dict={net_input: input_image_batch, net_output: output_image_batch})
             current_losses.append(current)
             cnt = cnt + args.batch_size
             if cnt % 100 == 0:
                 string_print = "Epoch = %d Count = %d Current_Loss = %.4f Time = %.2f" % (
-                epoch, cnt, current, time.time() - st)
+                    epoch, cnt, current, time.time() - st)
                 utils.LOG(string_print)
                 st = time.time()
 
@@ -355,16 +365,21 @@ def train(model,epochs,gt_path,op_path):
 
         # Create directories if needed
         if not os.path.isdir("%s/%04d" % (ckpt_path, epoch)):
-            os.makedirs("%s/%04d" % (ckpt_path,  epoch))
-
-        # Save latest checkpoint to same file name
-        print("Saving latest checkpoint")
-        saver.save(sess, model_checkpoint_name)
+            os.makedirs("%s/%04d" % (ckpt_path, epoch))
+        #####################################
+        # # Save latest checkpoint to same file name
+        # print("Saving latest checkpoint")
+        # saver.save(sess, model_checkpoint_name)
+        ################ Testing ############
+        if epoch < 1:
+            # Save latest checkpoint to same file name
+            print("Saving latest checkpoint")
+            saver.save(sess, model_checkpoint_name)
+        #####################################
 
         # if epoch % args.checkpoint_step == 0:
         #     print("Saving checkpoint for this epoch")
         #     saver.save(sess, "%s/%s/%s/%04d/model.ckpt" % ("checkpoints",model, dataset, epoch))
-        
 
         if epoch % args.validation_step == 0:
             print("Performing validation")
@@ -388,21 +403,21 @@ def train(model,epochs,gt_path,op_path):
                 # input_image = np.expand_dims(
                 #     np.float32(X_val[ind]), axis=0) #/255.0
                 input_image = np.expand_dims(
-                   X_val[ind], axis=0)  # /255.0
+                    X_val[ind], axis=0)  # /255.0
                 gt = y_val[ind]
                 gt = np.array(gt)
 
                 gt = helpers.reverse_one_hot(helpers.one_hot_it(gt, label_values))
-                #gt = 1-gt
+                # gt = 1-gt
 
-                #output_image, stack= sess.run(network, feed_dict={net_input: input_image})
+                # output_image, stack= sess.run(network, feed_dict={net_input: input_image})
                 output_image, stack = sess.run(network, feed_dict={net_input: input_image})
 
                 output_image = np.array(output_image[0, :, :, :, :])
                 # print(output_image.shape)
                 output_image = helpers.reverse_one_hot(output_image)
-                #output_image = 1-output_image
-                #print(output_image)
+                # output_image = 1-output_image
+                # print(output_image)
 
                 # fig = plt.figure(figsize=(16, 16))
                 # columns = 13
@@ -427,11 +442,11 @@ def train(model,epochs,gt_path,op_path):
                 # plt.close(fig)
 
                 accuracy, class_accuracies, prec, rec, f1, iou = utils.evaluate_segmentation(pred=output_image,
-                                                                                         label=gt,
-                                                                                         num_classes=num_classes)
+                                                                                             label=gt,
+                                                                                             num_classes=num_classes)
                 target.write("%s, %f, %f, %f, %f, %f" % ('val', accuracy, prec, rec, f1, iou))
                 for item in class_accuracies:
-                    target.write(", %f"%(item))
+                    target.write(", %f" % (item))
                 target.write("\n")
 
                 scores_list.append(accuracy)
@@ -452,6 +467,7 @@ def train(model,epochs,gt_path,op_path):
             avg_iou = np.mean(iou_list)
             avg_iou_list.append(avg_iou)
 
+            print("****************************************")
             print("\nAverage validation accuracy for epoch # %04d = %f" % (epoch, avg_score))
             print("Average per class validation accuracies for epoch # %04d:" % (epoch))
             for index, item in enumerate(class_avg_scores):
@@ -461,11 +477,30 @@ def train(model,epochs,gt_path,op_path):
             print("Validation F1 score = ", avg_f1)
             print("Validation IoU score = ", avg_iou)
 
-        if(epoch>1 and epoch%5==0):
+            print("-----------------------------------------")
+            print("Highest IoU: ", highest_IoU, " at Epoch ", high_epoch)
+            print("****************************************")
+
+            if epoch < 1:
+                highest_IoU = avg_iou
+            else:
+                if avg_iou > highest_IoU:
+                    highest_IoU = avg_iou
+                    high_epoch = epoch
+
+                    # Save latest checkpoint to same file name
+                    print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+                    print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+                    print("Higher IoU achieved. Saving latest checkpoint...")
+                    print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+                    print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+                    saver.save(sess, model_checkpoint_name)
+
+        if (epoch > 1 and epoch % 5 == 0):
             fig = plt.figure(figsize=(11, 8))
             ax1 = fig.add_subplot(111)
 
-            ax1.plot(range(epoch+1), avg_iou_list)
+            ax1.plot(range(epoch + 1), avg_iou_list)
             ax1.set_title("Average validation IoU vs epochs")
             ax1.set_xlabel("Epoch")
             ax1.set_ylabel("Avg. val. IoU")
@@ -512,14 +547,13 @@ def train(model,epochs,gt_path,op_path):
     fig, ax = plt.subplots(figsize=(10, 6))
     plt.rcParams.update({'font.size': 12})
 
-    x = np.arange(1, np.size(avg_iou_list,0)+1)
+    x = np.arange(1, np.size(avg_iou_list, 0) + 1)
     ax.plot(x, avg_iou_list, color='blue')
     ax.set_title("Average IoU vs epochs")
     ax.set_xlabel('Epoch')
     ax.set_ylabel('IoU')
     plt.savefig("%s/IoU_vs_epochs.png" % (ckpt_path))
     plt.clf()
-
 
     # ax1.plot(range(num_epochs), iou_list)
     # ax1.set_title("Average loss vs epochs")
@@ -528,5 +562,5 @@ def train(model,epochs,gt_path,op_path):
     #
     # plt.savefig("%s/iou_vs_epochs.png" % (ckpt_path))
 
-########################################################################################################################
+    ########################################################################################################################
     gc.collect()

@@ -130,7 +130,7 @@ def train(model, epochs, gt_path, op_path):
                         help='Whether to continue training from a checkpoint')
     parser.add_argument('--checkpoint_step', type=int, default=1, help='How often to save checkpoints (epochs)')
     parser.add_argument('--validation_step', type=int, default=1, help='How often to perform validation (epochs)')
-    parser.add_argument('--batch_size', type=int, default=5, help='Number of images in each batch')
+    parser.add_argument('--batch_size', type=int, default=4, help='Number of images in each batch')
     parser.add_argument('--class_weight_reference', type=str, default="reference/Ecad2020",
                         help='reference you are using.')
     parser.add_argument('--num_val_images', type=int, default=200, help='Number of ramdom validation samples')
@@ -241,7 +241,7 @@ def train(model, epochs, gt_path, op_path):
         losses = dice_loss(net_output, network[0])
     loss = tf.reduce_mean(losses)
 
-    opt = tf.train.AdamOptimizer(0.0002).minimize(loss, var_list=[var for var in tf.trainable_variables()])
+    opt = tf.train.AdamOptimizer(0.00001).minimize(loss, var_list=[var for var in tf.trainable_variables()])
 
     saver = tf.train.Saver(max_to_keep=1000)
     sess.run(tf.global_variables_initializer())

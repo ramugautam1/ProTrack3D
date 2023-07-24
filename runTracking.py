@@ -5,8 +5,8 @@ from trackStep1 import trackStep1
 from trackStep2 import trackStep2
 
 #this is for testing
-from trying_to_come_up_with_my_own_algorithm import myTrackStep2
-from testing_new_track_step_1 import myTrackStep1
+from myTrackStep2 import myTrackStep2
+from myTrackStep1 import myTrackStep1
 
 # imgname.get(), segloc.get(), trackloc.get(), strT.get(), enT.get(),trbT.get(),ost.get(),p1n.get(),p2n.get()
 

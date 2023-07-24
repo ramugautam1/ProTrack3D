@@ -10,7 +10,7 @@ def niftireadU32(arg):
     return np.asarray(nib.load(arg).dataobj).astype(np.uint32).squeeze()
 
 
-def createEventsAndIntensityPlots(filePath,originalImage,nameOnly):
+def createEventsAndIntensityPlots(filePath,originalImage,nameOnly,distance):
     eventsAndIntensityDF = pd.DataFrame(columns=['time', 'total_intensity', 'masked_intensity', 'pixel_count',  # done
                                                  'masked_intensity_per_pixel', 'masked_intensity_per_object',
                                                  'total_intensity_per_pixel', 'total_intensity_per_object',  # done
@@ -38,7 +38,7 @@ def createEventsAndIntensityPlots(filePath,originalImage,nameOnly):
     eventsAndIntensityDF['death'] = eventsDF['death'].astype('int')
     eventsAndIntensityDF['total_objects'] = eventsDF['Total objects'].astype('int')
 
-    mask = niftireadU32(file_path + '/' + nameOnly + '_SegmentationOutput/FC-DenseNet/CombinedSO.nii')
+    mask = niftireadU32(file_path + nameOnly + '_SegmentationOutput/FC-DenseNet/CombinedSO.nii')
     newMask = np.zeros_like(mask)
     newMask[mask > 0] = 1
 
@@ -49,13 +49,14 @@ def createEventsAndIntensityPlots(filePath,originalImage,nameOnly):
     print(np.shape(image))
 
     intensityArr = np.zeros((len(eventsDF), 3))
-    for i in range(np.size(image, 3)):
+    # for i in range(np.size(image, 3)):
+    for i in range(distance+1):
         intensityArr[i, :] = [image[:, :, :, i].sum(), maskedImage[:, :, :, i].sum(), newMask[:, :, :, i].sum()]
     intensityDF = pd.DataFrame(intensityArr, columns=['total_intensity', 'masked_intensity', 'pixel_count'])
     for column in intensityDF.columns:
         eventsAndIntensityDF[column] = intensityDF[column].astype('int')
 
-    eventsAndIntensityDF['masked_intensity_per_pixel'] = ['masked_intensity'] / eventsAndIntensityDF['pixel_count']
+    eventsAndIntensityDF['masked_intensity_per_pixel'] = eventsAndIntensityDF['masked_intensity'] / eventsAndIntensityDF['pixel_count']
     eventsAndIntensityDF['masked_intensity_per_object'] = eventsAndIntensityDF['masked_intensity'] / eventsAndIntensityDF[
         'total_objects']
     eventsAndIntensityDF['total_intensity_per_pixel'] = eventsAndIntensityDF['total_intensity'] / eventsAndIntensityDF[

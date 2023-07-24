@@ -139,8 +139,7 @@ import re
 from correlation20220708 import correlation
 # from testCorr import correlation
 from functions import dashline, starline, niftiread, niftiwrite, niftiwriteF, intersect, setdiff, isempty, rand, nan_2d,niftireadI, niftiwriteu16,niftireadu32, niftiwriteu32
-import createEventIntensityPlots
-
+from createEventIntensityPlots import createEventsAndIntensityPlots
 def myTrackStep2(track_op_folder,  imageName, protein1Name, protein2Name, initialpoint=1, startpoint=1, endpoint=40, trackbackT=2):
     protein1Name = protein1Name
     protein2Name = protein2Name
@@ -458,8 +457,9 @@ def myTrackStep2(track_op_folder,  imageName, protein1Name, protein2Name, initia
     # worksheet2.write('D1', 'split')
     # worksheet2.write('E1', 'fusion')
 
+    globalSplitList = [ [splitEvent for splitEvent in timeSplitList if splitEvent[0] != 1] for timeSplitList in globalSplitList ]
 
-
+    print(globalIdList)
     lst = []
     for i in range(1, len(globalIdList) + 1):
         if i == 1:
@@ -485,18 +485,19 @@ def myTrackStep2(track_op_folder,  imageName, protein1Name, protein2Name, initia
                     mydf.loc[idd - 2, tt * 2 - 1] = int(idd)
                     mydf.loc[idd - 2, tt * 2] = int(idd)
                     if idd not in globalIdList[tt - 1]:  # if the object id is new
-                        if idd in (np.array(globalSplitList[tt - 1])[:, 0:2].flatten()):  # if the object split from another id
+                        # if idd in (np.array(globalSplitList[tt - 1])[:, 0:2].flatten()):  #replaced with next line
+                        # if the object split from another id
+                        # list comprehension removes the empty sublist so that [:,0:2] doesn't run into an error
+                        if idd in (np.array([sublist for sublist in globalSplitList[tt - 1] if sublist])[:, 0:2].flatten()):
                             for splitEvent in globalSplitList[tt - 1]:  # for all split events at that time
                                 if splitEvent[1] == idd:  # if idd in an event
                                     parent = splitEvent[0]  # get parent id
-                                    #                                 print(parent, idd)
                                     for parent_t in range(tt):  # for all times until tt
                                         if tt == 1:
                                             if not pd.isna(mydf.loc[parent - 2, parent_t]):
                                                 mydf.loc[idd - 2, parent_t] = mydf.loc[parent - 2, parent_t]
                                         if tt > 1:
-                                            if parent_t == 0 and not pd.isna(mydf.loc[parent - 2, parent_t]) and not \
-                                            mydf.iloc[parent - 2, parent_t] == 'new':
+                                            if parent_t == 0 and not pd.isna(mydf.loc[parent - 2, parent_t]) and not mydf.iloc[parent - 2, parent_t] == 'new':
                                                 mydf.loc[idd - 2, parent_t] = mydf.loc[parent - 2, parent_t]
                                             if parent_t > 0 and not pd.isna(
                                                     mydf.loc[parent - 2, parent_t * 2 - 1]) and not mydf.iloc[
@@ -681,7 +682,10 @@ def myTrackStep2(track_op_folder,  imageName, protein1Name, protein2Name, initia
     globalTargetIdListDF.to_csv(folder + 'target_IDs.csv', index=False)
 
     print('Saving events and intensity plots...')
-    createEventIntensityPlots(filepath=track_op_folder, originalImage=imageFolder + '/' + imageNameOnly.split('.')[0]+'.tif', nameOnly=imageNameOnly.split('.')[0])
+    print(track_op_folder)
+    print(imageFolder)
+    print(imageNameOnly)
+    createEventsAndIntensityPlots(filePath=track_op_folder, originalImage=imageFolder + '/' + imageNameOnly.split('.')[0]+'.tif', nameOnly=imageNameOnly.split('.')[0], distance=endpoint-startpoint)
 
 
 

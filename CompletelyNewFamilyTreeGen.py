@@ -31,7 +31,7 @@ def plot_3d_matrix(matrix, idlist, lims, colors, ax):
         x, y, z = np.where(matrix == id)
         if (len(x) > 2 and len(y) > 2):
             print(id)
-            ax.plot_trisurf(x, y, z, color=colors[i], alpha=0.5)
+            ax.plot_trisurf(x, y, z, color=colors[i%len(colors)], alpha=0.5)
     ax.set_xlim(99, 151)
     ax.set_xlim(147, 180)
     ax.set_xlim(1, 13)
@@ -64,13 +64,17 @@ def generateFamilyTrees(excelFile, ftFolder):
     targetIdsdf = pd.read_csv(trackFolder+'/target_IDs.csv')
     targetIds = list(targetIdsdf.values.flatten())
 
+    merge_list = pd.read_csv(trackFolder+'/merge_list.csv')
+
     ftlst = []
+    mrglst = []
 
     print('\n=================================================\n')
 
     for tid in targetIds:
         temp1=[]
         familyMembers=[]
+
         for ix in range(len(existForList)):
             if existForList[ix,0]==tid or existForList[ix,3]==tid or existForList[ix,3] in temp1:
                 temp1.append(existForList[ix,0])
@@ -81,7 +85,19 @@ def generateFamilyTrees(excelFile, ftFolder):
 
         famMem = pd.DataFrame(np.array(familyMembers))
         famMem.columns = ['index','timestart','timeend','parent']
-        famMem.to_csv(csvFolder + '/ft_data_tid_' + str(tid) + '.csv')
+        famMem.to_csv(csvFolder + '/split_data_tid_' + str(tid) + '.csv')
+
+        all_ids_in_ft_s = np.array(famMem.loc[:,'index'])
+
+        mrglst_for_ft = merge_list[merge_list['Merged Into'].isin(all_ids_in_ft_s)].values().tolist()
+
+        # for mrglst_count in len(mrglst_for_ft):
+        #     mrglst_for_ft[mrglst_count].append(existForDF[existForDF['index']==])
+        #
+        # exist_for_ft_m.append(existForDF[existForDF['index']])
+
+
+
 
     print(np.shape(ftlst))
  # #######################################################################################################################
@@ -123,7 +139,7 @@ def generateFamilyTrees(excelFile, ftFolder):
         for i, j in enumerate((ft[0])):
             if i not in notplottedlist:  # min time filter
                 for k in range(ft[1][i] - 1, ft[2][i]):
-                    ax.scatter(k + 1, i + 1, c=colors[i], s=400)
+                    ax.scatter(k + 1, i + 1, c=colors[i%len(colors)], s=400)
                     ax.text(ft[2][i] + 1, i + 1, str(ft[0][i]),
                             fontsize=30 if i == 0 else 20)
                 plt.plot()
@@ -131,7 +147,7 @@ def generateFamilyTrees(excelFile, ftFolder):
                     if iii not in notplottedlist:  # min time filter
                         l = ft[0].index(ft[3][iii])
                         plt.plot([ft[1][iii] - 1, ft[1][iii]],
-                                 [l + 1, iii + 1], c=colors[iii], linewidth=1)
+                                 [l + 1, iii + 1], c=colors[iii%len(colors)], linewidth=1)
                 plt.plot([ft[1][i], ft[2][i]], [
                          i + 1, i + 1], c='k', linewidth=1)
 
@@ -148,7 +164,7 @@ def generateFamilyTrees(excelFile, ftFolder):
 
     for ft in ftlst:
         parentId = ft[0][0]
-        df = pd.read_csv(ftFolder+'/csvFiles/ft_data_tid_'+str(parentId) + '.csv')
+        df = pd.read_csv(ftFolder+'/csvFiles/split_data_tid_'+str(parentId) + '.csv')
         # df = df[abs(df.iloc[:, 2] - df.iloc[:, 3]) >= 4]
 
 
@@ -205,7 +221,7 @@ def generateFamilyTrees(excelFile, ftFolder):
                 if (len(x) > 2 and len(y) > 2):
                     try:
                         label = str(id)
-                        ax.plot_trisurf(x, y, z, color=colors[j], alpha=0.6, label=label)
+                        ax.plot_trisurf(x, y, z, color=colors[j%len(colors)], alpha=0.6, label=label)
 
                         # ax.text(x=int((indicesRange[0][1] - indicesRange[0][0]) / 2), y=int(indicesRange[1][1] - 10-j*10), z=indicesRange[2][1]-1,  s=str(id))
                     except(RuntimeError):

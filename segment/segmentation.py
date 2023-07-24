@@ -126,8 +126,8 @@ def train(model, epochs, gt_path, op_path):
     parser = argparse.ArgumentParser()
     parser.add_argument('--class_balancing', type=str2bool, default=True,
                         help='Whether to use median frequency class weights to balance the classes in the loss')
-    parser.add_argument('--continue_training', type=str2bool, default=True,
-                        help='Whether to continue training from a checkpoint')
+    # parser.add_argument('--continue_training', type=str2bool, default=True,
+    #                     help='Whether to continue training from a checkpoint')
     parser.add_argument('--checkpoint_step', type=int, default=1, help='How often to save checkpoints (epochs)')
     parser.add_argument('--validation_step', type=int, default=1, help='How often to perform validation (epochs)')
     parser.add_argument('--batch_size', type=int, default=4, help='Number of images in each batch')
@@ -167,8 +167,8 @@ def train(model, epochs, gt_path, op_path):
     config.gpu_options.allow_growth = True
     sess = tf.Session(config=config)
 
-    net_input = tf.placeholder(tf.float32, shape=[None, img_size, img_size, 16, 1])
-    net_output = tf.placeholder(tf.float32, shape=[None, img_size, img_size, 16, num_classes])
+    net_input = tf.placeholder(tf.float32, shape=[None, img_size, img_size, None, 1])
+    net_output = tf.placeholder(tf.float32, shape=[None, img_size, img_size, None, num_classes])
 
     network = None
     init_fn = None
@@ -241,7 +241,7 @@ def train(model, epochs, gt_path, op_path):
         losses = dice_loss(net_output, network[0])
     loss = tf.reduce_mean(losses)
 
-    opt = tf.train.AdamOptimizer(0.00001).minimize(loss, var_list=[var for var in tf.trainable_variables()])
+    opt = tf.train.AdamOptimizer(0.0001).minimize(loss, var_list=[var for var in tf.trainable_variables()])
 
     saver = tf.train.Saver(max_to_keep=1000)
     sess.run(tf.global_variables_initializer())
@@ -251,14 +251,15 @@ def train(model, epochs, gt_path, op_path):
 
     model_checkpoint_name = ckpt_path + "/latest_model_" + "_" + dataset + ".ckpt"
 
-    if (args.continue_training or not mode == "train") and not same_model:
+    # if (args.continue_training or not mode == "train") and not same_model:
+    if (continue_training or not mode == "train") and not same_model:
         # print('Loaded latest model checkpoint')
         # print(model_checkpoint_name)
         # saver.restore(sess, model_checkpoint_name)
         print('Loading Baz trained model....')
         mcn = "C:/Users/ramu_admin/Desktop/ProTrack3D/checkpoints/FC-DenseNet/6thAprBTr" + "/latest_model_" + "_" + "6thAprBTr" + ".ckpt"
         saver.restore(sess, mcn)
-    elif (args.continue_training or not mode == "train") and same_model:
+    elif (continue_training or not mode == "train") and same_model:
         print('Loading the previous check point....')
         mcn = model_checkpoint_name
         saver.restore(sess, mcn)

@@ -108,7 +108,7 @@ def str2bool(v):
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
-def predictionSampleGeneration(image, startpoint, endpoint):
+def predictionSampleGeneration(image, startpoint, endpoint,oppath):
     global mydimensions
     sampleAddress = os.path.dirname(image) + '/' + os.path.basename(image).split('.')[0] + '_PredSamples'
     if not os.path.isdir(sampleAddress):
@@ -162,7 +162,7 @@ def predictionSampleGeneration(image, startpoint, endpoint):
 
     V_to_save = V_to_save*32768-49152
     V_to_save = nib.Nifti1Image(V_to_save,np.eye(4))
-    nib.save(V_to_save,image[:-4]+'.nii')
+    nib.save(V_to_save,oppath+'/'+ os.path.basename(image)[:-4]+'.nii')
     ################
 
     for t in range(0, t2-t1+1):
@@ -231,9 +231,16 @@ def predict(model,image, startpoint, endpoint, modelCheckpointName, op_folder):
     op_folder = op_folder
     mode = 'predict'
 
+    oppath_="%s/%s/%s" % (op_folder, os.path.basename(image).split('.')[0] + '_SegmentationOutput', model)
+    if not os.path.isdir(oppath_):
+        os.makedirs(oppath_)
     
-    
-    I3d2,pdataset = predictionSampleGeneration(image,startpoint,endpoint)
+    I3d2,pdataset = predictionSampleGeneration(image,startpoint,endpoint,oppath=oppath_)
+
+    seg_params_DF = pd.DataFrame(columns=['startTime', 'endTime'])
+    seg_params_DF['startTime'] = [int(startpoint)]
+    seg_params_DF['endTime'] = [int(endpoint)]
+    seg_params_DF.to_csv(oppath_ + '/segmentation_parameters.csv')
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--class_balancing', type=str2bool, default=True, help='Whether to use median frequency class weights to balance the classes in the loss')
@@ -494,7 +501,8 @@ def predict(model,image, startpoint, endpoint, modelCheckpointName, op_folder):
         # nib.save(nib.Nifti1Image(np.uint16(Fullsize), affine=np.eye(4)), addr + 'ZZZcombined_'+str(time+1)+'.nii')
 
     # Image = (1 - Image) * 65535
-
-    nib.save(nib.Nifti1Image(np.uint16(Image), affine=np.eye(4)), segAddr + 'CombinedSO.nii')
+    if not os.path.isdir(segAddr+'CombinedSO'):
+        os.makedirs(segAddr+'CombinedSO')
+    nib.save(nib.Nifti1Image(np.uint16(Image), affine=np.eye(4)), segAddr + 'CombinedSO' + '/CombinedSO.nii')
 
     gc.collect()

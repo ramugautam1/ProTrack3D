@@ -91,10 +91,9 @@ def generateFamilyTrees(excelFile, ftFolder):
 
         mrglst_for_ft = merge_list[merge_list['Merged Into'].isin(all_ids_in_ft_s)].values().tolist()
 
-        # for mrglst_count in len(mrglst_for_ft):
-        #     mrglst_for_ft[mrglst_count].append(existForDF[existForDF['index']==])
-        #
-        # exist_for_ft_m.append(existForDF[existForDF['index']])
+        for mrglst_count in len(mrglst_for_ft):
+            mrglst_for_ft[mrglst_count].append(existForDF[existForDF['index']==mrglst_for_ft[mrglst_count][1]]['timestart'])
+
 
 
 

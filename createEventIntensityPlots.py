@@ -1,3 +1,5 @@
+import os.path
+
 import numpy as np
 import nibabel as nib
 import pandas as pd
@@ -10,7 +12,7 @@ def niftireadU32(arg):
     return np.asarray(nib.load(arg).dataobj).astype(np.uint32).squeeze()
 
 
-def createEventsAndIntensityPlots(filePath,originalImage,nameOnly,distance):
+def createEventsAndIntensityPlots(segpath, filePath, modelName, originalImage,sT,eT):
     eventsAndIntensityDF = pd.DataFrame(columns=['time', 'total_intensity', 'masked_intensity', 'pixel_count',  # done
                                                  'masked_intensity_per_pixel', 'masked_intensity_per_object',
                                                  'total_intensity_per_pixel', 'total_intensity_per_object',  # done
@@ -38,19 +40,25 @@ def createEventsAndIntensityPlots(filePath,originalImage,nameOnly,distance):
     eventsAndIntensityDF['death'] = eventsDF['death'].astype('int')
     eventsAndIntensityDF['total_objects'] = eventsDF['Total objects'].astype('int')
 
-    mask = niftireadU32(file_path + nameOnly + '_SegmentationOutput/FC-DenseNet/CombinedSO.nii')
+    mask = niftireadU32(segpath + 'CombinedSO/CombinedSO.nii')[:,:,:,:-1]
+
+    print('mask shape:  ', mask.shape)
     newMask = np.zeros_like(mask)
     newMask[mask > 0] = 1
+    print('new mask shape:  ', newMask.shape)
 
     image = tifffile.imread(originalImage)
     image = np.transpose(image, (3, 2, 1, 0))
-    image = image[:, :, :, :mask.shape[-1]]
+    image = image[:, :, :, sT:eT-1]
+
+    print('image shape:  ', image.shape)
+
     maskedImage = image * newMask
     print(np.shape(image))
-
+    distance=eT-sT-1
     intensityArr = np.zeros((len(eventsDF), 3))
     # for i in range(np.size(image, 3)):
-    for i in range(distance+1):
+    for i in range(distance):
         intensityArr[i, :] = [image[:, :, :, i].sum(), maskedImage[:, :, :, i].sum(), newMask[:, :, :, i].sum()]
     intensityDF = pd.DataFrame(intensityArr, columns=['total_intensity', 'masked_intensity', 'pixel_count'])
     for column in intensityDF.columns:
@@ -85,42 +93,45 @@ def createEventsAndIntensityPlots(filePath,originalImage,nameOnly,distance):
         eventsAndIntensityDF[m] = eventsAndIntensityDF[r].rolling(window=9, center=True).mean()
 
     fig, axs = plt.subplots(3, 3, figsize=(40, 20))
-    axs[0, 0].plot(eventsAndIntensityDF['MA_total_intensity'])
+    axs[0, 0].plot(eventsAndIntensityDF['MA_total_intensity'][:-4])
     axs[0, 0].set_title('Total Intensity')
     axs[0, 0].legend(labels=['Total Intensity'])
-    axs[0, 1].plot(eventsAndIntensityDF['MA_masked_intensity'])
+    axs[0, 1].plot(eventsAndIntensityDF['MA_masked_intensity'][:-4])
     axs[0, 1].set_title('Masked Intensity')
     axs[0, 1].legend(labels=['Masked Intensity'])
-    axs[0, 2].plot(eventsAndIntensityDF['MA_total_objects'])
+    axs[0, 2].plot(eventsAndIntensityDF['MA_total_objects'][:-4])
     axs[0, 2].set_title('Total Objects')
     axs[0, 2].legend(labels=['Total Objects'])
 
-    axs[1, 0].plot(eventsAndIntensityDF['MA_masked_intensity_per_object'])
+    axs[1, 0].plot(eventsAndIntensityDF['MA_masked_intensity_per_object'][:-4])
     axs[1, 0].set_title('Masked Intensity Per Object')
     axs[1, 0].legend(labels=['Masked Intensity Per Object'])
-    axs[1, 1].plot(eventsAndIntensityDF['MA_masked_intensity_per_pixel'])
+    axs[1, 1].plot(eventsAndIntensityDF['MA_masked_intensity_per_pixel'][:-4])
     axs[1, 1].set_title('Masked Intensity Per Pixel')
     axs[1, 1].legend(labels=['Masked Intensity Per Pixel'])
 
-    axs[1, 2].plot(eventsAndIntensityDF['MA_split'])
-    axs[1, 2].plot(eventsAndIntensityDF['MA_merge'])
+    axs[1, 2].plot(eventsAndIntensityDF['MA_split'][:-4])
+    axs[1, 2].plot(eventsAndIntensityDF['MA_merge'][:-4])
     axs[1, 2].set_title('Split and Merge')
     axs[1, 2].legend(labels=['Split', 'Merge'])
 
-    axs[2, 0].plot(eventsAndIntensityDF['MA_birth'])
-    axs[2, 0].plot(eventsAndIntensityDF['MA_death'])
+    axs[2, 0].plot(eventsAndIntensityDF['MA_birth'][:-4])
+    axs[2, 0].plot(eventsAndIntensityDF['MA_death'][:-4])
     axs[2, 0].set_title('Birth and Death')
     axs[2, 0].legend(labels=['Birth', 'Death'])
 
-    axs[2, 1].plot(eventsAndIntensityDF['MA_split_rate'])
-    axs[2, 1].plot(eventsAndIntensityDF['MA_merge_rate'])
+    axs[2, 1].plot(eventsAndIntensityDF['MA_split_rate'][:-4])
+    axs[2, 1].plot(eventsAndIntensityDF['MA_merge_rate'][:-4])
     axs[2, 1].set_title('Split Rate and Merge Rate')
     axs[2, 1].legend(labels=['Split Rate', 'Merge Rate'])
 
-    axs[2, 2].plot(eventsAndIntensityDF['MA_birth_rate'])
-    axs[2, 2].plot(eventsAndIntensityDF['MA_death_rate'])
+    axs[2, 2].plot(eventsAndIntensityDF['MA_birth_rate'][:-4])
+    axs[2, 2].plot(eventsAndIntensityDF['MA_death_rate'][:-4])
     axs[2, 2].set_title('Birth Rate and Death Rate')
     axs[2, 2].legend(labels=['Birth Rate', 'Death Rate'])
 
+    nameOnly = os.path.basename(originalImage)[:-4]
+
     plt.savefig(file_path + '/' + 'EventsAndIntensityPlots_' + nameOnly + '.png')
     eventsAndIntensityDF.to_csv(file_path + '/' + 'EventsAndIntensityPlotsData_' + nameOnly + '.csv')
+

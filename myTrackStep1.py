@@ -24,12 +24,12 @@ import skimage
 from functions import niftiwrite, dashline, starline, niftiwriteF, niftiread, niftiwriteu16, niftireadu16
 
 
-def myTrackStep1(segmentationOutputAddress, trackingOutputAddress, startTime, endTime, imageName):
+def myTrackStep1(segmentationOutputAddress, trackingOutputAddress, startTime, endTime, imageNameS, imageNameO):
     starline()
     print('                    step 1 begin          ')
     starline()
     tictic = datetime.now()
-
+    imageName=imageNameS
     t1 = startTime
     t2 = endTime
     image = niftiread(imageName)
@@ -39,7 +39,7 @@ def myTrackStep1(segmentationOutputAddress, trackingOutputAddress, startTime, en
     segAddr = segmentationOutputAddress
     trackAddr = trackingOutputAddress
 
-    segmented = niftireadu16(segAddr + 'CombinedSO.nii')
+    segmented = niftireadu16(segAddr + 'CombinedSO/CombinedSO.nii')
     print(segAddr)
     print(trackAddr)
     for time in range(t1, t2 + 1):

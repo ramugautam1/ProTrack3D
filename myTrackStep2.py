@@ -140,9 +140,10 @@ from correlation20220708 import correlation
 # from testCorr import correlation
 from functions import dashline, starline, niftiread, niftiwrite, niftiwriteF, intersect, setdiff, isempty, rand, nan_2d,niftireadI, niftiwriteu16,niftireadu32, niftiwriteu32
 from createEventIntensityPlots import createEventsAndIntensityPlots
-def myTrackStep2(track_op_folder,  imageName, protein1Name, protein2Name, initialpoint=1, startpoint=1, endpoint=40, trackbackT=2):
+def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein1Name, protein2Name, modelName='FC-DenseNet', initialpoint=1, startpoint=1, endpoint=40, trackbackT=2):
     protein1Name = protein1Name
     protein2Name = protein2Name
+    imageName=imageNameS
     imageFolder = os.path.dirname(imageName)
     imageNameOnly = os.path.basename(imageName)
     starline()  # print **************************************
@@ -488,6 +489,7 @@ def myTrackStep2(track_op_folder,  imageName, protein1Name, protein2Name, initia
                         # if idd in (np.array(globalSplitList[tt - 1])[:, 0:2].flatten()):  #replaced with next line
                         # if the object split from another id
                         # list comprehension removes the empty sublist so that [:,0:2] doesn't run into an error
+                        # temporary__ =
                         if idd in (np.array([sublist for sublist in globalSplitList[tt - 1] if sublist])[:, 0:2].flatten()):
                             for splitEvent in globalSplitList[tt - 1]:  # for all split events at that time
                                 if splitEvent[1] == idd:  # if idd in an event
@@ -681,11 +683,17 @@ def myTrackStep2(track_op_folder,  imageName, protein1Name, protein2Name, initia
     globalTargetIdListDF.columns=['targetId']
     globalTargetIdListDF.to_csv(folder + 'target_IDs.csv', index=False)
 
-    print('Saving events and intensity plots...')
+    print('Generating events and intensity plots...')
     print(track_op_folder)
     print(imageFolder)
-    print(imageNameOnly)
-    createEventsAndIntensityPlots(filePath=track_op_folder, originalImage=imageFolder + '/' + imageNameOnly.split('.')[0]+'.tif', nameOnly=imageNameOnly.split('.')[0], distance=endpoint-startpoint)
+    print(imageNameO)
+
+    spDF = pd.read_csv(seg_op_folder+'segmentation_parameters.csv')
+    sT = spDF['startTime'].loc[0]-1
+    eT = spDF['endTime'].loc[0]
+
+    createEventsAndIntensityPlots(segpath=seg_op_folder, filePath=track_op_folder, modelName=modelName, originalImage=imageNameO, sT=sT, eT=eT)
+    # createEventsAndIntensityPlots(filePath=track_op_folder, originalImage=imageFolder + '/' + imageNameOnly.split('.')[0]+'.tif', nameOnly=imageNameOnly.split('.')[0], distance=endpoint-startpoint)
 
 
 

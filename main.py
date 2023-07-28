@@ -395,11 +395,11 @@ label3.place(x=50, y=300);
 entryPr2.place(x=520, y=300)
 buttonPr2.place(x=50, y=350);
 entryPr3.place(x=520, y=350)
-buttonPr4.place(x=50, y=400);
-entryPr5.place(x=520, y=400)
+buttonPr4.place(x=50, y=450);
+entryPr5.place(x=520, y=450)
 
-buttonPr3.place(x=50, y=450);
-entryPr4.place(x=520, y=450)
+buttonPr3.place(x=50, y=400);
+entryPr4.place(x=520, y=400)
 
 buttonPr5.place(x=50, y=600)
 buttonPr6.place(x=50, y=650)
@@ -438,8 +438,9 @@ def trackOPfolder():
 
 
 def browseImageTr():
-    imgname.set(fd.askopenfilename(defaultextension='.nii', filetypes=[("NIFTI Files", "*.nii"), ("TIF Files", "*.tif"),
-                                                                       ("TIFF Files", "*.tiff")]))
+    imgname.set(fd.askopenfilename(defaultextension='.tif', filetypes=[("TIF Files", "*.tif"),
+                                                                       ("TIFF Files", "*.tiff"),
+                                                                       ("NIFTI Files", "*.nii")]))
 
 
 # def callTracking():
@@ -461,7 +462,7 @@ buttonTr5 = tk.Button(track_page, width=10, text="Check", font=('System', 15),
 buttonTr6 = tk.Button(track_page, width=10, text="RUN", font=('System', 15), background="blue", foreground="white",
                       command=lambda: runTracking(imageName=imgname.get(),
                                                   segmentationOPFolder=segloc.get(),
-                                                  trackingOPFolder=trackloc.get(),
+                                                  # trackingOPFolder=trackloc.get(),
                                                   startTime=int(strT.get()),
                                                   endTime=int(enT.get()), trackbackTime=int(trbT.get()),
                                                   min_obj_size=int(ost.get()),
@@ -495,8 +496,8 @@ buttonTr2.place(x=50, y=200);
 entryTr1.place(x=500, y=200, width=400)
 buttonTr3.place(x=50, y=250);
 entryTr2.place(x=500, y=250, width=400)
-buttonTr4.place(x=50, y=300);
-entryTr3.place(x=500, y=300, width=400)
+# buttonTr4.place(x=50, y=300);
+# entryTr3.place(x=500, y=300, width=400)
 
 labelTr1.place(x=50, y=350);
 entryTr4.place(x=300, y=350, width=100)

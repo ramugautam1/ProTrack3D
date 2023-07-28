@@ -15,33 +15,33 @@ from skimage.transform import resize
 from tifffile import imsave
 from functions import niftiread, niftiwriteF
 
-def prepare(imageName, protein1Name, protein2Name):
+def prepare(imageName, imageNameO, protein1Name, protein2Name):
     # takes the niftii, saves the tif's, saves the 3D images of each channel at all time points
     originalImageName = os.path.basename(imageName)
-    originalImageAddress = os.path.dirname(imageName)+'/'
+    originalImageAddress = os.path.dirname(imageNameO)+'/'
     time = 1;
     im=niftiread(imageName)
     z = np.array(np.shape(im))[2]
     # originalImageName = 'EcadMyo_08'
     # originalImageAddress = '/home/nirvan/Desktop/Projects/EcadMyo_08_all/'
     # originalImage = nib.load(originalImageAddress + originalImageName + '.nii')
-    originalImage = niftiread(originalImageAddress+originalImageName)
+    originalImage = niftiread(imageName)
     originalImage = originalImage + 32768
 
     # originalImageFloat32 = np.asarray(originalImage.dataobj).astype(np.float32).squeeze()
-    originalImageFloat32 = np.asarray(nib.load(originalImageAddress + originalImageName).dataobj).astype(np.float32).squeeze()
+    originalImageFloat32 = np.asarray(nib.load(imageName).dataobj).astype(np.float32).squeeze()
 
     print(np.shape(originalImageFloat32))
 
-    originalImageSize = np.shape(originalImage);
+    originalImageSize = np.shape(originalImage)
     protein1name = protein1Name
     protein2name = protein2Name
 
     # if not os.path.isdir(originalImageAddress + "3DImage"):
     #     os.makedirs(originalImageAddress + "3DImage")
 
-    dirp1 = originalImageAddress + '3DImage/' + originalImageName.split('.')[0] + '/' + protein1name
-    dirp2 = originalImageAddress + '3DImage/' + originalImageName.split('.')[0] + '/' + protein2name
+    dirp1 = originalImageAddress + '3DImage/' + originalImageName[:-4] + '/' + protein1name
+    dirp2 = originalImageAddress + '3DImage/' + originalImageName[:-4] + '/' + protein2name
 
     if not os.path.isdir(dirp1):
         os.makedirs(dirp1)

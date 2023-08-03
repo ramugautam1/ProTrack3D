@@ -470,7 +470,7 @@ buttonTr6 = tk.Button(track_page, width=10, text="RUN", font=('System', 15), bac
                                                   protein2Name=p2n.get()))
 
 labelTr1 = tk.Label(track_page, text="Start Time", font=('System', 15))
-labelTr2 = tk.Label(track_page, text="End Time", font=('System', 15))
+labelTr2 = tk.Label(track_page, text="Total Frames to Track", font=('System', 15))
 labelTr3 = tk.Label(track_page, text="Min Size Threshold", font=('System', 15))
 labelTr4 = tk.Label(track_page, text="Trackback Time", font=('System', 15))
 # labelTr5 = tk.Label(track_page, text="Protein 1 Name", font=('System',15,'bold'))
@@ -487,7 +487,7 @@ entryTr5.insert(0, '41')
 entryTr6 = ttk.Entry(track_page, textvariable=trbT, font=('System', 15))
 entryTr6.insert(0, '2')
 entryTr7 = ttk.Entry(track_page, textvariable=ost, font=('System', 15))
-entryTr7.insert(0, '9')
+entryTr7.insert(0, '6')
 # entryTr8 = ttk.Entry(track_page, textvariable=p1n, font=('System',15,'bold'))
 # entryTr9 = ttk.Entry(track_page, textvariable=p2n, font=('System',15,'bold'))
 
@@ -499,8 +499,8 @@ entryTr2.place(x=500, y=250, width=400)
 # buttonTr4.place(x=50, y=300);
 # entryTr3.place(x=500, y=300, width=400)
 
-labelTr1.place(x=50, y=350);
-entryTr4.place(x=300, y=350, width=100)
+# labelTr1.place(x=50, y=350);
+# entryTr4.place(x=300, y=350, width=100)
 labelTr2.place(x=50, y=400);
 entryTr5.place(x=300, y=400, width=100)
 labelTr3.place(x=50, y=450);

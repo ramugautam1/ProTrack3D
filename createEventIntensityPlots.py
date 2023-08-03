@@ -6,13 +6,14 @@ import pandas as pd
 import tifffile
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+from functions import starline
 
 
 def niftireadU32(arg):
     return np.asarray(nib.load(arg).dataobj).astype(np.uint32).squeeze()
 
 
-def createEventsAndIntensityPlots(segpath, filePath, modelName, originalImage,sT,eT):
+def createEventsAndIntensityPlots(segpath, filePath, modelName, startpoint, endpoint, originalImage,sT,eT,sTime):
     eventsAndIntensityDF = pd.DataFrame(columns=['time', 'total_intensity', 'masked_intensity', 'pixel_count',  # done
                                                  'masked_intensity_per_pixel', 'masked_intensity_per_object',
                                                  'total_intensity_per_pixel', 'total_intensity_per_object',  # done
@@ -55,11 +56,16 @@ def createEventsAndIntensityPlots(segpath, filePath, modelName, originalImage,sT
 
     maskedImage = image * newMask
     print(np.shape(image))
-    distance=eT-sT-1
+
+    distance=endpoint-startpoint+1
+
+    # print(eT, sT, eT-sT-1, startpoint, endpoint, endpoint-startpoint, distance)
+    print('--------------------------------------------------------------------------------------------------------')
     intensityArr = np.zeros((len(eventsDF), 3))
     # for i in range(np.size(image, 3)):
     for i in range(distance):
-        intensityArr[i, :] = [image[:, :, :, i].sum(), maskedImage[:, :, :, i].sum(), newMask[:, :, :, i].sum()]
+        # print(i)
+        intensityArr[i, :] = [image[:, :, :, sT+i].sum(), maskedImage[:, :, :, i].sum(), newMask[:, :, :, i].sum()]
     intensityDF = pd.DataFrame(intensityArr, columns=['total_intensity', 'masked_intensity', 'pixel_count'])
     for column in intensityDF.columns:
         eventsAndIntensityDF[column] = intensityDF[column].astype('int')
@@ -135,3 +141,9 @@ def createEventsAndIntensityPlots(segpath, filePath, modelName, originalImage,sT
     plt.savefig(file_path + '/' + 'EventsAndIntensityPlots_' + nameOnly + '.png')
     eventsAndIntensityDF.to_csv(file_path + '/' + 'EventsAndIntensityPlotsData_' + nameOnly + '.csv')
 
+    import time as theTime
+    nowtime = theTime.perf_counter()
+    totalTimeTaken = nowtime-sTime
+    starline()
+    print(f'Tracking Complete. Total Time: {int(totalTimeTaken//60//60)} hours {int(totalTimeTaken//60)} min {int(totalTimeTaken%60 + 1)} sec ')
+    starline()

@@ -503,8 +503,8 @@ entryTr2.place(x=500, y=250, width=400)
 # entryTr4.place(x=300, y=350, width=100)
 labelTr2.place(x=50, y=400);
 entryTr5.place(x=300, y=400, width=100)
-labelTr3.place(x=50, y=450);
-entryTr7.place(x=300, y=450, width=100)
+# labelTr3.place(x=50, y=450);
+# entryTr7.place(x=300, y=450, width=100)
 labelTr4.place(x=50, y=500);
 entryTr6.place(x=300, y=500, width=100)
 # labelTr5.place(x=50, y=550); entryTr8.place(x=400, y=550, width=100)

@@ -466,7 +466,7 @@ def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein
     globalSplitList = [[splitEvent for splitEvent in timeSplitList if splitEvent[0] != 1] for timeSplitList in
                        globalSplitList]
 
-    print(globalIdList)
+    # print(globalIdList)
     lst = []
     for i in range(1, len(globalIdList) + 1):
         if i == 1:
@@ -524,7 +524,7 @@ def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein
 
     mydf.to_csv(folder + 'tracking_result.csv', index=False)
 
-    print('Generating Events list..')
+    print('\nGenerating Events list..')
     # get the count of events
     globalEventCountList = np.zeros((len(globalSplitList) + 1, 7))
     for i in range(len(globalSplitList) + 1):
@@ -692,9 +692,9 @@ def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein
     globalTargetIdListDF.to_csv(folder + 'target_IDs.csv', index=False)
 
     print('Generating events and intensity plots...')
-    print(track_op_folder)
-    print(imageFolder)
-    print(imageNameO)
+    # print(track_op_folder)
+    # print(imageFolder)
+    # print(imageNameO)
 
     spDF = pd.read_csv(seg_op_folder + 'segmentation_parameters.csv')
     sT = spDF['startTime'].loc[0] - 1

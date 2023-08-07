@@ -41,7 +41,7 @@ def createEventsAndIntensityPlots(segpath, filePath, modelName, startpoint, endp
     eventsAndIntensityDF['death'] = eventsDF['death'].astype('int')
     eventsAndIntensityDF['total_objects'] = eventsDF['Total objects'].astype('int')
 
-    mask = niftireadU32(segpath + 'CombinedSO/CombinedSO.nii')[:,:,:,:-1]
+    mask = niftireadU32(segpath + 'CombinedSO/CombinedSO.nii')[:,:,:,:]
 
     print('mask shape:  ', mask.shape)
     newMask = np.zeros_like(mask)
@@ -50,7 +50,7 @@ def createEventsAndIntensityPlots(segpath, filePath, modelName, startpoint, endp
 
     image = tifffile.imread(originalImage)
     image = np.transpose(image, (3, 2, 1, 0))
-    image = image[:, :, :, sT:eT-1]
+    image = image[:, :, :, sT:eT]
 
     print('image shape:  ', image.shape)
 

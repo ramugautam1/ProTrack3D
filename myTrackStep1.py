@@ -78,7 +78,7 @@ def myTrackStep1(segmentationOutputAddress, trackingOutputAddress, startTime, en
         stack_after_BW = stack_after.astype(bool)
 
         # stack_after_label, orgnum = measure.label(stack_after, connectivity=1, return_num=True)
-        CC = skimage.measure.label(stack_after_BW,connectivity=3)
+        CC = skimage.measure.label(stack_after_BW,connectivity=2)
 
         # CC = cc3d.connected_components(stack_after_label, connectivity=18)
         #

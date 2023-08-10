@@ -8,6 +8,8 @@ from segment.load_data import loadDataGeneral
 from segment.build_model import build_mymodel
 import segment.utils as utils
 import segment.FCN as FCN
+import segment.MobileUNet3D as MobileUNet3D
+# import segment.AdapNet3D as AdapNet3D
 # import FCN2, models.MobileUNet3D, models.resnet_v23D, models.Encoder_Decoder3D, models.Encoder_Decoder3D_contrib, models.DeepLabp3D, models.DeepLabV33D
 # import models.FRRN3D, models.FCN3D, models.GCN3D, models.AdapNet3D, models.ICNet3D, models.PSPNet3D, models.RefineNet3D, models.BiSeNet3D, models.DDSC3D
 # import models.DenseASPP3D, models.DeepLabV3_plus3D
@@ -177,24 +179,26 @@ def train(model, epochs, gt_path, op_path):
         network = build_mymodel(net_input)
     elif model == "FC-DenseNet":
         network = FCN.build_fc_densenet(net_input)
-    '''
-    # elif model == "MobileUNet3D-Skip":
-    #     network = models.MobileUNet3D.build_mobile_unet3D(net_input, 'MobileUNet3D-Skip', 2)
-    # elif model == "FC-DenseNet103":
-    #     network = FCN2.build_fc_densenet(net_input,num_classes=num_classes)
+
+    elif model == "MobileUNet3D":
+        network = MobileUNet3D.build_mobile_unet3D(net_input, 'MobileUNet3D-Skip', num_classes=2)
+
+
+
+    # print('network shape', network.shape)
     # elif model == "ResNet-101":
-    #     network = models.resnet_v23D.resnet_v2_101(net_input, num_classes=num_classes)
+    #     network = resnet_v23D.resnet_v2_101(net_input, num_classes=num_classes)
     # elif model == "Encoder_Decoder3D":
-    #     network = models.Encoder_Decoder3D.build_encoder_decoder(net_input, num_classes=num_classes)
+    #     network = Encoder_Decoder3D.build_encoder_decoder(net_input, num_classes=num_classes)
     #     # RefineNet requires pre-trained ResNet weights
     # elif model == "Encoder_Decoder3D_contrib":
-    #     network = models.Encoder_Decoder3D_contrib.build_encoder_decoder(net_input, num_classes=num_classes)
+    #     network = Encoder_Decoder3D_contrib.build_encoder_decoder(net_input, num_classes=num_classes)
     # elif model == "DeepLabV3p3D":
-    #     network = models.DeepLabp3D.Deeplabv3(net_input, num_classes)
+    #     network = DeepLabp3D.Deeplabv3(net_input, num_classes)
     # elif model == "DeepLabV33D-Res50" or model == "DeepLabV33D-Res101" or model == "DeepLabV33D-Res152":
-    #     network = models.DeepLabV33D.build_deeplabv3(net_input, num_classes=num_classes, preset_model=model)
+    #     network = DeepLabV33D.build_deeplabv3(net_input, num_classes=num_classes, preset_model=model)
     # elif model == "DeepLabV3_plus-Res50" or model == "DeepLabV3_plus-Res101" or model == "DeepLabV3_plus-Res152":
-    #     network = models.DeepLabV3_plus3D. build_deeplabv3_plus(net_input, num_classes=num_classes, preset_model=model)
+    #     network = DeepLabV3_plus3D. build_deeplabv3_plus(net_input, num_classes=num_classes, preset_model=model)
     # elif model == "FRRN-A" or model == "FRRN-B":
     #     network = models.FRRN3D.build_frrn(net_input, num_classes=num_classes, preset_model=model)
     # elif model == "FCN8":
@@ -216,7 +220,7 @@ def train(model, epochs, gt_path, op_path):
     #     network = models.DDSC3D.build_ddsc(net_input, num_classes=num_classes, preset_model=model)
     # elif model == "DenseASPP-ResNet50" or model == "DenseASPP-Res101" or model == "DenseASPP-Res152":
     #     network = models.DenseASPP3D.build_dense_aspp(net_input, num_classes=num_classes, preset_model=model)
-    '''
+
     # ---------------------------------------------------------------------------------------------------------------------------------------------
 
     losses = None
@@ -241,7 +245,7 @@ def train(model, epochs, gt_path, op_path):
         losses = dice_loss(net_output, network[0])
     loss = tf.reduce_mean(losses)
 
-    opt = tf.train.AdamOptimizer(0.0001).minimize(loss, var_list=[var for var in tf.trainable_variables()])
+    opt = tf.train.AdamOptimizer(0.00001).minimize(loss, var_list=[var for var in tf.trainable_variables()])
 
     saver = tf.train.Saver(max_to_keep=1000)
     sess.run(tf.global_variables_initializer())

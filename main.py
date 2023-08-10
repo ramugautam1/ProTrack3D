@@ -271,9 +271,7 @@ button3 = tk.Button(train_page, text="Select Folder to Save Training Output", co
                     font=('System', 15))
 entry3 = ttk.Entry(train_page, textvariable=train_output_location, width=25, font=('System', 15))
 #
-modelNameList = ['FC-DenseNet', 'MobileUNet3D-Skip', 'ResNet-101', 'Encoder_Decoder3D', 'Encoder_Decoder3D_contrib',
-                 'DeepLabV33D', 'FRRN-A', 'FRRN-B', 'FCN8', 'GCN-Res50', 'GCN-Res101', 'GCN-Res152', 'AdapNet3D',
-                 'ICNet-Res50', 'ICNet-Res101', 'ICNet-Res152', 'PSPNet-Res50', 'PSPNet-Res101', 'PSPNet-Res152']
+modelNameList = ['FC-DenseNet', 'MobileUNet3D' ] # 'AdapNet3D', 'BiSeNet3D', 'DDSC3D', 'DeepLabp3D', 'DeepLabV3_plus3D', 'DenseASPP3D', 'Encoder_Decoder3D', 'FCN3D', 'FRRN3D', 'GCN3D', 'ICNet3D', 'PSPNet3D', 'RefineNet3D', 'resnet_utils3D', 'resnet_v23D']
 
 trainModelName.set(modelNameList[0])
 modelMenu = tk.OptionMenu(train_page, trainModelName, *modelNameList, command=setTrainModelName)

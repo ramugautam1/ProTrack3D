@@ -63,7 +63,7 @@ def createEventsAndIntensityPlots(segpath, filePath, modelName, startpoint, endp
     print('--------------------------------------------------------------------------------------------------------')
     intensityArr = np.zeros((len(eventsDF), 3))
     # for i in range(np.size(image, 3)):
-    for i in range(min(distance, len(eventsDF), image.shape[-1], maskedImage.shape[-1], newMask.shape[-1])):
+    for i in range(min(distance, len(eventsDF)-1, image.shape[-1]-1, maskedImage.shape[-1]-1, newMask.shape[-1]-1)):
         intensityArr[i, :] = [image[:, :, :, sT+i].sum(), maskedImage[:, :, :, i].sum(), newMask[:, :, :, i].sum()]
     intensityDF = pd.DataFrame(intensityArr, columns=['total_intensity', 'masked_intensity', 'pixel_count'])
     for column in intensityDF.columns:

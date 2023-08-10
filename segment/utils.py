@@ -120,4 +120,14 @@ def evaluate_segmentation(pred, label, num_classes, score_averaging="weighted"):
 
     iou = compute_mean_iou(flat_pred, flat_label)
 
-    return global_accuracy, class_accuracies, prec, rec, f1, iou
+    y_true = flat_label[flat_label < 0.5] # ground truth binary mask
+    y_pred = flat_pred[flat_label< 0.5] # binary prediction
+
+    y_true = y_true < 0.5
+
+    y_pred = y_pred < 0.5
+    precision_fg = precision_score(y_pred, y_true, average=score_averaging)
+
+
+
+    return global_accuracy, class_accuracies, prec, rec, f1, iou, precision_fg

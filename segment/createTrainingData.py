@@ -170,135 +170,186 @@ def generateValidationData(validationFiles,vfolder):
                     writer.writerow([path, pathGT])
                     file.close()
 
-def create(addr,continue_training=False,same_model=False):
-    if not os.path.isdir(addr + '/new'):
-        os.makedirs(addr + '/new')
-
-    Files = sorted(glob.glob(addr + '/'+'*.tif'))
-    count = len(Files)
-
-
-
-    prename = os.path.basename(Files[0])[0:9]
-    print(prename)
-
-    for a, file in enumerate(Files):
-
-        if(a<1 and not continue_training):
-            V_sample = tifffile.imread(file)
-
-            dims = np.shape(V_sample)
-
-            ## Create shuffled versions of the images
-            FinalImage = np.zeros(np.shape(V_sample))
-
-            images = []
-
-            for i in range(0, int(dims[-1] / 8)):
-                for j in range(0, int(dims[-2] / 8)):
-                    im = V_sample[:, :, j * 8:(j + 1) * 8, i * 8:(i + 1) * 8]
-                    images.append(im)
-
-            random.shuffle(images)
-            num = 0
-            for i in range(0, int(dims[-1] / 8)):
-                for j in range(0, int(dims[-2] / 8)):
-                    FinalImage[:, :, j * 8:(j + 1) * 8, i * 8:(i + 1) * 8] = images[num]
-                    num += 1
-            FinalImage = np.uint16(FinalImage)
-
-            ## Filter tiny fragments
-            # Select the C=1 channel
-            channel = 1
-            data_c1 = FinalImage[:, channel, :, :]
-
-            # Create a binary image of pixels greater than 0
-            binary_image = (data_c1 > 0)
-
-            # Label connected components
-            labeled_image = skimage.measure.label(binary_image)
-            # Calculate size of each component
-            component_sizes = np.bincount(labeled_image.ravel())
-            ############################################################
-            object_labels = np.unique(labeled_image)[1:]
-            tinylist=[]
-
-            for label in object_labels:
-                # find coordinates of object in labeled image
-                object_coords = np.where(labeled_image == label)
-                # calculate number of voxels in object
-                num_voxels = len(object_coords[0])
-                # calculate depth in z direction
-                z_min = np.min(object_coords[0])
-                z_max = np.max(object_coords[0])
-                z_depth = z_max - z_min + 1
-                if (num_voxels <= 5 or (z_depth == 1 and num_voxels <= 8 and z_max != dims[0] - 1)) :
-                    tinylist.append(label)
-
-            for star in tinylist:
-                    labeled_image[labeled_image == star] = 0
-
-            # # Remove components smaller than 9 pixels
-            # min_size = 9
-            # remove_mask = component_sizes < min_size
-            # remove_mask[0] = 0  # Do not remove background
-            # # no need to label here, I just copied my code from tracking
-            # labeled_image[remove_mask[labeled_image]] = 0
-            #######################################################
-            labeled_image = labeled_image.astype('uint16')
-            labeled_image[labeled_image > 0] = 65535
-            # Create a copy of the original data with C=0 channel unchanged
-            data_c0 = np.copy(FinalImage[:, 0, :, :])
-
-            # Save the output TIFF file with C=0 channel unchanged
-            FinalImage = np.stack((data_c0, labeled_image), axis=1)
-            ###
-
-            tifffile.imwrite(addr + '/new/' + prename + 't_orig_' + str(a) + '.tif', V_sample, imagej=True)
-            tifffile.imwrite(addr + '/new/' + prename + 't_ashuffled' + str(a) + '.tif', FinalImage, imagej=True)
-        elif not same_model:
-            V_sample = tifffile.imread(file)
-            tifffile.imwrite(addr + '/new/' + prename + 't_orig_' + str(a) + '.tif', V_sample, imagej=True)
-
+# def create(addr,continue_training=False,same_model=False):
+def create(addr, transfer_learning=False, continue_training=False):
+    trainingdatalist=[]
+    validationdatalist=[]
 
     if not continue_training:
-        Files1 = sorted(glob.glob(addr + '/new/' + '*.tif'))
-        trainingFiles = Files1[:-2]
-        validationFiles = Files1[-2:]
+        gt_path = addr
+        files = os.listdir(gt_path)
+        # Sort the files by modification time (most recent first)
+        files.sort(key=lambda x: os.path.getmtime(os.path.join(gt_path, x)))
+        # Iterate through the files and rename them
+        valsize = 2 if len(files) > 4 else 1
+        for i, filename in enumerate(files):
+            if i >= len(files) - valsize:
+                # This is the last file, add 'v' prefix
+                new_name = 'v_' + filename[:]
+            else:
+                # Add 't' prefix to all other files
+                new_name = 't_' + filename[:]
+            # Create the new file path
+            old_path = os.path.join(gt_path, filename)
+            new_path = os.path.join(gt_path, new_name)
+            # Rename the file
+            os.rename(old_path, new_path)
 
-        tfolder = os.path.dirname(trainingFiles[0])
-        tfolder += '/' + prename + 'TrainData'
+        Files = glob.glob(gt_path + '/*.tif')
 
-        vfolder = os.path.dirname(trainingFiles[0])
-        vfolder += '/' + prename + 'ValidData'
+        for file in Files:
+            if os.path.basename(file)[0:2] == 't_':
+                imr = tifffile.imread(file)
+                dtype_ = type(imr[0, 0, 0, 0])
+                print(dtype_)
+                imrs = np.flip(imr, axis=(-2, -1))
+                imrss = np.flip(imr, axis=-2)
 
-        generateTrainData(trainingFiles,tfolder)
-        generateValidationData(validationFiles,vfolder)
+                save_name_f1 = file[:-4] + '_f1.png'
+                save_name_f12 = file[:-4] + '_f12.png'
+                img_channel = imr[:, 0, :, :]
+
+                tifffile.imsave(save_name_f1, imrs, imagej=True, dtype=img_channel.dtype)
+                tifffile.imsave(save_name_f12, imrss, imagej=True, dtype=img_channel.dtype)
+
+
+                noise_density = 0.0005
+                salt_value = 65535  # Maximum value for uint16
+                pepper_value = 0
+
+                salt_mask = np.random.rand(*img_channel.shape) < noise_density
+                img_channel[salt_mask] = salt_value
+
+                imr[:, 0, :, :] = img_channel
+                save_name_sp = file[:-4] + '_sp.png'
+
+                tifffile.imsave(save_name_sp, imr, imagej=True, dtype=img_channel.dtype)
+
+        Files = sorted(glob.glob(addr + '/'+'*.tif'))
+
+        for a, file in enumerate(Files):
+
+            if (a < 1 and os.path.basename(file)[:2]=='t_' and not transfer_learning):
+                V_sample = tifffile.imread(file)
+
+                dims = np.shape(V_sample)
+
+                ## Create shuffled versions of the images
+                FinalImage = np.zeros(np.shape(V_sample))
+
+                images = []
+
+                for i in range(0, int(dims[-1] / 8)):
+                    for j in range(0, int(dims[-2] / 8)):
+                        im = V_sample[:, :, j * 8:(j + 1) * 8, i * 8:(i + 1) * 8]
+                        images.append(im)
+
+                random.shuffle(images)
+                num = 0
+                for i in range(0, int(dims[-1] / 8)):
+                    for j in range(0, int(dims[-2] / 8)):
+                        FinalImage[:, :, j * 8:(j + 1) * 8, i * 8:(i + 1) * 8] = images[num]
+                        num += 1
+                FinalImage = np.uint16(FinalImage)
+
+                ## Filter tiny fragments
+                # Select the C=1 channel
+                channel = 1
+                data_c1 = FinalImage[:, channel, :, :]
+
+                # Create a binary image of pixels greater than 0
+                binary_image = (data_c1 > 0)
+
+                # Label connected components
+                labeled_image = skimage.measure.label(binary_image)
+                # Calculate size of each component
+                component_sizes = np.bincount(labeled_image.ravel())
+                ############################################################
+                object_labels = np.unique(labeled_image)[1:]
+                tinylist = []
+
+                for label in object_labels:
+                    # find coordinates of object in labeled image
+                    object_coords = np.where(labeled_image == label)
+                    # calculate number of voxels in object
+                    num_voxels = len(object_coords[0])
+                    # calculate depth in z direction
+                    z_min = np.min(object_coords[0])
+                    z_max = np.max(object_coords[0])
+                    z_depth = z_max - z_min + 1
+                    if (num_voxels <= 5 or (z_depth == 1 and num_voxels <= 8 and z_max != dims[0] - 1)):
+                        tinylist.append(label)
+
+                for star in tinylist:
+                    labeled_image[labeled_image == star] = 0
+
+                labeled_image = labeled_image.astype('uint16')
+                labeled_image[labeled_image > 0] = 65535
+                # Create a copy of the original data with C=0 channel unchanged
+                data_c0 = np.copy(FinalImage[:, 0, :, :])
+
+                # Save the output TIFF file with C=0 channel unchanged
+                FinalImage = np.stack((data_c0, labeled_image), axis=1)
+                ###
+
+                tifffile.imwrite(file[:-4] +  'shuf.tif', V_sample, imagej=True)
+
+        for file in Files:
+            if os.path.basename(file)[0:2] == 't_':
+                trainingdatalist.append(file)
+            elif os.path.basename(file)[0:2] == 'v_':
+                validationdatalist.append(file)
+        dataName = os.path.basename(Files[0])[2:-4]
+        tfolder = os.path.dirname(Files[0]) + '/' + dataName + 'TrainData'
+        vfolder = os.path.dirname(Files[0]) + '/' + dataName + 'ValidData'
+        generateTrainData(trainingdatalist, tfolder)
+        generateValidationData(validationdatalist, vfolder)
         return tfolder, vfolder
 
-    elif not same_model:
-        Files1 = sorted(glob.glob(addr + '/new/' + '*.tif'))
-        trainingFiles = Files1[:-1]
-        validationFiles = Files1[-1:]
+    elif continue_training:
+        Files = sorted(glob.glob(addr + '/' + '*.tif'))
+        dataName = os.path.basename(Files[0])[2:-4]
+        tfolder = os.path.dirname(Files[0]) + '/' + dataName + 'TrainData'
+        vfolder = os.path.dirname(Files[0]) + '/' + dataName + 'ValidData'
 
-        tfolder = os.path.dirname(trainingFiles[0])
-        tfolder += '/' + prename + 'TrainData'
-
-        vfolder = os.path.dirname(trainingFiles[0])
-        vfolder += '/' + prename + 'ValidData'
-
-        generateTrainData(trainingFiles, tfolder)
-        generateValidationData(validationFiles, vfolder)
         return tfolder, vfolder
 
-    elif same_model:
-        Files1 = sorted(glob.glob(addr + '/new/' + '*.tif'))
-        trainingFiles = Files1[:-2]
-        validationFiles = Files1[-2:]
 
-        tfolder = os.path.dirname(trainingFiles[0])
-        tfolder += '/' + prename + 'TrainData'
 
-        vfolder = os.path.dirname(trainingFiles[0])
-        vfolder += '/' + prename + 'ValidData'
-        return tfolder,vfolder
+    #
+    # if continue_training:
+    #     Files = sorted(glob.glob(addr + '/' + '*.tif'))
+    #
+    #     trainingFiles = Files[:-2]
+    #     validationFiles = Files[-2:]
+    #
+    #     tfolder = os.path.dirname(Files[0]) + '/' + dataName + 'TrainData'
+    #     vfolder = os.path.dirname(Files[0]) + '/' + dataName + 'ValidData'
+    #
+    #
+    #     generateTrainData(trainingFiles,tfolder)
+    #     generateValidationData(validationFiles,vfolder)
+    #     return tfolder, vfolder
+    #
+    # elif not same_model:
+    #     Files1 = sorted(glob.glob(addr + '/new/' + '*.tif'))
+    #     trainingFiles = Files1[:-1]
+    #     validationFiles = Files1[-1:]
+    #
+    #     tfolder = os.path.dirname(trainingFiles[0])
+    #     tfolder += '/' + prename + 'TrainData'
+    #
+    #     vfolder = os.path.dirname(trainingFiles[0])
+    #     vfolder += '/' + prename + 'ValidData'
+    #
+    #     generateTrainData(trainingFiles, tfolder)
+    #     generateValidationData(validationFiles, vfolder)
+    #     return tfolder, vfolder
+    #
+    # elif same_model:
+    #     Files1 = sorted(glob.glob(addr + '/' + '*.tif'))
+    #     dataName = os.path.basename(Files[0])[:-4]
+    #     tfolder = os.path.dirname(Files[0]) + '/' + dataName + 'TrainData'
+    #     vfolder = os.path.dirname(Files[0]) + '/' + dataName + 'ValidData'
+    #
+    #     return tfolder,vfolder

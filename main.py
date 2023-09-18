@@ -200,6 +200,13 @@ gt_path = tk.StringVar()
 val_path = tk.StringVar()
 train_output_location = tk.StringVar()
 
+contTrain = tk.IntVar()
+transferLearn = tk.IntVar()
+transferModel = tk.StringVar()
+transferModelPath = tk.StringVar()
+
+continue_training=0
+transfer_learning=0
 
 def browseGT():
     try:
@@ -240,9 +247,9 @@ def predictOutputLocation():
         predictOutputPath.set('/default/predict/output/path/')
 
 
-def callTrain(modl, epochs, gt_p, op_p):
-    print(modl, epochs, gt_p, op_p)
-    segmentation.train(modl, epochs, gt_p, op_p)
+def callTrain(modl, epochs, gt_p, op_p, t_m, c_t, t_l,):
+    print(modl, epochs, gt_p, op_p, t_m, c_t, t_l)
+    segmentation.train(modl, epochs, gt_p, op_p, t_m, c_t, t_l)
 
 
 def setPredictModelName(choice):
@@ -251,6 +258,24 @@ def setPredictModelName(choice):
 
 def setTrainModelName(choice):
     trainModelName.set(choice)
+
+def setWhetherContinueTraining():
+    # continue_training = contTrain.get()
+    print('/Continue Training') if contTrain.get() else print('\Training a New Model')
+
+def setWhetherTransferLearning():
+    # transfer_learning = transferLearn.get()
+    print('/Using Transfer Learning') if transferLearn.get() else print('\Training from Scratch')
+
+
+# def setWhetherTransferLearning(choice):
+#     transferLearn.set(choice)
+#     print('Using Transfer Learning') if transferLearn.get() else print('Training From Scratch')
+
+
+def getAndSetPreTrainedModelForTL():
+    transferModelPath.set(fd.askdirectory(initialdir=os.getcwd() + '/checkpoints/' + trainModelName.get()))
+    transferModel.set(transferModelPath.get() + "/latest_model_" + "_" + transferModelPath.get().split('/')[-1] + '.ckpt')
 
 
 ##########################
@@ -277,10 +302,13 @@ trainModelName.set(modelNameList[0])
 modelMenu = tk.OptionMenu(train_page, trainModelName, *modelNameList, command=setTrainModelName)
 modelMenu.config(font=('System', 15))
 
+c1 = tk.Checkbutton(train_page, text='Continue Training',variable=contTrain, onvalue=1, offvalue=0, command=setWhetherContinueTraining, font=('System', 15))
+c2 = tk.Checkbutton(train_page, text='Transfer Learning',variable=transferLearn, onvalue=1, offvalue=0, command=setWhetherTransferLearning, font=('System', 15))
+buttonTxx4 = tk.Button(train_page, text="Select Pre-Trained Model for Transfer Learning", font=('System', 15), command=lambda: getAndSetPreTrainedModelForTL())
+entryTxx4 = ttk.Entry(train_page, textvariable=transferModel, width=25, font=('System', 15))
 # buttonVal = tk.Button(train_page,text = "Select Folder with Validation Data", \
 # font=('System',15), command=lambda : browse_validation_data())
 # entryVal = tk.Entry(train_page, textvariable=val_path, width=25, font=('System',15))
-
 #
 button4 = tk.Button(train_page, width=10, text="Check",
                     command=lambda: print(
@@ -289,7 +317,7 @@ button4 = tk.Button(train_page, width=10, text="Check",
                     font=('System', 15))
 button5 = tk.Button(train_page, width=10, text="RUN", background="blue", foreground="white",
                     command=lambda: callTrain(trainModelName.get(), numEpochs.get(), gt_path.get(),
-                                              train_output_location.get()),
+                                              train_output_location.get(), transferModel.get(), contTrain.get(), transferLearn.get()),
                     font=('System', 15))
 ## dropdown
 label1 = tk.Label(train_page, text='Model', font=('System', 15))
@@ -305,10 +333,15 @@ button2.place(x=50, y=300)
 # buttonVal.place(x=50, y=350)
 # entryVal.place(x=500, y=350)
 
-button4.place(x=50, y=500)
-button5.place(x=50, y=550)
+button4.place(x=50, y=550)
+button5.place(x=50, y=600)
 
 entry2.place(x=500, y=300)
+
+c1.place(x=50, y=350)
+c2.place(x=50, y=400)
+buttonTxx4.place(x=50, y=450)
+entryTxx4.place(x=500,y=450)
 # entry3.place(x=500, y=400)
 
 CreateToolTip(train_page_greet, text='You can use your own data with ground truth to train a segmentation model.\n'

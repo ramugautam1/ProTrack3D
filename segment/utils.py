@@ -130,4 +130,4 @@ def evaluate_segmentation(pred, label, num_classes, score_averaging="weighted"):
 
 
 
-    return global_accuracy, class_accuracies, prec, rec, f1, iou, precision_fg
+    return global_accuracy, class_accuracies, prec, rec, f1, iou #, precision_fg

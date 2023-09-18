@@ -32,7 +32,8 @@ tf.disable_v2_behavior()
 import os, time, cv2, sys, math
 import numpy as np
 import cv2, glob
-import time, datetime
+import time as theTime
+from datetime import datetime
 import argparse
 import random
 import os, sys
@@ -91,6 +92,11 @@ def focal_loss(y_true, logits, alpha=0.25, gamma=2):
 
     return tf.reduce_mean(loss)
 
+def LRSchedule(epoch): # <50, 50-100, 100-200, 200-300 and so on, start with 0.0001, 1/10 every time.
+    if epoch<100:
+        return 0.0001/(10**(epoch//50))
+    else:
+        return 0.0001/(10**(epoch//100 + 1))
 
 def saggital(img):
     """Extracts midle layer in saggital axis and rotates it appropriately."""
@@ -106,14 +112,17 @@ def str2bool(v):
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
-def train(model, epochs, gt_path, op_path):
-    continue_training = True  # If loading a pretrained model, set this true here and under the parser ( arouund line 126)
-    same_model = True
-    dataset_path, valdataset_path = createTrainingData.create(addr=gt_path, continue_training=continue_training,
-                                                              same_model=same_model)
+def train(model, epochs, gt_path, op_path, transfer_model, continue_training=0, transfer_learning=0):
+    continue_training = continue_training
+    transfer_learning = transfer_learning
 
-    dataset = os.path.basename(dataset_path)[:-7]
-    valdataset = os.path.basename(valdataset_path)
+    same_model =  True if continue_training and not transfer_learning else False
+    # dataset_path, valdataset_path = createTrainingData.create(addr=gt_path, continue_training=continue_training,
+    #                                                           same_model=same_model)
+    dataset_path, valdataset_path = createTrainingData.create(addr=gt_path, transfer_learning=transfer_learning, continue_training=continue_training)
+
+    dataset = os.path.basename(dataset_path)[:]
+    # valdataset = os.path.basename(valdataset_path)
 
     num_epochs = epochs
     model = model
@@ -245,7 +254,8 @@ def train(model, epochs, gt_path, op_path):
         losses = dice_loss(net_output, network[0])
     loss = tf.reduce_mean(losses)
 
-    opt = tf.train.AdamOptimizer(0.00001).minimize(loss, var_list=[var for var in tf.trainable_variables()])
+    learning_rate = tf.placeholder(tf.float32, shape=[])
+    opt = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(loss, var_list=[var for var in tf.trainable_variables()])
 
     saver = tf.train.Saver(max_to_keep=1000)
     sess.run(tf.global_variables_initializer())
@@ -256,14 +266,16 @@ def train(model, epochs, gt_path, op_path):
     model_checkpoint_name = ckpt_path + "/latest_model_" + "_" + dataset + ".ckpt"
 
     # if (args.continue_training or not mode == "train") and not same_model:
-    if (continue_training or not mode == "train") and not same_model:
+    if transfer_learning:
         # print('Loaded latest model checkpoint')
         # print(model_checkpoint_name)
         # saver.restore(sess, model_checkpoint_name)
-        print('Loading Baz trained model....')
-        mcn = "C:/Users/ramu_admin/Desktop/ProTrack3D/checkpoints/FC-DenseNet/6thAprBTr" + "/latest_model_" + "_" + "6thAprBTr" + ".ckpt"
+        print('Loading the pre-trained model for knowledge transfer...')
+        mcn = transfer_model
+        print(transfer_model)
+        # mcn = "C:/Users/ramu_admin/Desktop/ProTrack3D/checkpoints/FC-DenseNet/6thAprBTr" + "/latest_model_" + "_" + "6thAprBTr" + ".ckpt"
         saver.restore(sess, mcn)
-    elif (continue_training or not mode == "train") and same_model:
+    elif continue_training:
         print('Loading the previous check point....')
         mcn = model_checkpoint_name
         saver.restore(sess, mcn)
@@ -310,8 +322,15 @@ def train(model, epochs, gt_path, op_path):
     highest_IoU = 0
     high_epoch = 0
     #############################
+
+    with open(ckpt_path + '/logs.txt', 'w') as file:
+        # Write the text to the file
+        file.write(f'Training Started: {datetime.now()}')
+
     for epoch in range(0, num_epochs):
         current_losses = []
+
+        stime = theTime.perf_counter()
 
         cnt = 0
 
@@ -354,8 +373,12 @@ def train(model, epochs, gt_path, op_path):
             # print(type(input_image_batch), input_image_batch.shape)
 
             # Do the training
+            current_lr = 0.0000001 if transfer_learning else 0.1 * LRSchedule(epoch) if continue_training else LRSchedule(epoch)
+            # l_r_ = LRSchedule(epoch) if not continue_training else 0.0000001 if continue_training and not same_model else 0.1 * LRSchedule(epoch) if continue_training and same_model else LRSchedule(epoch)
+            # opt = tf.train.AdamOptimizer().minimize(loss, var_list=[var for var in tf.trainable_variables()])
+
             _, current = sess.run([opt, loss],
-                                  feed_dict={net_input: input_image_batch, net_output: output_image_batch})
+                                  feed_dict={net_input: input_image_batch, net_output: output_image_batch, learning_rate: current_lr})
             # _, current, stack = sess.run([opt, loss], feed_dict={net_input: input_image_batch, net_output: output_image_batch})
             current_losses.append(current)
             cnt = cnt + args.batch_size
@@ -566,6 +589,16 @@ def train(model, epochs, gt_path, op_path):
     # ax1.set_ylabel("Current loss")
     #
     # plt.savefig("%s/iou_vs_epochs.png" % (ckpt_path))
+    etime = theTime.perf_counter()
+    nowTimeEnd = datetime.now()
 
+    totalTimeTaken = etime - stime
+    log_ = f'Training Complete. Total Time: {int(totalTimeTaken // 60 // 60)} hours {int(totalTimeTaken // 60)} min {int(totalTimeTaken % 60 + 1)} sec '
+    print(log_)
+
+    # Open the file in write mode ('w')
+    with open(ckpt_path + '/logs.txt', 'a') as file:
+        # Write the text to the file
+        file.write(log_)
     ########################################################################################################################
     gc.collect()

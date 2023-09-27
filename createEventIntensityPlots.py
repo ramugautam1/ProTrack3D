@@ -145,5 +145,7 @@ def createEventsAndIntensityPlots(segpath, filePath, modelName, startpoint, endp
     nowtime = theTime.perf_counter()
     totalTimeTaken = nowtime-sTime
     starline()
-    print(f'Tracking Complete. Total Time: {int(totalTimeTaken//60//60)} hours {int(totalTimeTaken//60)} min {int(totalTimeTaken%60 + 1)} sec ')
+    hours_ = int(totalTimeTaken//60//60)
+    min_ = int((totalTimeTaken -  hours_ * 60*60)//60)
+    print(f'Tracking Complete. Total Time: {hours} hours {min_} min {int(totalTimeTaken%60 + 1)} sec ')
     starline()

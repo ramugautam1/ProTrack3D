@@ -8,6 +8,8 @@ import re
 import csv
 import random
 import skimage
+import shutil
+from datetime import datetime
 
 
 def niftiwriteF(a, b):
@@ -174,39 +176,60 @@ def generateValidationData(validationFiles,vfolder):
 def create(addr, transfer_learning=False, continue_training=False):
     trainingdatalist=[]
     validationdatalist=[]
+    time_tag = datetime.now().strftime("%m%d%Y%H%M%S")
+    newdir = addr + '/aug' + time_tag
+
+    if not os.path.isdir(newdir):
+        os.makedirs(newdir)
+
+    try:
+        tif_files = [f for f in os.listdir(addr) if f.endswith('.tif')]
+
+        for tif_file in tif_files:
+            source_path = os.path.join(addr, tif_file)
+            destination_path = os.path.join(newdir, tif_file)
+            shutil.copy2(source_path, destination_path)
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
 
     if not continue_training:
-        gt_path = addr
+        gt_path = newdir
         files = os.listdir(gt_path)
         # Sort the files by modification time (most recent first)
         files.sort(key=lambda x: os.path.getmtime(os.path.join(gt_path, x)))
         # Iterate through the files and rename them
-        valsize = 2 if len(files) > 4 else 1
+        valsize = 2 if len(files) > 5 else 1
         for i, filename in enumerate(files):
             if i >= len(files) - valsize:
                 # This is the last file, add 'v' prefix
-                new_name = 'v_' + filename[:]
+                new_name = 'v_' + filename[:-4] + time_tag + '.tif'
             else:
                 # Add 't' prefix to all other files
-                new_name = 't_' + filename[:]
+                new_name = 't_' + filename[:-4] + time_tag + '.tif'
             # Create the new file path
             old_path = os.path.join(gt_path, filename)
             new_path = os.path.join(gt_path, new_name)
             # Rename the file
             os.rename(old_path, new_path)
-
-        Files = glob.glob(gt_path + '/*.tif')
+        Files = glob.glob(os.path.join(gt_path, '*.tif'))
 
         for file in Files:
             if os.path.basename(file)[0:2] == 't_':
                 imr = tifffile.imread(file)
+                # save_name_o = os.path.dirname(file)  + os.path.basename(file)
+                # tifffile.imsave(save_name_o, imr, imagej=True, dtype = imr.dtype)
+
                 dtype_ = type(imr[0, 0, 0, 0])
-                print(dtype_)
+                # print(dtype_)
                 imrs = np.flip(imr, axis=(-2, -1))
                 imrss = np.flip(imr, axis=-2)
 
-                save_name_f1 = file[:-4] + '_f1.png'
-                save_name_f12 = file[:-4] + '_f12.png'
+                save_name_f1 = file[:-4] + '_f1.tif'
+                save_name_f12 = file[:-4] + '_f12.tif'
+
+                # save_name_f1 = os.path.dirname(file) + '/aug/' + os.path.basename(file)[:-4] + '_f1.tif'
+                # save_name_f12 = os.path.dirname(file) + '/aug/' + os.path.basename(file)[:-4] + '_f12.tif'
+
                 img_channel = imr[:, 0, :, :]
 
                 tifffile.imsave(save_name_f1, imrs, imagej=True, dtype=img_channel.dtype)
@@ -221,15 +244,22 @@ def create(addr, transfer_learning=False, continue_training=False):
                 img_channel[salt_mask] = salt_value
 
                 imr[:, 0, :, :] = img_channel
-                save_name_sp = file[:-4] + '_sp.png'
-
+                save_name_sp = file[:-4] + '_sp.tif'
                 tifffile.imsave(save_name_sp, imr, imagej=True, dtype=img_channel.dtype)
+                # save_name_sp = os.path.dirname(file) + '/aug/' + os.path.basename(file)[:-4] + '_sp.tif'
 
-        Files = sorted(glob.glob(addr + '/'+'*.tif'))
+                noise_density=0.001
+                img_channel[salt_mask] = pepper_value
+                imr[:, 0, :, :] = img_channel
+                save_name_pp = file[:-4] + '_pp.tif'
+
+                tifffile.imsave(save_name_pp, imr, imagej=True, dtype=img_channel.dtype)
+
+        Files = sorted(glob.glob(gt_path + '/*.tif'))
 
         for a, file in enumerate(Files):
 
-            if (a < 1 and os.path.basename(file)[:2]=='t_' and not transfer_learning):
+            if ((a < 1 or a==6) and os.path.basename(file)[:2]=='t_'): # and not transfer_learning):
                 V_sample = tifffile.imread(file)
 
                 dims = np.shape(V_sample)
@@ -291,7 +321,7 @@ def create(addr, transfer_learning=False, continue_training=False):
                 # Save the output TIFF file with C=0 channel unchanged
                 FinalImage = np.stack((data_c0, labeled_image), axis=1)
                 ###
-
+                # filenameshuffle = os.path.dirname(file) + '/aug/' + os.path.basename(file)[:-4] + 'shuf.tif'
                 tifffile.imwrite(file[:-4] +  'shuf.tif', V_sample, imagej=True)
 
         for file in Files:
@@ -299,18 +329,25 @@ def create(addr, transfer_learning=False, continue_training=False):
                 trainingdatalist.append(file)
             elif os.path.basename(file)[0:2] == 'v_':
                 validationdatalist.append(file)
+
+        Files = sorted(glob.glob(gt_path + '/*.tif'))
+        print(len(Files))
+
         dataName = os.path.basename(Files[0])[2:-4]
-        tfolder = os.path.dirname(Files[0]) + '/' + dataName + 'TrainData'
-        vfolder = os.path.dirname(Files[0]) + '/' + dataName + 'ValidData'
+        tfolder = os.path.dirname(Files[0]) + '/' + dataName + 'T'
+        vfolder = os.path.dirname(Files[0]) + '/' + dataName + 'V'
         generateTrainData(trainingdatalist, tfolder)
         generateValidationData(validationdatalist, vfolder)
         return tfolder, vfolder
 
     elif continue_training:
-        Files = sorted(glob.glob(addr + '/' + '*.tif'))
+        allaugfolders = [folder for folder in os.listdir(addr) if
+                            folder.startswith('aug') and os.path.isdir(os.path.join(addr, folder))]
+        augfolder = allaugfolders[0]
+        Files = sorted(glob.glob(addr + '/' + augfolder + '/*.tif'))
         dataName = os.path.basename(Files[0])[2:-4]
-        tfolder = os.path.dirname(Files[0]) + '/' + dataName + 'TrainData'
-        vfolder = os.path.dirname(Files[0]) + '/' + dataName + 'ValidData'
+        tfolder = addr + '/' + augfolder + '/' + dataName + 'T'
+        vfolder = addr + '/' + augfolder + '/' + dataName + 'V'
 
         return tfolder, vfolder
 

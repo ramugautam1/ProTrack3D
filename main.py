@@ -285,7 +285,7 @@ train_page_greet.place(x=50, y=120)
 numEpochs = tk.IntVar()
 label2 = tk.Label(train_page, text="No. of Epochs", font=('System', 15))
 entry1 = tk.Entry(train_page, textvariable=numEpochs, font=('System', 15), width=14)
-entry1.insert(0, '50')
+entry1.insert(0, '10')
 button1 = tk.Button(train_page, text="Back", command=lambda: show_frame(seg_page), font=('System', 15))
 
 button2 = tk.Button(train_page, text="Select Folder with Training Data", font=('System', 15),

@@ -93,10 +93,18 @@ def focal_loss(y_true, logits, alpha=0.25, gamma=2):
     return tf.reduce_mean(loss)
 
 def LRSchedule(epoch): # <50, 50-100, 100-200, 200-300 and so on, start with 0.0001, 1/10 every time.
-    if epoch<100:
-        return 0.0001/(10**(epoch//50))
+    if epoch<25:
+        return 0.001
+    elif epoch<50:
+        return 0.0001
+    elif epoch<100:
+        return 0.00001
     else:
-        return 0.0001/(10**(epoch//100 + 1))
+        return 0.000001
+    # if epoch<100:
+    #     return 0.0001/(10**(epoch//50))
+    # else:
+    #     return 0.0001/(10**(epoch//100 + 1))
 
 def saggital(img):
     """Extracts midle layer in saggital axis and rotates it appropriately."""
@@ -141,7 +149,7 @@ def train(model, epochs, gt_path, op_path, transfer_model, continue_training=0, 
     #                     help='Whether to continue training from a checkpoint')
     parser.add_argument('--checkpoint_step', type=int, default=1, help='How often to save checkpoints (epochs)')
     parser.add_argument('--validation_step', type=int, default=1, help='How often to perform validation (epochs)')
-    parser.add_argument('--batch_size', type=int, default=4, help='Number of images in each batch')
+    parser.add_argument('--batch_size', type=int, default=8, help='Number of images in each batch')
     parser.add_argument('--class_weight_reference', type=str, default="reference/Ecad2020",
                         help='reference you are using.')
     parser.add_argument('--num_val_images', type=int, default=200, help='Number of ramdom validation samples')
@@ -321,16 +329,20 @@ def train(model, epochs, gt_path, op_path, transfer_model, continue_training=0, 
     ########## testing ##########
     highest_IoU = 0
     high_epoch = 0
+    high_time = datetime.now()
     #############################
-
+    start_datetime = datetime.now()
     with open(ckpt_path + '/logs.txt', 'w') as file:
         # Write the text to the file
-        file.write(f'Training Started: {datetime.now()}')
+        file.write(f'Training Started: {start_datetime}')
 
+
+
+    stime = theTime.perf_counter()
     for epoch in range(0, num_epochs):
         current_losses = []
 
-        stime = theTime.perf_counter()
+
 
         cnt = 0
 
@@ -373,7 +385,7 @@ def train(model, epochs, gt_path, op_path, transfer_model, continue_training=0, 
             # print(type(input_image_batch), input_image_batch.shape)
 
             # Do the training
-            current_lr = 0.0000001 if transfer_learning else 0.1 * LRSchedule(epoch) if continue_training else LRSchedule(epoch)
+            current_lr = 0.1 * LRSchedule(epoch) if transfer_learning else 0.1 * LRSchedule(epoch) if continue_training else LRSchedule(epoch)
             # l_r_ = LRSchedule(epoch) if not continue_training else 0.0000001 if continue_training and not same_model else 0.1 * LRSchedule(epoch) if continue_training and same_model else LRSchedule(epoch)
             # opt = tf.train.AdamOptimizer().minimize(loss, var_list=[var for var in tf.trainable_variables()])
 
@@ -511,8 +523,10 @@ def train(model, epochs, gt_path, op_path, transfer_model, continue_training=0, 
 
             if epoch < 1:
                 highest_IoU = avg_iou
+                high_time = datetime.now()
             else:
                 if avg_iou > highest_IoU:
+                    high_time = datetime.now()
                     highest_IoU = avg_iou
                     high_epoch = epoch
 
@@ -549,7 +563,7 @@ def train(model, epochs, gt_path, op_path, transfer_model, continue_training=0, 
         scores_list = []
     # print(avg_iou_list)
 
-    fig = plt.figure(figsize=(11, 8))
+    fig = plt.figure(figsize=(11, 8), clear=True)
     ax1 = fig.add_subplot(111)
 
     ax1.plot(range(num_epochs), avg_scores_per_epoch)
@@ -560,6 +574,7 @@ def train(model, epochs, gt_path, op_path, transfer_model, continue_training=0, 
     plt.savefig("%s/accuracy_vs_epochs.png" % (ckpt_path))
 
     plt.clf()
+
 
     ax1 = fig.add_subplot(111)
 
@@ -580,6 +595,8 @@ def train(model, epochs, gt_path, op_path, transfer_model, continue_training=0, 
     ax.set_title("Average IoU vs epochs")
     ax.set_xlabel('Epoch')
     ax.set_ylabel('IoU')
+    plt.title(f'Highest IoU: {highest_IoU} at epoch {high_epoch}')
+    plt.title(str(highest_IoU))
     plt.savefig("%s/IoU_vs_epochs.png" % (ckpt_path))
     plt.clf()
 
@@ -590,10 +607,20 @@ def train(model, epochs, gt_path, op_path, transfer_model, continue_training=0, 
     #
     # plt.savefig("%s/iou_vs_epochs.png" % (ckpt_path))
     etime = theTime.perf_counter()
-    nowTimeEnd = datetime.now()
+
+    end_datetime = datetime.now()
+
+    with open(ckpt_path + '/logs.txt', 'a') as file:
+        # Write the text to the file
+        file.write(f'\nHighest IoU: {highest_IoU} at epoch {high_epoch}. Time: {high_time}')
+
+    with open(ckpt_path + '/logs.txt', 'a') as file:
+        # Write the text to the file
+        file.write(f'\nTraining Ended: {end_datetime}')
 
     totalTimeTaken = etime - stime
-    log_ = f'Training Complete. Total Time: {int(totalTimeTaken // 60 // 60)} hours {int(totalTimeTaken // 60)} min {int(totalTimeTaken % 60 + 1)} sec '
+    # log_ = f'\nTraining Complete. Total Time: {int(totalTimeTaken // 60 // 60)} hours {int(totalTimeTaken // 60)} min {int(totalTimeTaken % 60 + 1)} sec '
+    log_ = f'\nTotal Time: {totalTimeTaken}'
     print(log_)
 
     # Open the file in write mode ('w')

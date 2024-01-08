@@ -6,8 +6,10 @@ import tkinter.font as font
 from tkinter import ttk
 from segment import segmentation, segmentation_predict
 import os
-# from familyTreesGenerator import generateFamilyTrees
-from CompletelyNewFamilyTreeGen import generateFamilyTrees
+# # from familyTreesGenerator import generateFamilyTrees
+# from CompletelyNewFamilyTreeGen import generateFamilyTrees
+from FamilyTrees_WithSplitAndMerge import generateFamilyTrees
+from FamilyTreeWithSplitAndMerge import generateFamilyTree
 from convert2nii import czi2nii, tif2nii
 
 Font_tuple = ("Courier", 45, "bold")
@@ -144,7 +146,8 @@ ana_menu.add_command(label='Analysis III', font=('System', 15))
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Homepage
-homepage_greet = tk.Label(homepage, text='WELCOME TO ProTrack3D')
+# homepage_greet = tk.Label(homepage, text='WELCOME TO ProTrack3D')
+homepage_greet = tk.Label(homepage, text=' ProTrack3D')
 homepage_greet.configure(font=Font_tuple)
 homepage_greet.place(x=50, y=100)
 buttonH1 = tk.Button(homepage, text="Segmentation", width=15, command=lambda: show_frame(seg_page),
@@ -158,10 +161,10 @@ buttonH4 = tk.Button(homepage, width=15, text="Analysis", command=lambda: show_f
                      font=Option_font_tuple)
 # buttonH5 = tk.Button(homepage, width=15, text = "Convert to .nii", \
 # command=lambda : show_frame(convert_page), font=Option_font_tuple)
-buttonH1.place(x=200, y=200)
-buttonH2.place(x=200, y=300)
-buttonH3.place(x=200, y=400)
-buttonH4.place(x=200, y=500)
+buttonH1.place(x=150, y=200)
+buttonH2.place(x=150, y=300)
+buttonH3.place(x=150, y=400)
+buttonH4.place(x=150, y=500)
 # buttonH5.place(x=200, y=600)
 
 CreateToolTip(buttonH2, text='Click here to track objects in segmented images.!')
@@ -327,21 +330,21 @@ modelMenu.place(x=400, y=200)
 ##
 button1.place(x=50, y=50)
 label2.place(x=50, y=250)
-entry1.place(x=500, y=250)
+entry1.place(x=400, y=250)
 button2.place(x=50, y=300)
 # button3.place(x=50, y=400)
 # buttonVal.place(x=50, y=350)
 # entryVal.place(x=500, y=350)
 
-button4.place(x=50, y=550)
-button5.place(x=50, y=600)
+button4.place(x=50, y=650)
+button5.place(x=50, y=500)
 
-entry2.place(x=500, y=300)
+entry2.place(x=400, y=300)
 
 c1.place(x=50, y=350)
 c2.place(x=50, y=400)
 buttonTxx4.place(x=50, y=450)
-entryTxx4.place(x=500,y=450)
+entryTxx4.place(x=400,y=450)
 # entry3.place(x=500, y=400)
 
 CreateToolTip(train_page_greet, text='You can use your own data with ground truth to train a segmentation model.\n'
@@ -419,21 +422,21 @@ buttonPr6 = tk.Button(predict_page, width=10, text="RUN", background="blue", for
 buttonPr1.place(x=50, y=50)
 
 label1.place(x=50, y=200);
-modelMenu.place(x=520, y=200)
+modelMenu.place(x=420, y=200)
 label2.place(x=50, y=250);
-entryPr1.place(x=520, y=250)
+entryPr1.place(x=420, y=250)
 label3.place(x=50, y=300);
-entryPr2.place(x=520, y=300)
+entryPr2.place(x=420, y=300)
 buttonPr2.place(x=50, y=350);
-entryPr3.place(x=520, y=350)
+entryPr3.place(x=420, y=350)
 buttonPr4.place(x=50, y=450);
-entryPr5.place(x=520, y=450)
+entryPr5.place(x=420, y=450)
 
 buttonPr3.place(x=50, y=400);
-entryPr4.place(x=520, y=400)
+entryPr4.place(x=420, y=400)
 
 buttonPr5.place(x=50, y=600)
-buttonPr6.place(x=50, y=650)
+buttonPr6.place(x=50, y=550)
 
 CreateToolTip(label2, text='SEnter the time frame to start segmentation. Default: 1')
 CreateToolTip(label3, text='Enter the time frame to stop segmentation. Default: 41')
@@ -524,9 +527,9 @@ entryTr7.insert(0, '6')
 
 buttonTr1.place(x=50, y=50)
 buttonTr2.place(x=50, y=200);
-entryTr1.place(x=500, y=200, width=400)
+entryTr1.place(x=400, y=200, width=300)
 buttonTr3.place(x=50, y=250);
-entryTr2.place(x=500, y=250, width=400)
+entryTr2.place(x=400, y=250, width=300)
 # buttonTr4.place(x=50, y=300);
 # entryTr3.place(x=500, y=300, width=400)
 
@@ -536,13 +539,13 @@ labelTr2.place(x=50, y=400);
 entryTr5.place(x=300, y=400, width=100)
 # labelTr3.place(x=50, y=450);
 # entryTr7.place(x=300, y=450, width=100)
-labelTr4.place(x=50, y=500);
-entryTr6.place(x=300, y=500, width=100)
+labelTr4.place(x=50, y=450);
+entryTr6.place(x=300, y=450, width=100)
 # labelTr5.place(x=50, y=550); entryTr8.place(x=400, y=550, width=100)
 # labelTr6.place(x=50, y=600); entryTr9.place(x=400, y=600, width=100)
 
 buttonTr5.place(x=50, y=600, width=100)
-buttonTr6.place(x=50, y=650, width=100)
+buttonTr6.place(x=50, y=500, width=100)
 
 CreateToolTip(buttonTr2, text='Select the image you want to track objects from.')
 CreateToolTip(buttonTr3, text='Select the folder that contains the output of segmentation process.')
@@ -592,11 +595,11 @@ def selectFtOutputFolder():
 # def generateFamilyTrees():
 #     print("Processing Family Trees...")
 
-def generateFamilyTree():
-    print('Generating Family Tree for your object...')
+# def generateFamilyTree():
+#     print('Generating Family Tree for your object...')
 
 
-fam_page_greet = tk.Label(fam_page, text='Family Tree and LPR', font=('Courier', 40, 'bold'))
+fam_page_greet = tk.Label(fam_page, text='Family Tree', font=('Courier', 40, 'bold'))
 fam_page_greet.place(x=50, y=120)
 
 buttonFt1 = tk.Button(fam_page, text="Back", command=lambda: show_frame(homepage), font=('System', 15))
@@ -611,25 +614,29 @@ buttonFt4 = tk.Button(fam_page, text='Branch Length Threshold', font=('System', 
 entryFt4 = tk.Entry(fam_page, textvariable=branchMinLen, font=('System', 15))
 entryFt4.insert(1, '5')
 
-buttonFt6 = tk.Button(fam_page, text="Generate Family Tree", font=('System', 15), command=lambda: generateFamilyTree(),
-                      background='blue', foreground='white')
-buttonFt7 = tk.Button(fam_page, text="Generate All Family Trees",
-                      command=lambda: generateFamilyTrees(excelFile=excelFile.get(), ftFolder=ftOpFolder.get()),
-                      font=('System', 15), background="navy", foreground="white")
+
 buttonFt8 = tk.Button(fam_page, text='Enter Object ID', font=('System', 15))
 entryFt5 = tk.Entry(fam_page, textvariable=objId, font=('System', 15))
 
+buttonFt6 = tk.Button(fam_page, text="Generate Family Tree", font=('System', 15),
+                      command=lambda: generateFamilyTree(excelFile=excelFile.get(), ftFolder=ftOpFolder.get(), tidlist=objId.get()),
+                      background='blue', foreground='white')
+buttonFt7 = tk.Button(fam_page, text="Generate  Family Trees for Target IDs",
+                      command=lambda: generateFamilyTrees(excelFile=excelFile.get(), ftFolder=ftOpFolder.get()),
+                      font=('System', 15), background="navy", foreground="white")
+
+
 buttonFt1.place(x=50, y=50)
 buttonFt2.place(x=50, y=200)
-entryFt2.place(x=500, y=200, width=400)
+entryFt2.place(x=400, y=200, width=300)
 buttonFt3.place(x=50, y=250)
-entryFt3.place(x=500, y=250, width=400)
+entryFt3.place(x=400, y=250, width=300)
 buttonFt4.place(x=50, y=300)
-entryFt4.place(x=500, y=300, width=100)
+entryFt4.place(x=400, y=300, width=100)
 buttonFt6.place(x=50, y=450)
 buttonFt7.place(x=50, y=500)
 buttonFt8.place(x=50, y=350)
-entryFt5.place(x=500, y=350)
+entryFt5.place(x=400, y=350)
 
 CreateToolTip(buttonFt2, text='Select the excel file that contains the tracking data.\n'
                               'You can find it in the folder you selected to save the tracking results.!')
@@ -637,7 +644,8 @@ CreateToolTip(buttonFt3,
               text='Click here to select a folder to store your family trees. \nPlease select an empty folder!')
 CreateToolTip(buttonFt4,
               text='Select the minimum time frames an object has to exist \nto be considered for the family tree.')
-CreateToolTip(buttonFt7, text='Click here to draw all the family trees!')
+CreateToolTip(buttonFt7, text='Click here to draw family trees for ALL target IDs! \n Target IDs are object IDs that start as new objects, not a result of split event. '
+                              '\n Use "Generate Family Tree" button with "all" as object ID to generate family tree for every single object.')
 ########################################################################################################################
 
 

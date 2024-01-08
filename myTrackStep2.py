@@ -1,129 +1,5 @@
-# import numpy as np
-# import pandas as pd
-# from functions import niftiread,niftireadI, niftiwriteu16,size3, niftiwriteF
-# from skimage import measure
-# import statistics
-#
-# import statistics
-#
-# import scipy.io as scio
-# import numpy as np
-# import pandas as pd
-# from functions import line
-# from datetime import datetime
-# import xlsxwriter
-# import os
-# import math
-# import glob as glob
-# import nibabel as nib
-# from skimage import measure
-# import re
-# from correlation20220708 import correlation
-# # from testCorr import correlation
-# from functions import dashline, starline, niftiread, niftiwrite, niftiwriteF, intersect, setdiff, isempty, rand, nan_2d,niftireadI, niftiwriteu16
-#
-#
-# # # time=1;t1='1';t2='2'
-# # # trackedImageT1 = niftireadI('C:/Users/ramu_admin/Desktop/Baz/Apr6/SegTrack1014-1/1/Fullsize_label_1.nii')
-# # # labeledImageT2 = niftireadI('C:/Users/ramu_admin/Desktop/Baz/Apr6/SegTrack1014-1/2/Fullsize_label_2.nii')
-# # # maskT1 = niftireadI('C:/Users/ramu_admin/Desktop/Baz/Apr6/SegTrack1014-1/1/Fullsize_1.nii')
-# # # maskT2 = niftireadI('C:/Users/ramu_admin/Desktop/Baz/Apr6/SegTrack1014-1/2/Fullsize_2.nii')
-# # # weightsT1 = niftiread('C:/Users/ramu_admin/Desktop/Baz/Apr6/SegTrack1014-1/1/Weights_1.nii')
-# # # weightsT2 = niftiread('C:/Users/ramu_admin/Desktop/Baz/Apr6/SegTrack1014-1/2/Weights_2.nii')
-# # # padding=[20,20,2]
-# # # addr = 'C:/Users/ramu_admin/Desktop/Baz/Apr6/SegTrack1014-1/'
-#
-# def correlationCalc(time,t1,t2,maskT1,maskT2,trackedImageT1, weightsT1,weightsT2,padding, addr,labeledT2):
-#     time = time; t1 = t1; t2 = t2; maskT1 = maskT1; maskT2 = maskT2; weightsT1 = weightsT1; weightsT2 = weightsT2; padding = padding; addr = addr; trackedImageT1 = trackedImageT1
-#     maskT1_pad = np.pad(maskT1, ((padding[0], padding[0]), (padding[1], padding[1]), (padding[2], padding[2])), 'constant')
-#
-#     # the regionprops_table function does not work with the mask itself, so have to use the 'labeled' image instead
-#     trackedT1_pad = np.pad(trackedImageT1, ((padding[0], padding[0]), (padding[1], padding[1]), (padding[2], padding[2])),'constant')
-#     maskT2_pad = np.pad(maskT1, ((padding[0], padding[0]), (padding[1], padding[1]), (padding[2], padding[2])), 'constant')
-#     weightsT1_pad = np.pad(weightsT1, ((padding[0], padding[0]), (padding[1], padding[1]), (padding[2], padding[2]),(0,0)), 'constant')
-#     weightsT2_pad = np.pad(weightsT2, ((padding[0], padding[0]), (padding[1], padding[1]), (padding[2], padding[2]),(0,0)), 'constant')
-#
-#     labeledT2_pad = np.pad(labeledT2, ((padding[0], padding[0]), (padding[1], padding[1]), (padding[2], padding[2])),'constant')
-#
-#     [x, y, z] = size3(maskT1)
-#     correlation_corr = np.zeros((x + padding[0] * 2, y + padding[1] * 2, z + padding[2] * 2))
-#     correlation_id = np.zeros((x + padding[0] * 2, y + padding[1] * 2, z + padding[2] * 2))
-#
-#     trackedT1 = trackedT1_pad
-#
-#     # get the label and coords of each regionprop (or an object)
-#     stats1 = pd.DataFrame(measure.regionprops_table(labeledT2_pad, properties=('label', 'coords')))
-#     VoxelList = stats1.coords # List of all pixels in each regionprop
-#
-#     for i in range(0, stats1.shape[0]): # for each object
-#         objSize = np.size(VoxelList[i],axis=0)
-#
-#         if objSize < 30:
-#             stepsize = 1
-#         else:
-#             stepsize=1 # to speed-up the process, we take every third pixel as the center of the window
-#
-#         # # turns out we don't need this
-#         # extremes=[[np.min(VoxelList[i][:,0]),np.max(VoxelList[i][:,0])],[np.min(VoxelList[i][:,1]),np.max(VoxelList[i][:,1])],[np.min(VoxelList[i][:,2]),np.max(VoxelList[i][:,2])]]
-#
-#         for index in range(0,objSize,stepsize):
-#             Feature_map2 = np.copy(weightsT2_pad[
-#                                    VoxelList[i][index][0] - 3:VoxelList[i][index][0] + 3 + 1,
-#                                    VoxelList[i][index][1] - 3:VoxelList[i][index][1] + 3 + 1,
-#                                    VoxelList[i][index][2] - 1:VoxelList[i][index][2] + 1 + 1,
-#                                    :])
-#             for x in [-2,-1,0,1,2]:
-#                 for y in [-2,-1,0,1,2]:
-#                     for z in [ -1,0,1]:
-#
-#                         Feature_map1 = np.copy(weightsT1_pad[
-#                                 VoxelList[i][index][0] + x - 3:VoxelList[i][index][0] + x + 3 + 1,
-#                                 VoxelList[i][index][1] + y - 3:VoxelList[i][index][1] + y + 3 + 1,
-#                                 VoxelList[i][index][2] + z - 1:VoxelList[i][index][2] + z + 1 + 1,
-#                                 :])
-#                         # # Flattening the feature map
-#                         Feature_map1_flatten = Feature_map1.flatten(order='F')
-#                         Feature_map2_flatten = Feature_map2.flatten(order='F')
-#
-#                         # calculate correlation
-#                         corr = np.corrcoef(Feature_map2_flatten,Feature_map1_flatten)[0, 1]
-#                         print(corr)
-#                         if corr > 0.2:
-#                             if correlation_corr[VoxelList[i][index][0] + x, VoxelList[i][index][1] + y, VoxelList[i][index][ 2] + z] < corr:
-#                                 b = VoxelList[i]
-#                                 a = []
-#                                 for i1 in range(len(b)):
-#                                     a.append(trackedT1[b[i1][0],b[i1][1],b[i1][2]])
-#
-#                                 value = statistics.mode(np.array(a).flatten())
-#                                 u, c = np.unique(np.array(a), return_counts=True)
-#                                 try:
-#                                     countZero = dict(zip(u, c))[0]
-#                                 except:
-#                                     countZero = 0
-#
-#                                 if countZero>value:
-#                                     value=0
-#
-#                                 # correlation_id[VoxelList[i][index][0] - 3 : VoxelList[i][index][0] + 4, VoxelList[i][index][1] - 3 : VoxelList[i][index][1] + 4, VoxelList[i][index][2] -1 : VoxelList[i][index][2] + 2] = value
-#
-#                                 ####
-#
-#     niftiwriteu16(correlation_id, 'C:/Users/ramu_admin/Desktop/Baz/Apr6/SegTrack1014-1/2/__XXXXXXXXXXXXXXXXXXXXXXXX_ID.nii')
-#
-#     cropped_correlation_id = correlation_id * maskT2_pad
-#
-#     niftiwriteu16(cropped_correlation_id,
-#                   'C:/Users/ramu_admin/Desktop/Baz/Apr6/SegTrack1014-1/2/__XXXXXXXXXXXXXXXXXXXXXXXX_ID_CROPPPPPPPP.nii')
-#     niftiwriteF(correlation_corr,
-#                   'C:/Users/ramu_admin/Desktop/Baz/Apr6/SegTrack1014-1/2/__CCCCCCCCCCCCCCCCCC_CORR.nii')
-#
-# # correlationCalc(time,t1,t2,maskT1,maskT2,trackedImageT1, weightsT1,weightsT2,padding, addr,labeledImageT2)
-
-########################################################################################################################
-
 import statistics
-
+import json
 import scipy.io as scio
 import numpy as np
 import pandas as pd
@@ -140,13 +16,20 @@ from correlation20220708 import correlation
 # from testCorr import correlation
 from functions import dashline, starline, niftiread, niftiwrite, niftiwriteF, intersect, setdiff, isempty, rand, nan_2d, \
     niftireadI, niftiwriteu16, niftireadu32, niftiwriteu32
-from createEventIntensityPlots import createEventsAndIntensityPlots
+from createEventIntensityPlots import runAnalysis, runAnalysisNewWay
+    # createEventsAndIntensityPlots
 import time as theTime
 
 
 def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein1Name, protein2Name,
                  modelName='FC-DenseNet', initialpoint=1, startpoint=1, endpoint=40, trackbackT=2,
                  stime=theTime.perf_counter()):
+    # sT = 16; endpoint = endpoint
+    # runAnalysisNewWay(origImgPath=imageNameO,
+    #                   trackedimagepath=track_op_folder + 'TrackedCombined.nii',
+    #                   sT=sT, eT=sT + endpoint,
+    #                   plotsavepath=track_op_folder[:-1])
+
     protein1Name = protein1Name
     protein2Name = protein2Name
     initialpoint = startpoint
@@ -190,7 +73,26 @@ def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein
     globalBirthList = []
     globalIdList = []
 
+    globalTrueMergeList = []
+    globalSplitAndMergeList = []
+
     globalTargetIdList = []
+
+    birth_id_dict = {}
+    merged_id_dict = {}
+    truemerged_id_dict = {}
+    splitmerge_id_dict = {}
+    split_id_dict = {}
+    id_that_split_dict = {}
+    dead_id_dict = {}
+    all_id_dict = {}
+    event_count_dict = {}
+    truemerge_as_primary_id_dict = {}
+    truemerge_as_secondary_id_dict = {}
+
+    events_counts = np.zeros((endpoint-startpoint+2,7))
+
+    maxx = 0
 
     for time in range(startpoint, endpoint + 1):
         dashline()
@@ -202,11 +104,6 @@ def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein
 
         addr1 = folder + t1 + '/'
         addr2 = folder + t2 + '/'
-
-        # if not os.path.isdir(folder):
-        #     os.makedirs(addr1)
-        # if not os.path.isdir(folder):
-        #     os.makedirs(addr1)
 
         Files1 = sorted(glob.glob(addr1 + '*.nii'))
         Files2 = sorted(glob.glob(addr2 + '.nii'))
@@ -257,10 +154,14 @@ def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein
 
         if time == startpoint:
             globalIdList.append(idlist_previous)
+            all_id_dict[time] =sorted([int(identity) for identity in idlist_previous])
+            birth_id_dict[time]=sorted([int(identity) for identity in idlist_previous])
+
+            maxx = np.amax(labeled1)
+            # print(all_id_dict[time], birth_id_dict[time])
+            events_counts[0,:]=[len(all_id_dict[time]),0,0,len(birth_id_dict[time]),0,0,0]
             for igil in range(len(idlist_previous)):
                 globalTargetIdList.append(idlist_previous[igil])
-
-        maxx = np.amax(labeled1)
 
         labeled2 = niftireadu32(folder + t2 + '/Fullsize_label_' + t2 + '.nii')
         corr_id_2 = niftireadu32(folder + t2 + '/correlation_map_padding_show_traceback1_' + t2 + '.nii')
@@ -272,61 +173,70 @@ def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein
         newArray = corr2_crop.copy()
         statsfullsize2 = pd.DataFrame(measure.regionprops_table(labeled2, properties=('label', 'coords')))
         count = 0
-        retiredList = []
+
         mergedList = []
+        trueMergedList = []
+        splitMergedList = []
         newList = []
+        bornlist = []
+
+############################################################################################################################################################
+        # For each object
         for obj in range(len(statsfullsize2)):
             idlist = []
             for i in statsfullsize2.coords[obj]:
                 idlist.append(corr2_crop[(i[0], i[1], i[2])])
             mod = statistics.mode(idlist)
+            # If mode is zero, set all pixels to zero
             if mod == 0:
                 for i in statsfullsize2.coords[obj]:
                     newArray[(i[0], i[1], i[2])] = 0
-
+            # if mode is not zero, set all zero pixels to mode
             if len(np.unique(idlist)) > 1 and mod != 0:
                 for i in statsfullsize2.coords[obj]:
                     if corr2_crop[(i[0], i[1], i[2])] == 0 or corr2_crop[(i[0], i[1], i[2])] == mod:
                         newArray[(i[0], i[1], i[2])] = mod
 
-        # starline()
-        # print("mode zero set all to zero, zero set to mode complete.")
-        #
-        # print(maxx)
-
         newcount = 0
+        # for each object
         for obj in range(len(statsfullsize2)):
             idlist = []
             for i in statsfullsize2.coords[obj]:
                 idlist.append(newArray[(i[0], i[1], i[2])])
             mod = statistics.mode(idlist)
+
+            # if mode is still zero
             if mod == 0:
                 newcount += 1
+                # set every pixel to a new id
                 for i in statsfullsize2.coords[obj]:
                     newArray[(i[0], i[1], i[2])] = maxx + 1
                 newList.append(maxx + 1)
+                bornlist.append(maxx+1)
                 globalTargetIdList.append(maxx + 1)
                 maxx += 1
 
+            # if still more than one id
             if len(np.unique(idlist)) > 1:
                 u, c = np.unique(np.array(idlist), return_counts=True)
 
                 for count_index, count_i in enumerate(c):
+                    # replace ids existing for less than 3 pixels with mode
                     if count_i < 3:
                         for i in statsfullsize2.coords[obj]:
                             if newArray[(i[0], i[1], i[2])] == u[count_index]:
                                 newArray[(i[0], i[1], i[2])] = mod
-        # print("all new objects are given a new id.")
-        # print("all tiny merges filtered out")
 
-        # print(maxx)
+        birth_id_dict[time+1] = sorted([int(identity) for identity in bornlist])
 
+        merged_id_list=[]
+        truemerged_id_list=[]
         # add to mergelist
-        for obj in range(len(statsfullsize2)):
+        for obj in range(len(statsfullsize2)): # for all  objects
             idlist = []
             for i in statsfullsize2.coords[obj]:
                 idlist.append(newArray[(i[0], i[1], i[2])])
-            if len(np.unique(idlist)) > 1:
+            if len(np.unique(idlist)) > 1: # if more than one ID
                 mod = statistics.mode(idlist)
                 u, c = np.unique(np.array(idlist), return_counts=True)
                 # print(u, c)
@@ -334,10 +244,9 @@ def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein
                     if u[uniqueIndex] != mod:
                         # print(f"{mod} swallowed {u[uniqueIndex]} at time {time + 1}")
                         mergedList.append([mod, u[uniqueIndex], time + 1])
+                        merged_id_list.append(u[uniqueIndex])
                         for i in statsfullsize2.coords[obj]:
                             newArray[(i[0], i[1], i[2])] = mod
-
-        # print(mergedList)
 
         for obj in range(len(statsfullsize2)):
             idlist = []
@@ -345,30 +254,48 @@ def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein
                 idlist.append(newArray[(i[0], i[1], i[2])])
 
         # take care of the split
+        splitIdList = []
+        idThatSplitList = []
         accountedSplitIdList = []
         splitList = []
+
+
         for obj in range(len(statsfullsize2)):
             idlist = []
             for i in statsfullsize2.coords[obj]:
                 idlist.append(newArray[(i[0], i[1], i[2])])
             u, c = np.unique(idlist, return_counts=True)
             mode_i = statistics.mode(idlist)
-            if mode_i not in accountedSplitIdList:
+            if mode_i not in accountedSplitIdList: # if the mode is not in accountedsplitlist, add to it
                 accountedSplitIdList.append(mode_i)
-            else:
+            else:  # if it is in accountedsplitlist
+                idThatSplitList.append(mode_i)
                 for j in statsfullsize2.coords[obj]:
                     newArray[(j[0], j[1], j[2])] = maxx + 1
+                splitIdList.append(maxx+1)
                 splitList.append([mode_i, maxx + 1, time + 1])
                 # print(f'{mode_i} splitted into {mode_i} and {maxx + 1} at t={time + 1}')
                 maxx += 1
 
-        # print(splitList)
+        split_id_dict[time+1] = sorted([int(identity) for identity in splitIdList])
+        id_that_split_dict[time+1] = sorted([int(identity) for identity in idThatSplitList])
 
         idlist_now = []
         deathList = []
         for obj2 in range(len(statsfullsize2)):
             idlist_now.append(newArray[(statsfullsize2.coords[obj2][0][0], statsfullsize2.coords[obj2][0][1],
                                         statsfullsize2.coords[obj2][0][2])])
+        all_id_dict[time+1] = sorted([int(identity) for identity in idlist_now])
+
+        truemerged_id_list = [i_d for i_d in merged_id_list if i_d not in all_id_dict[time+1]]
+        splitmerge_id_list = [i_d for i_d in merged_id_list if i_d in all_id_dict[time+1]]
+
+
+
+        merged_id_dict[time + 1] = sorted([int(identity) for identity in merged_id_list])
+        truemerged_id_dict[time + 1] = sorted([int(identity) for identity in truemerged_id_list])
+        splitmerge_id_dict[time + 1] = sorted([int(identity) for identity in splitmerge_id_list])
+
 
         newTotal = len(idlist_now)
         oldTotal = len(idlist_previous)
@@ -381,20 +308,31 @@ def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein
             else:
                 newList.append([theId, time + 1])
 
+        deadIdList=[]
         for oldId in idlist_previous:
-            if oldId not in idlist_now:
+            if oldId not in idlist_now and oldId not in merged_id_dict[time+1]:
+                deadIdList.append(oldId)
                 deathList.append([oldId, time + 1])
+        dead_id_dict[time+1]=sorted([int(identity) for identity in deadIdList])
 
-        # print(trackedList)
-        # print(newList)
+        events_counts[time - startpoint + 1, :] = [len(all_id_dict[time+1]), len(split_id_dict[time + 1]),
+                                                   len(merged_id_dict[time + 1]), len(birth_id_dict[time + 1]),
+                                                   len(dead_id_dict[time + 1]), len(truemerged_id_dict[time+1]), len(splitmerge_id_dict[time+1])]
 
-        # np.array(newList).toFile(folder + t2 + '/newList' + t2 + '.csv', sep=',')
-        # np.array(trackedList).toFile(folder + t2 + '/trackedList' + t2 + '.csv', sep=',')
-        # np.array(deathList).toFile(folder + t2 + '/deathList' + t2 + '.csv', sep=',')
-        # np.array(mergedList).toFile(folder + t2 + '/mergedList' + t2 + '.csv', sep=',')
-        # np.array(splitList).tofile(folder + t2 + '/splitList' + t2 + '.csv', sep=',')
-        #
-        # newListDF = pd.DataFrame(newList, columns=['merge_time', 'merged', 'merged_into', 'merged_id_starttime'])
+
+
+        # We need to isolate true merge from split-and-merge. True merge means two object combine to form one object.
+        # There is one less object. Split-and-merge means a fraction of one object splits and merges with another object
+        # at the same time. Does not change object count.
+
+        trueMergedList = [[mergedIntoId, mergedId,mergeTime] for (mergedIntoId, mergedId,mergeTime) in mergedList if mergedId not in idlist_now]
+        splitAndMergeList = [[mergedIntoId, mergedId,mergeTime] for (mergedIntoId, mergedId,mergeTime) in mergedList if mergedId in idlist_now]
+
+        truemerge_as_primary_id_list = [int(mergedIntoId) for (mergedIntoId, mergedId,mergeTime) in trueMergedList]
+        truemerge_as_secondary_id_list = [int(mergedId) for (mergedIntoId, mergedId,mergeTime) in trueMergedList]
+
+        truemerge_as_primary_id_dict[time+1] = truemerge_as_primary_id_list
+        truemerge_as_secondary_id_dict[time+1] = truemerge_as_secondary_id_list
 
         globalSplitList.append(splitList)
         globalMergeList.append(mergedList)
@@ -403,26 +341,44 @@ def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein
         globalBirthList.append(newList)
         globalIdList.append(idlist_now)
 
+        globalTrueMergeList.append(trueMergedList)
+        globalSplitAndMergeList.append(splitAndMergeList)
+
         niftiwriteu32(newArray, folder + t2 + '/Fullsize_2_aftertracking_' + t2 + '.nii')
 
         max_old = maxx
 
-    # np.array(globalSplitList).toFile(folder + '/globalSplitList.csv', sep=',')
-    # np.array(globalMergeList).toFile(folder + '/globalMergeList.csv', sep=',')
-    # np.array(globalTrackList).toFile(folder + '/globalTrackList.csv', sep=',')
-    # np.array(globalDeathList).toFile(folder + '/globalDeathList.csv', sep=',')
-    # np.array(globalBirthList).tofile(folder + '/globalBirthList.csv', sep=',')
-    # starline()
-    # starline()
-    # print(globalMergeList)
-    # # dashline()
-    # print(globalSplitList)
-    # # dashline()
-    # print(globalDeathList)
-    # # dashline()
-    # print(globalBirthList)
-    # # dashline()
-    # print(globalIdList)
+
+    jdead = json.dumps(dead_id_dict)
+    with open(folder + 'dead_id.json', 'w') as f:
+        f.write(jdead)
+    jmerged = json.dumps(merged_id_dict)
+    with open(folder + 'merged_id.json', 'w') as f:
+        f.write(jmerged)
+    jidthatsplit = json.dumps(id_that_split_dict)
+    with open(folder + 'splitting_id.json', 'w') as f:
+        f.write(jidthatsplit)
+    jsplit = json.dumps(split_id_dict)
+    with open(folder + 'split_into_id.json', 'w') as f:
+        f.write(jsplit)
+    jborn = json.dumps(birth_id_dict)
+    with open(folder + 'born_id.json', 'w') as f:
+        f.write(jborn)
+    jall = json.dumps(all_id_dict)
+    with open(folder + 'all_id.json', 'w') as f:
+        f.write(jall)
+    jtruemerge = json.dumps(truemerged_id_dict)
+    with open(folder + 'all_true_merge.json', 'w') as f:
+        f.write(jtruemerge)
+    jtruemergeprimary = json.dumps(truemerge_as_primary_id_dict)
+    with open(folder + 'truemerge_as_primary.json','w') as f:
+        f.write(jtruemergeprimary)
+    jtruemergesecondary = json.dumps(truemerge_as_secondary_id_dict)
+    with open(folder + 'truemerge_as_secondary.json','w') as f:
+        f.write(jtruemergesecondary)
+
+    events_countsDF = pd.DataFrame(events_counts,  columns=['total','split','merged','born','dead','true_merge','split_and_merge'])
+    events_countsDF.to_csv(folder + 'eventObjectCount.csv', index=False)
 
     maxid = np.amax(globalIdList[len(globalIdList) - 1])
 
@@ -446,141 +402,118 @@ def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein
 
     niftiwriteu32(finalMatrix, track_op_folder + 'TrackedCombined.nii')
 
-    # excelFilename = folder + 'TrackingID' + re.sub(r'\W+', '_', str(timm)) + '.xlsx'  # the excel file name to write the tracking result
-    #
-    # workbook = xlsxwriter.Workbook(excelFilename)
-    # worksheet1 = workbook.add_worksheet()
-    # worksheet2 = workbook.add_worksheet()
-    # worksheet3 = workbook.add_worksheet()
-    #
-    # xlsxwriter1 = pd.DataFrame(nan_2d(maxid+1,endpoint*2))
-    # xlsxwriter2 = pd.DataFrame(np.zeros(endpoint,4))
-    # xlsxwriter3 = pd.DataFrame(nan_2d(maxid+1,endpoint*2))
+    globalSplitList = [[splitEvent for splitEvent in timeSplitList if splitEvent[0] != 1] for timeSplitList in globalSplitList]
 
-    # worksheet2.write('A1', 'time')  # write titles to excel
-    # worksheet2.write('B1', 'old')
-    # worksheet2.write('C1', 'new')
-    # worksheet2.write('D1', 'split')
-    # worksheet2.write('E1', 'fusion')
 
-    globalSplitList = [[splitEvent for splitEvent in timeSplitList if splitEvent[0] != 1] for timeSplitList in
-                       globalSplitList]
-
+# This section is constantly causing problem. Probably needs a redo
     # print(globalIdList)
-    lst = []
-    for i in range(1, len(globalIdList) + 1):
-        if i == 1:
-            lst.append(str(i))
-        else:
-            lst.append(str(i))
-            lst.append(str(i))
-    mydf = pd.DataFrame(nan_2d(100, len(globalIdList) * 2 - 1))
-    # print(mydf.head())
-    parent = 0
-    print(maxid)
-    # print(len(globalIdList))
-    for idd in range(2, maxid):
-        if idd % 100 == 0:
-            if idd % 3000 == 0:
-                print('#', end='\n')
-            print('#', end='')
-        for tt in range(len(globalSplitList) + 1):
-            if idd in globalIdList[tt]:
-                if tt == 0:
-                    mydf.loc[idd - 2, tt] = int(idd)
-                else:
-                    mydf.loc[idd - 2, tt * 2 - 1] = int(idd)
-                    mydf.loc[idd - 2, tt * 2] = int(idd)
-                    if idd not in globalIdList[tt - 1]:  # if the object id is new
-                        # if idd in (np.array(globalSplitList[tt - 1])[:, 0:2].flatten()):  #replaced with next line
-                        # if the object split from another id
-                        # list comprehension removes the empty sublist so that [:,0:2] doesn't run into an error
-                        # temporary__ =
-                        if idd in (
-                        np.array([sublist for sublist in globalSplitList[tt - 1] if sublist])[:, 0:2].flatten()):
-                            for splitEvent in globalSplitList[tt - 1]:  # for all split events at that time
-                                if splitEvent[1] == idd:  # if idd in an event
-                                    parent = splitEvent[0]  # get parent id
-                                    for parent_t in range(tt):  # for all times until tt
-                                        if tt == 1:
-                                            if not pd.isna(mydf.loc[parent - 2, parent_t]):
-                                                mydf.loc[idd - 2, parent_t] = mydf.loc[parent - 2, parent_t]
-                                        if tt > 1:
-                                            if parent_t == 0 and not pd.isna(mydf.loc[parent - 2, parent_t]) and not \
-                                            mydf.iloc[parent - 2, parent_t] == 'new':
-                                                mydf.loc[idd - 2, parent_t] = mydf.loc[parent - 2, parent_t]
-                                            if parent_t > 0 and not pd.isna(
-                                                    mydf.loc[parent - 2, parent_t * 2 - 1]) and not mydf.iloc[
-                                                                                                        parent - 2, parent_t * 2 - 1] == 'new':
-                                                mydf.loc[idd - 2, parent_t * 2 - 1] = mydf.loc[
-                                                    parent - 2, parent_t * 2 - 1]
-                                            if parent_t > 0 and not pd.isna(mydf.loc[parent - 2, parent_t * 2]) and not \
-                                                    mydf.iloc[parent - 2, parent_t * 2] == 'new':
-                                                mydf.loc[idd - 2, parent_t * 2] = mydf.loc[parent - 2, parent_t * 2]
-                        else:
-                            mydf.loc[idd - 2, tt * 2 - 2] = 'new'
+    # lst = [] #      Temporarily COmmented. Uncomment once done.
+    # for i in range(1, len(globalIdList) + 1):
+    #     if i == 1:
+    #         lst.append(str(i))
+    #     else:
+    #         lst.append(str(i))
+    #         lst.append(str(i))
+    # mydf = pd.DataFrame(nan_2d(100, len(globalIdList) * 2 - 1))
+    # # print(mydf.head())
+    # parent = 0
+    # print(maxid)
+    # # print(len(globalIdList))
+    # for idd in range(2, maxid):
+    #     if idd % 100 == 0:
+    #         if idd % 3000 == 0:
+    #             print('#', end='\n')
+    #         print('#', end='')
+    #     for tt in range(len(globalSplitList) + 1):
+    #         if idd in globalIdList[tt]:
+    #             if tt == 0:
+    #                 mydf.loc[idd - 2, tt] = int(idd)
+    #             else:
+    #                 mydf.loc[idd - 2, tt * 2 - 1] = int(idd)
+    #                 mydf.loc[idd - 2, tt * 2] = int(idd)
+    #                 if idd not in globalIdList[tt - 1]:  # if the object id is new
+    #                     # if idd in (np.array(globalSplitList[tt - 1])[:, 0:2].flatten()):  #replaced with next line
+    #                     # if the object split from another id
+    #                     # list comprehension removes the empty sublist so that [:,0:2] doesn't run into an error
+    #                     # temporary__ =
+    #                     try:
+    #                         if idd in (np.array([sublist for sublist in globalSplitList[tt - 1] if sublist])[:, 0:2].flatten()):
+    #                             for splitEvent in globalSplitList[tt - 1]:  # for all split events at that time
+    #                                 if splitEvent[1] == idd:  # if idd in an event
+    #                                     parent = splitEvent[0]  # get parent id
+    #                                     for parent_t in range(tt):  # for all times until tt
+    #                                         if tt == 1:
+    #                                             if not pd.isna(mydf.loc[parent - 2, parent_t]):
+    #                                                 mydf.loc[idd - 2, parent_t] = mydf.loc[parent - 2, parent_t]
+    #                                         if tt > 1:
+    #                                             if parent_t == 0 and not pd.isna(mydf.loc[parent - 2, parent_t]) and not \
+    #                                             mydf.iloc[parent - 2, parent_t] == 'new':
+    #                                                 mydf.loc[idd - 2, parent_t] = mydf.loc[parent - 2, parent_t]
+    #                                             if parent_t > 0 and not pd.isna(
+    #                                                     mydf.loc[parent - 2, parent_t * 2 - 1]) and not mydf.iloc[
+    #                                                                                                         parent - 2, parent_t * 2 - 1] == 'new':
+    #                                                 mydf.loc[idd - 2, parent_t * 2 - 1] = mydf.loc[
+    #                                                     parent - 2, parent_t * 2 - 1]
+    #                                             if parent_t > 0 and not pd.isna(mydf.loc[parent - 2, parent_t * 2]) and not \
+    #                                                     mydf.iloc[parent - 2, parent_t * 2] == 'new':
+    #                                                 mydf.loc[idd - 2, parent_t * 2] = mydf.loc[parent - 2, parent_t * 2]
+    #                         else:
+    #                             mydf.loc[idd - 2, tt * 2 - 2] = 'new'
+    #                     except:
+    #                         None
+    #
+    # # mydf.columns = lst  # NEED to fix this
+    #
+    # mydf.to_csv(folder + 'tracking_result.csv', index=False)
 
-    mydf.columns = lst
 
-    mydf.to_csv(folder + 'tracking_result.csv', index=False)
+    flatTrueMergeList = [item for sublist in globalTrueMergeList for item in sublist]
+    trueMergeDF = pd.DataFrame(flatTrueMergeList)
 
-    print('\nGenerating Events list..')
-    # get the count of events
-    globalEventCountList = np.zeros((len(globalSplitList) + 1, 7))
-    for i in range(len(globalSplitList) + 1):
+    flatSplitAndMergeList = [item for sublist in globalSplitAndMergeList for item in sublist]
+    splitAndMergeDF = pd.DataFrame(flatSplitAndMergeList)
 
-        if i == 0:
-            globalEventCountList[i, 0] = len(globalIdList[i])
-            globalEventCountList[i, 1] = 0
-            globalEventCountList[i, 2] = 0
-            globalEventCountList[i, 3] = 0
-            globalEventCountList[i, 4] = 0
-            globalEventCountList[i, 5] = 0
-            globalEventCountList[i, 6] = 0
+    allMergeList = [item for sublist in globalMergeList for item in sublist]
+    allMergeDF = pd.DataFrame(allMergeList)
 
-        else:
-            globalEventCountList[i, 0] = len(globalIdList[i])  # obj count
-            globalEventCountList[i, 1] = len(globalSplitList[i - 1])  # split count
-            globalEventCountList[i, 2] = len(globalMergeList[i - 1])  # merge count
-            globalEventCountList[i, 3] = len(globalBirthList[i - 1])  # count of ids that were new
-            globalEventCountList[i, 4] = len(globalDeathList[i - 1])  # count of ids that were no longer continued
-            globalEventCountList[i, 5] = len(globalBirthList[i - 1]) - len(
-                globalSplitList[i - 1])  # entirely new objects
-            globalEventCountList[i, 6] = len(globalDeathList[i - 1]) - len(
-                globalMergeList[i - 1])  # entirely dead objects
-
-    eventCols = ['Total objects', 'Split', 'Merge', 'new id', 'retired id', 'birth', 'death']
-    eventDF = pd.DataFrame(globalEventCountList)
-    eventDF.columns = eventCols
-
-    eventDF.to_csv(folder + 'all_events.csv', index=False)
-
-    # this part suffers from redundancy. Clear this up
-    tmplst = []
-    for l in range(len(globalMergeList)):
-        for m in range(len(globalMergeList[l])):
-            tmplst.append(globalMergeList[l][m])
-    mergeDF = pd.DataFrame(np.array(tmplst))
+    ###############################################################################
     mergeCols = ['Merged Into', 'Merged', 'Time']
-    mergeDF.columns = mergeCols
-    mergeDF.to_csv(folder + 'merge_list.csv', index=False)
+    if trueMergeDF.empty:
+        trueMergeDF = pd.DataFrame(columns=['Merged Into','Merged','Time'])
+    else:
+        trueMergeDF.columns = mergeCols
 
-    # this part also suffers from redundancy. Clear this up
-    tmplst2 = []
-    for l in range(len(globalSplitList)):
-        for m in range(len(globalSplitList[l])):
-            tmplst2.append(globalSplitList[l][m])
-    splitDF = pd.DataFrame(np.array(tmplst2))
-    splitCols = ['Splitted', 'Splitted Into', 'Time']
-    splitDF.columns = splitCols
+    if splitAndMergeDF.empty:
+        splitAndMergeDF = pd.DataFrame(columns=['Merged Into','Merged','Time'])
+    else:
+        splitAndMergeDF.columns = mergeCols
+
+    if allMergeDF.empty:
+        allMergeDF = pd.DataFrame(columns=['Merged Into','Merged','Time'])
+    else:
+        allMergeDF.columns = mergeCols
+    ###############################################################################
+
+
+    trueMergeDF.to_csv(folder + 'merge_list.csv', index=False)
+    splitAndMergeDF.to_csv(folder + 'split-and-merge_list.csv', index=False)
+    allMergeDF.to_csv(folder + 'ture-merge_+_split-and-merge_list.csv', index=False)
+
+    flatSplitList = [item for sublist in globalSplitList for item in sublist]
+    splitDF = pd.DataFrame(flatSplitList)
+    if splitDF.empty:
+        splitDF = pd.DataFrame(columns=['Splitted','Splitted Into','Time'])
+    else:
+        splitCols = ['Splitted', 'Splitted Into', 'Time']
+        splitDF.columns = splitCols
     splitDF.to_csv(folder + 'split_list.csv', index=False)
 
     ################################################################
 
     # DataFrameM titles
     lst = []
-    for i in range(1, len(globalMergeList) + 2):
-        if i == 1 or i == len(globalMergeList) + 1:
+    for i in range(1, len(globalTrueMergeList) + 2):
+        if i == 1 or i == len(globalTrueMergeList) + 1:
             lst.append(str(i))
         else:
             lst.append(str(i))
@@ -588,16 +521,16 @@ def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein
 
     # DataFrameS&M titles
     lst2 = []
-    for i in range(1, len(globalMergeList) + 2):
+    for i in range(1, len(globalTrueMergeList) + 2):
         if i == 1:
             lst2.append(str(i))
         else:
             lst2.append(str(i) + '_split')
             lst2.append(str(i) + '_merge')
 
-    allMerges = [item for sublist in globalMergeList for item in sublist]
-    mrgDF = pd.DataFrame(nan_2d(maxid, len(globalMergeList) * 2 - 1))
-    combinedDF = pd.DataFrame(nan_2d(maxid, len(globalMergeList) * 2 - 1))
+    allMerges = [item for sublist in globalTrueMergeList for item in sublist]
+    mrgDF = pd.DataFrame(nan_2d(maxid, len(globalTrueMergeList) * 2 - 1))
+    combinedDF = pd.DataFrame(nan_2d(maxid, len(globalTrueMergeList) * 2 - 1))
 
     for eachMerge in allMerges:
         lion = eachMerge[0]
@@ -605,8 +538,7 @@ def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein
         clock = eachMerge[2]
         mrgDF.loc[lion - 2, (clock - 1) * 2] = deer
         combinedDF.loc[lion - 2, (clock - 1) * 2] = deer
-
-    mrgDF.columns = lst
+    mrgDF.columns = lst[:len(mrgDF.columns)] # Check this and fix if necessary
     print('Saving Merge Events...')
     mrgDF.to_csv(folder + 'Sheet10.csv', index=False)
 
@@ -629,12 +561,12 @@ def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein
         sptDF.loc[parentt - 2, (hourr - 1) * 2 - 1] = childd
         combinedDF.loc[parentt - 2, (hourr - 1) * 2 - 1] = childd
 
-    sptDF.columns = lst
+    sptDF.columns = lst[:len(sptDF.columns)]    # Check and fix this if needed
     print('Saving Split Events...')
     sptDF.to_csv(folder + 'Sheet11.csv', index=False)
 
     print('Saving Combined Events...')
-    combinedDF.columns = lst2
+    combinedDF.columns = lst2[:len(combinedDF.columns)]
     combinedDF.to_csv(folder + 'Sheet12.csv', index=False)
 
     ################################################################
@@ -652,6 +584,7 @@ def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein
     globalIdExistForArray = np.zeros((len(allIds), 4))
 
     for anId in allIds:
+
         globalIdExistForArray[anId - 1, 0] = anId
         existCount = 0
         idFirstExist = 0
@@ -671,7 +604,7 @@ def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein
 
             if anId in allChild:
                 parent = allParents[allChild == anId]
-                globalIdExistForArray[anId - 1, 3] = parent
+                globalIdExistForArray[anId - 1, 3] = parent[0]   # Stumbled upon a case with two parents. Needs attention.
             else:
                 globalIdExistForArray[anId - 1, 3] = anId
 
@@ -700,7 +633,18 @@ def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein
     sT = spDF['startTime'].loc[0] - 1
     eT = spDF['endTime'].loc[0]
 
-    createEventsAndIntensityPlots(segpath=seg_op_folder, filePath=track_op_folder, modelName=modelName,
-                                  originalImage=imageNameO, startpoint=startpoint, endpoint=endpoint, sT=sT, eT=eT,
-                                  sTime=stime)
+    # createEventsAndIntensityPlots(segpath=seg_op_folder, filePath=track_op_folder, modelName=modelName,
+    #                               originalImage=imageNameO, startpoint=startpoint, endpoint=endpoint, sT=sT, eT=eT,
+    #                               sTime=stime)
     # createEventsAndIntensityPlots(filePath=track_op_folder, originalImage=imageFolder + '/' + imageNameOnly.split('.')[0]+'.tif', nameOnly=imageNameOnly.split('.')[0], distance=endpoint-startpoint)
+
+
+    # runAnalysis(origImgPath=imageNameO,
+    #             trackedimagepath=track_op_folder + 'TrackedCombined.nii',
+    #             sT=sT, eT=sT + endpoint,
+    #             plotsavepath=track_op_folder[:-1])
+
+    runAnalysisNewWay(origImgPath=imageNameO,
+                trackedimagepath=track_op_folder + 'TrackedCombined.nii',
+                sT=sT, eT=sT + endpoint,
+                plotsavepath=track_op_folder[:-1])

@@ -124,7 +124,7 @@ def train(model, epochs, gt_path, op_path, transfer_model, continue_training=0, 
     continue_training = continue_training
     transfer_learning = transfer_learning
 
-    same_model =  True if continue_training and not transfer_learning else False
+    # same_model =  True if continue_training and not transfer_learning else False
     # dataset_path, valdataset_path = createTrainingData.create(addr=gt_path, continue_training=continue_training,
     #                                                           same_model=same_model)
     dataset_path, valdataset_path = createTrainingData.create(addr=gt_path, transfer_learning=transfer_learning, continue_training=continue_training)

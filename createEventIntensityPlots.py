@@ -719,9 +719,14 @@ def runAnalysisNewWay(origImgPath, trackedimagepath, sT, eT, plotsavepath):
     image = tifffile.imread(origImgPath)
     # acp = 20
     image = np.transpose(image, (3, 2, 1, 0))
-    image = image[:, :, :, sT - 1:eT]
+
+
     countsavename = os.path.join(os.path.dirname(trackedimagepath), 'pixelCountPerObjectEveryTimepoint.csv')
     matrix = niftireadUint32(trackedimagepath)
+
+    matrix_t_size = matrix.shape[-1]
+    image = image[:, :, :, sT:sT+matrix_t_size]
+
     matrix_shape = matrix.shape
     mask___ = np.zeros_like(matrix)
     mask___[matrix > 0] = 1

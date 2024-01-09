@@ -52,14 +52,14 @@ def intersect(a, b):
 def generateFamilyTrees(excelFile, ftFolder):
 
     colors = ["coral", "blue", "brown", "chartreuse", "aquamarine", "cyan", "darkorange", "darkred",
-              "dodgerblue", "firebrick", "forestgreen", "fuchsia", "gold", "green", "hotpink", "indigo", "khaki",
+              "dodgerblue", "firebrick", "forestgreen", "fuchsia", "gold", "green", "hotpink", "indigo",
               "lime", "magenta", "maroon", "mediumblue", "mediumspringgreen", "navy", "olive", "orange",
               "orangered",
               "orchid", "peru", "purple", "red", "royalblue", "saddlebrown", "seagreen", "sienna", "skyblue",
-              "springgreen", "teal", "tomato", "turquoise", "violet", "yellow", "yellowgreen", "aliceblue",
-              "antiquewhite", "azure", "beige", "bisque", "blanchedalmond", "burlywood", "cadetblue",
+              "springgreen", "teal", "tomato", "turquoise", "violet", "yellow", "yellowgreen",
+                "burlywood", "cadetblue",
               "cornflowerblue",
-              "cornsilk", "darkcyan", "darkgoldenrod", "darkgreen", "darkkhaki", "darkmagenta", "darkolivegreen",
+               "darkcyan", "darkgoldenrod", "darkgreen", "darkkhaki", "darkmagenta", "darkolivegreen",
               "darkorchid", "darksalmon", "darkseagreen", "darkslateblue", "darkslategray", "darkturquoise",
               "darkviolet", "deepskyblue"
               ]
@@ -152,22 +152,23 @@ def generateFamilyTrees(excelFile, ftFolder):
 
         allFamMemExistTimes = existForDF.loc[existForDF['index'].isin(allFamilyMembersIncludingSplitAndMerge)].reset_index(drop=True)
 
-        fig = plt.figure(num=1, clear=True, figsize=(52, 32))
+        fig = plt.figure(num=1, clear=True, figsize=(allFamMemExistTimes.timeend.max() + 2, len(allFamMemExistTimes) + 2))
         ax = plt.subplot()
         ax.set_ylim(0, len(allFamMemExistTimes) + 2)
-        ax.set_xlim(allFamMemExistTimes.timestart.min()-1, allFamMemExistTimes.timeend.max() + 2)
-        ax.set_xlabel('Time Points (t)', fontsize=17, color='k')
-        mpl.rc('xtick', labelsize=17)
-        mpl.rc('ytick', labelsize=17)
-        plt.xticks(rotation=0)
+        ax.set_xlim(allFamMemExistTimes.timestart.min() - 1, allFamMemExistTimes.timeend.max() + 2)
+        ax.set_xlabel('timepoints (t)', fontsize=20, color='k')
+        ax.set_xticks(np.arange(allFamMemExistTimes.timestart.min(), allFamMemExistTimes.timeend.max() + 1))
+        mpl.rc('xtick', labelsize=20)
+        mpl.rc('ytick', labelsize=20)
         plt.yticks(color='w')
+        plt.xticks(rotation=0, fontsize=15)
 
         for i, j in enumerate(allFamMemExistTimes['index']):
             for k in range(allFamMemExistTimes['timestart'][i], allFamMemExistTimes['timeend'][i ] +1):
                 ax.scatter(k, i + 1, color=colors[j % len(colors)], s=200)
             ax.text(allFamMemExistTimes['timeend'][i ] +0.25, i+ 1, str(j), fontsize=30 if i == 0 else 20)
             plt.plot([allFamMemExistTimes['timestart'][i], allFamMemExistTimes['timeend'][i]], [i + 1, i + 1],
-                     color="darkgreen")
+                     color="green")
 
         # print(allFamMemExistTimes)
         for i, row in splitlst_for_ft.iterrows():
@@ -216,6 +217,7 @@ def generateFamilyTrees(excelFile, ftFolder):
             ax.xaxis.set_tick_params(labelbottom=False)
             ax.yaxis.set_tick_params(labelleft=False)
             ax.zaxis.set_tick_params(labelright=False)
+            ax.zaxis.set_ticklabels([])
 
             axtitle = list(np.unique(mtrx)[1:])
             axtitle.append('t=' + str(i + 1))
@@ -232,7 +234,7 @@ def generateFamilyTrees(excelFile, ftFolder):
                             z = [zz + 1 if az % 2 == 0 else zz for az, zz in enumerate(z)]
                         label = str(id)
                         ax.plot_trisurf(x, y, z, color=colors[id % len(colors)], alpha=0.6, label=label)
-
+                        ax.set_box_aspect([1, 1, 0.25])
                         # ax.text(x=int((indicesRange[0][1] - indicesRange[0][0]) / 2), y=int(indicesRange[1][1] - 10-j*10), z=indicesRange[2][1]-1,  s=str(id))
                     except(Exception):
                         None

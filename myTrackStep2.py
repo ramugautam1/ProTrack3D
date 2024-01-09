@@ -11,6 +11,7 @@ import math
 import glob as glob
 import nibabel as nib
 from skimage import measure
+import matplotlib.pyplot as plt
 import re
 from correlation20220708 import correlation
 # from testCorr import correlation
@@ -643,7 +644,55 @@ def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein
     #             trackedimagepath=track_op_folder + 'TrackedCombined.nii',
     #             sT=sT, eT=sT + endpoint,
     #             plotsavepath=track_op_folder[:-1])
+    print('Generating 3D projections of tracked image.')
+    def niftireadu16(arg):
+        return np.asarray(nib.load(arg).dataobj).astype(np.uint16).squeeze()
+    tI_fig = niftireadu16(track_op_folder + 'TrackedCombined.nii')
+    savePath3D = track_op_folder + '3DProjection'
+    if not os.path.isdir(savePath3D):
+        os.makedirs(savePath3D)
+    colors = ["coral", "blue", "brown", "chartreuse", "aquamarine", "cyan", "darkorange", "darkred",
+              "dodgerblue", "firebrick", "forestgreen", "fuchsia", "gold", "green", "hotpink", "indigo",
+              "lime", "magenta", "maroon", "mediumblue", "mediumspringgreen", "navy", "olive", "orange",
+              "orangered",
+              "orchid", "peru", "purple", "red", "royalblue", "saddlebrown", "seagreen", "sienna", "skyblue",
+              "springgreen", "teal", "tomato", "turquoise", "violet", "yellow", "yellowgreen",
+              "burlywood", "cadetblue",
+              "cornflowerblue",
+              "darkcyan", "darkgoldenrod", "darkgreen", "darkkhaki", "darkmagenta", "darkolivegreen",
+              "darkorchid", "darksalmon", "darkseagreen", "darkslateblue", "darkslategray", "darkturquoise",
+              "darkviolet", "deepskyblue"
+              ]
 
+    for ii in range(tI_fig.shape[-1]):
+        print(f'\r t = {ii+1}                  ', end='')
+        start = datetime.now()
+        fig = plt.figure(num=1, clear=True, figsize=(30, 30), constrained_layout=True)
+        fig.patch.set_facecolor('white')
+        ax = plt.subplot(projection='3d')
+        tI_ii = tI_fig[:, :, :, ii]
+        allidsinthistimepoint = np.unique(tI_ii)[1:]
+        leng = len(allidsinthistimepoint)
+        for j, id in enumerate(allidsinthistimepoint):
+            x, y, z = np.where(tI_ii == id)
+            if (len(x) > 0 and len(y) > 0):
+                try:
+                    label = str(id)
+                    ax.plot_trisurf(x, y, z, color=colors[id % len(colors)], alpha=0.6, label=label)
+                    ax.set_box_aspect([1, 1, 0.1])
+                    ax.set_xlabel('x');
+                    ax.set_ylabel('y');
+                    ax.set_zlabel('z')
+                    ax.text(np.mean(x), np.mean(y), np.mean(z), label, fontsize=12)
+                except(Exception):
+                    None
+                ax.set_title('t=' + str(ii + 1), fontsize=30)
+                ax.view_init(40, 50)
+        ext = '' if ii >= 1000 else '0' if ii >= 100 else '00' if ii >= 10 else '000'
+        plt.savefig(os.path.join(savePath3D, 't_' + ext + str(ii+1) + '_3D.png'), facecolor='white')
+        plt.close()
+
+    print('\n\nRunning size-dependent analysis...')
     runAnalysisNewWay(origImgPath=imageNameO,
                 trackedimagepath=track_op_folder + 'TrackedCombined.nii',
                 sT=sT, eT=sT + endpoint,

@@ -188,12 +188,16 @@ def generateFamilyTree(excelFile, ftFolder, tidlist):
                                     list(allFamMemExistTimes['index']).index(si) + 1], color="darkblue")
 
         for i, row in allmrglst_for_ft.iterrows():
+            mi, md, tt = row['Merged Into'], row['Merged'], row['Time']
             plt.plot([tt - 1, tt], [list(allFamMemExistTimes['index']).index(md) + 1,
                                 list(allFamMemExistTimes['index']).index(mi) + 1], color='red', linestyle='--')
 
         filename = saveFolder + '/TreeDiagrams/' + 'FT_ID_' + prefix + str(tid) + '.png'
         plt.savefig(filename)
+        # fig.clear()
+
         plt.close()
+
 
         idlist=allFamilyMembersIncludingSplitAndMerge
         parentId = tid
@@ -206,8 +210,8 @@ def generateFamilyTree(excelFile, ftFolder, tidlist):
         tmin = allFamMemExistTimes['timestart'].min()
 
         totalTimes = tmax - tmin + 2
-
-        fig = plt.figure(num=1, clear=True, figsize=(int(np.ceil(totalTimes / 4)) * 10, 30), constrained_layout=True)
+        over4xN = 1 if totalTimes%4 > 0 else 0
+        fig = plt.figure(num=1, clear=True, figsize=(50, int(np.ceil(totalTimes / 5)) * 10), constrained_layout=True)
         fig.patch.set_facecolor('white')
         fig.suptitle(str(tid))
 
@@ -217,7 +221,7 @@ def generateFamilyTree(excelFile, ftFolder, tidlist):
             axtitle = []
 
             # print(str((int(np.ceil(totalTimes / 4)), 4, i - tmin + 1)))
-            ax = fig.add_subplot(int(np.ceil(totalTimes / 4)), 4, i - tmin +2, projection='3d')
+            ax = fig.add_subplot(int(np.ceil(totalTimes / 5)), 5, i - tmin + 2, projection='3d')
             # plot_3d_matrix(matrix, idlist, indicesRange, colors, ax)
 
             ax.xaxis.set_tick_params(labelbottom=False)
@@ -264,7 +268,9 @@ def generateFamilyTree(excelFile, ftFolder, tidlist):
         filename = filename[:250]  # File name limit
         #         plt.legend()
         plt.savefig(filename + '.png')
+        # fig.clear()
 
+        plt.close()
 
 
 

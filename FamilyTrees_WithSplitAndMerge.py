@@ -102,6 +102,7 @@ def generateFamilyTrees(excelFile, ftFolder):
 
 
     for tid in targetIds:
+
         prefix = '0000' if tid < 10 else '000' if tid < 100 else '00' if tid < 1000 else '0' if tid < 10000 else ''
         print(f'\rProcessing ID {prefix}{tid}', end='', flush=True)
 
@@ -130,10 +131,6 @@ def generateFamilyTrees(excelFile, ftFolder):
         bigmrglst_for_ft = merge_list[merge_list['Merged'].isin(all_ids_in_ft_s)]['Merged Into'].tolist()
         bigmrg_t_for_ft = merge_list[merge_list['Merged'].isin(all_ids_in_ft_s)]['Time'].tolist()
 
-        #         mrglst_for_ft = merge_list[merge_list['Merged Into'].isin(all_ids_in_ft_s)].values().tolist()
-
-        #         for mrglst_count in len(mrglst_for_ft):
-        #             mrglst_for_ft[mrglst_count].append(existForDF[existForDF['index']==mrglst_for_ft[mrglst_count][1]]['timestart'])
         fam_m = []
         for i_, m_ in enumerate(mrglst_for_ft):
             fam_m.append(existForList[m_ - 1].tolist())
@@ -152,7 +149,10 @@ def generateFamilyTrees(excelFile, ftFolder):
 
         allFamMemExistTimes = existForDF.loc[existForDF['index'].isin(allFamilyMembersIncludingSplitAndMerge)].reset_index(drop=True)
 
-        fig = plt.figure(num=1, clear=True, figsize=(allFamMemExistTimes.timeend.max() + 2, len(allFamMemExistTimes) + 2))
+        figsize1 = (allFamMemExistTimes.timeend.max() + 2, len(allFamMemExistTimes) + 2)
+        fig = plt.figure(num=1, clear=True, figsize=figsize1)
+        fig.patch.set_facecolor('white')
+
         ax = plt.subplot()
         ax.set_ylim(0, len(allFamMemExistTimes) + 2)
         ax.set_xlim(allFamMemExistTimes.timestart.min() - 1, allFamMemExistTimes.timeend.max() + 2)
@@ -186,7 +186,6 @@ def generateFamilyTrees(excelFile, ftFolder):
         prefix = '0000' if tid < 10 else '000' if tid < 100 else '00' if tid < 1000 else '0' if tid < 10000 else ''
         filename = saveFolder + '/TreeDiagrams/' + 'FT_ID_' + prefix + str(tid) + '.png'
         plt.savefig(filename)
-
         plt.close()
 
         idlist=allFamilyMembersIncludingSplitAndMerge
@@ -199,21 +198,18 @@ def generateFamilyTrees(excelFile, ftFolder):
         tmax = allFamMemExistTimes['timeend'].max()
         tmin = allFamMemExistTimes['timestart'].min()
 
-        totalTimes = tmax - tmin + 2
+        totalTimes = tmax - tmin + 1
+        figsize=(20,int(np.ceil(totalTimes/5)) * 4)
 
-        fig = plt.figure(num=1, clear=True, figsize=(int(np.ceil(totalTimes / 4)) * 10, 30), constrained_layout=True)
-        fig.patch.set_facecolor('white')
-        fig.suptitle(str(tid))
-
+        fig2 = plt.figure(num=2, clear=True, figsize=figsize)
+        fig2.patch.set_facecolor('white')
+        fig2.suptitle(str(tid))
         list_coordinates_all = []
-        for i in range(tmin-1, tmax):
+        for i in range(tmin - 1, tmax):
             mtrx = newMatrix[:, :, :, i]
             axtitle = []
-
-            # print(str((int(np.ceil(totalTimes / 4)), 4, i - tmin + 1)))
-            ax = fig.add_subplot(int(np.ceil(totalTimes / 4)), 4, i - tmin +2, projection='3d')
-            # plot_3d_matrix(matrix, idlist, indicesRange, colors, ax)
-
+            subplotloc = int(np.ceil(totalTimes / 5))
+            ax = fig2.add_subplot(subplotloc, 5, i - tmin + 2, projection='3d')
             ax.xaxis.set_tick_params(labelbottom=False)
             ax.yaxis.set_tick_params(labelleft=False)
             ax.zaxis.set_tick_params(labelright=False)
@@ -221,7 +217,7 @@ def generateFamilyTrees(excelFile, ftFolder):
 
             axtitle = list(np.unique(mtrx)[1:])
             axtitle.append('t=' + str(i + 1))
-            ax.set_title(str(axtitle))
+            ax.set_title(str(axtitle), fontsize=10)
             allmemberidlist = list(idlist)
             # legends = {allmemberidlist[i]: colors[i % len(colors)] for i in range(len(allmemberidlist))}
 
@@ -244,19 +240,17 @@ def generateFamilyTrees(excelFile, ftFolder):
             ax.set_zlim(indicesRange[2][0] - 1, indicesRange[2][1] + 1)
             list_coordinates_all.append(
                 [indicesRange[0][0] - 4, indicesRange[0][1] + 4, indicesRange[1][0] - 4, indicesRange[1][1] + 4,
-                 indicesRange[2][0] - 1, indicesRange[2][1] + 1])
-
-            #             ax.legend()
+                 indicesRange[2][0] - 1, indicesRange[2][1] + 1]
+            )
             ax.grid('off')
             ax.view_init(40, 50)
+        fig2.tight_layout()
+        filename = ftFolder + '/FamilyTrees_3D/' + 'FT3D_ID_' + prefix + str(parentId) + '_' + str(
+            list(idlist)).replace(' ',
+                                  '')
 
-        fig.tight_layout()
-        filename = ftFolder + '/FamilyTrees_3D/' + 'FT3D_ID_' + prefix + str(parentId) + '_' + str(list(idlist)).replace(' ',
-                                                                                                                  '')
-        filename = filename[:250]  # File name limit
-        #         plt.legend()
+        print(f'\rProcessing ID {prefix}{tid}{figsize1}{figsize}', end='', flush=True)
+        filename = filename[:250]  # due to file name length limit
         plt.savefig(filename + '.png')
-
-
-
+        # plt.close()
     ########################################################################################################################

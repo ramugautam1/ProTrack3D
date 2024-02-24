@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import os
 import matplotlib.colors as mc
 import nibabel as nib
+import json
 
 def niftiread(arg):
     return np.asarray(nib.load(arg).dataobj).astype(np.float32).squeeze()
@@ -23,7 +24,7 @@ def getExtremeIndices(arr):
     n_dim = arr.ndim
     dims = []
     for i in range(0, n_dim):
-        dims.append((np.min(nonZeroIndices[i]), np.max(nonZeroIndices[i])))
+        dims.append((int(np.min(nonZeroIndices[i])), int(np.max(nonZeroIndices[i]))))
     # print(dims)
     return dims
 
@@ -80,7 +81,9 @@ def generateFamilyTrees(excelFile, ftFolder):
 
     targetIdsdf = pd.read_csv(trackFolder+'/target_IDs.csv')
     targetIds = list(targetIdsdf.values.flatten())
-    # targetIds = [i for i in range(1 ,100)]
+    ## For GT
+    # targetIds =  [6,11,13,15,17,22,25,30,35,38,43,45,79,102,112,122,126,144,147, 169,175, 179, 184, 205, 199, 211, 220, 332, 341, 344, 351, 408, 419, 519, 522, 522, 529, 530, 537, 560, 561, 619, 620, 634, 635, 636, 637, 638, 639]
+
 
     merge_list = pd.read_csv(trackFolder + '/merge_list.csv')
 
@@ -88,19 +91,16 @@ def generateFamilyTrees(excelFile, ftFolder):
 
     split_list = split_list[~split_list['Splitted Into'].duplicated(keep='first')]  # Encountered one issue where two different split events resulted into same ID being generated at different timepoints. Look into this.
 
-    ftlst = []
-    mrglst = []
-    alltmin = []
-    alltmax = []
-    allmrglst = []
+    # alltmin = []
+    # alltmax = []
     print('\n=================================================\n')
     if not os.path.isdir(ftFolder + '/FamilyTrees_3D'):
         os.makedirs(ftFolder + '/FamilyTrees_3D')
     if not os.path.isdir(ftFolder + '/TreeDiagrams'):
         os.makedirs(ftFolder + '/TreeDiagrams')
 
-
-
+    indices_ = {}
+    matrix = niftiread(trackFolder + '/TrackedCombined.nii')
     for tid in targetIds:
 
         prefix = '0000' if tid < 10 else '000' if tid < 100 else '00' if tid < 1000 else '0' if tid < 10000 else ''
@@ -116,9 +116,9 @@ def generateFamilyTrees(excelFile, ftFolder):
 
         transposedFamilyMembers = np.transpose(np.array(familyMembers))
 
-        ftlst.append(transposedFamilyMembers.tolist())
-        alltmin.append(min(transposedFamilyMembers[1]))
-        alltmax.append(max(transposedFamilyMembers[2]))
+        # # ftlst.append(transposedFamilyMembers.tolist())
+        # alltmin.append(min(transposedFamilyMembers[1]))
+        # alltmax.append(max(transposedFamilyMembers[2]))
         famMem = pd.DataFrame(np.array(familyMembers))
         famMem.columns = ['index', 'timestart', 'timeend', 'parent']
         famMem.to_csv(csvFolder + '/split_data_tid_' + str(tid) + '.csv')
@@ -134,7 +134,7 @@ def generateFamilyTrees(excelFile, ftFolder):
         fam_m = []
         for i_, m_ in enumerate(mrglst_for_ft):
             fam_m.append(existForList[m_ - 1].tolist())
-        mrglst.append(mrglst_for_ft)
+        # mrglst.append(mrglst_for_ft)
 
         splitlst_for_ft = split_list[(split_list['Splitted'].isin(all_ids_in_ft_s) ) |(split_list['Splitted Into'].isin(all_ids_in_ft_s))]
 
@@ -190,7 +190,7 @@ def generateFamilyTrees(excelFile, ftFolder):
 
         idlist=allFamilyMembersIncludingSplitAndMerge
         parentId = tid
-        matrix = niftiread(trackFolder + '/TrackedCombined.nii')
+        # matrix = niftiread(trackFolder + '/TrackedCombined.nii')
         newMatrix = keep_values(matrix, idlist)
 
         indicesRange = getExtremeIndices(newMatrix)
@@ -198,18 +198,20 @@ def generateFamilyTrees(excelFile, ftFolder):
         tmax = allFamMemExistTimes['timeend'].max()
         tmin = allFamMemExistTimes['timestart'].min()
 
-        totalTimes = tmax - tmin + 1
+        indices_[tid] = indicesRange + list((int(tmin),int(tmax)))
+
+        totalTimes = tmax - tmin + 3
         figsize=(20,int(np.ceil(totalTimes/5)) * 4)
 
-        fig2 = plt.figure(num=2, clear=True, figsize=figsize)
-        fig2.patch.set_facecolor('white')
-        fig2.suptitle(str(tid))
+        fig = plt.figure(num=1, clear=True, figsize=figsize)
+        fig.patch.set_facecolor('white')
+        fig.suptitle(str(tid))
         list_coordinates_all = []
-        for i in range(tmin - 1, tmax):
+        for i in range(max(tmin-2, 0), min(tmax+1,matrix.shape[-1])):
             mtrx = newMatrix[:, :, :, i]
             axtitle = []
             subplotloc = int(np.ceil(totalTimes / 5))
-            ax = fig2.add_subplot(subplotloc, 5, i - tmin + 2, projection='3d')
+            ax = fig.add_subplot(subplotloc, 5, i - tmin + 3, projection='3d')
             ax.xaxis.set_tick_params(labelbottom=False)
             ax.yaxis.set_tick_params(labelleft=False)
             ax.zaxis.set_tick_params(labelright=False)
@@ -219,6 +221,7 @@ def generateFamilyTrees(excelFile, ftFolder):
             axtitle.append('t=' + str(i + 1))
             ax.set_title(str(axtitle), fontsize=10)
             allmemberidlist = list(idlist)
+            ax.set_box_aspect([1, 1, 0.25])
             # legends = {allmemberidlist[i]: colors[i % len(colors)] for i in range(len(allmemberidlist))}
 
             for j, id in enumerate(allmemberidlist):
@@ -230,7 +233,7 @@ def generateFamilyTrees(excelFile, ftFolder):
                             z = [zz + 1 if az % 2 == 0 else zz for az, zz in enumerate(z)]
                         label = str(id)
                         ax.plot_trisurf(x, y, z, color=colors[id % len(colors)], alpha=0.6, label=label)
-                        ax.set_box_aspect([1, 1, 0.25])
+                        # ax.set_box_aspect([1, 1, 0.25])
                         # ax.text(x=int((indicesRange[0][1] - indicesRange[0][0]) / 2), y=int(indicesRange[1][1] - 10-j*10), z=indicesRange[2][1]-1,  s=str(id))
                     except(Exception):
                         None
@@ -244,7 +247,7 @@ def generateFamilyTrees(excelFile, ftFolder):
             )
             ax.grid('off')
             ax.view_init(40, 50)
-        fig2.tight_layout()
+        fig.tight_layout()
         filename = ftFolder + '/FamilyTrees_3D/' + 'FT3D_ID_' + prefix + str(parentId) + '_' + str(
             list(idlist)).replace(' ',
                                   '')
@@ -252,5 +255,8 @@ def generateFamilyTrees(excelFile, ftFolder):
         print(f'\rProcessing ID {prefix}{tid}{figsize1}{figsize}', end='', flush=True)
         filename = filename[:250]  # due to file name length limit
         plt.savefig(filename + '.png')
-        # plt.close()
+        plt.close()
+    jind = json.dumps(indices_)
+    with open(ftFolder + '/extreme_indices.json','w') as f:
+        f.write(jind)
     ########################################################################################################################

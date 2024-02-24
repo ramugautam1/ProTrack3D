@@ -612,7 +612,7 @@ buttonFt3 = tk.Button(fam_page, text="Select Folder to Save Family Trees", comma
 entryFt3 = tk.Entry(fam_page, textvariable=ftOpFolder, font=('System', 15))
 buttonFt4 = tk.Button(fam_page, text='Branch Length Threshold', font=('System', 15))
 entryFt4 = tk.Entry(fam_page, textvariable=branchMinLen, font=('System', 15))
-entryFt4.insert(1, '5')
+entryFt4.insert(1, '1')
 
 
 buttonFt8 = tk.Button(fam_page, text='Enter Object ID', font=('System', 15))

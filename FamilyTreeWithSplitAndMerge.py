@@ -211,21 +211,20 @@ def generateFamilyTree(excelFile, ftFolder, tidlist):
 
         totalTimes = tmax - tmin + 2
         over4xN = 1 if totalTimes%4 > 0 else 0
-        fig = plt.figure(num=1, clear=True, figsize=(50, int(np.ceil(totalTimes / 5)) * 10), constrained_layout=True)
+        fig = plt.figure(num=1, clear=True, figsize=(25, int(np.ceil(totalTimes / 5)) * 5), constrained_layout=True)
         fig.patch.set_facecolor('white')
         fig.suptitle(str(tid))
 
         list_coordinates_all = []
-        for i in range(tmin-1, tmax):
+        for i in range(max(tmin-2, 0), min(tmax+1,matrix.shape[-1])):
             mtrx = newMatrix[:, :, :, i]
             axtitle = []
-
-            # print(str((int(np.ceil(totalTimes / 4)), 4, i - tmin + 1)))
-            ax = fig.add_subplot(int(np.ceil(totalTimes / 5)), 5, i - tmin + 2, projection='3d')
+            subplotloc = int(np.ceil(totalTimes / 5))
+            ax = fig.add_subplot(subplotloc, 5, i - tmin + 3, projection='3d')
             # plot_3d_matrix(matrix, idlist, indicesRange, colors, ax)
 
-            ax.xaxis.set_tick_params(labelbottom=False)
-            ax.yaxis.set_tick_params(labelleft=False)
+            ax.xaxis.set_tick_params(labelbottom=True)
+            ax.yaxis.set_tick_params(labelleft=True)
             ax.zaxis.set_tick_params(labelright=False)
             ax.zaxis.set_ticklabels([])
 
@@ -233,8 +232,9 @@ def generateFamilyTree(excelFile, ftFolder, tidlist):
             axtitle = list(np.unique(mtrx))
             axtitle.append('t=' + str(i + 1))
             ax.set_title(str(axtitle))
+            ax.set_box_aspect([1, 1, 0.25])
             allmemberidlist = list(idlist)
-            legends = {allmemberidlist[i]: colors[i % len(colors)] for i in range(len(allmemberidlist))}
+            # legends = {allmemberidlist[i]: colors[i % len(colors)] for i in range(len(allmemberidlist))}
 
             for j, id in enumerate(allmemberidlist):
                 labels = [str(id) for id in allmemberidlist]
@@ -245,7 +245,7 @@ def generateFamilyTree(excelFile, ftFolder, tidlist):
                             z = [zz + 1 if az % 2 == 0 else zz for az, zz in enumerate(z)]
                         label = str(id)
                         ax.plot_trisurf(x, y, z, color=colors[id % len(colors)], alpha=0.6, label=label)
-                        ax.set_box_aspect([1, 1, 0.25])
+                        # ax.set_box_aspect([1, 1, 0.25])
 
                         # ax.text(x=int((indicesRange[0][1] - indicesRange[0][0]) / 2), y=int(indicesRange[1][1] - 10-j*10), z=indicesRange[2][1]-1,  s=str(id))
                     except(Exception):

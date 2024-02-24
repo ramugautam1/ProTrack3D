@@ -697,3 +697,6 @@ def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein
                 trackedimagepath=track_op_folder + 'TrackedCombined.nii',
                 sT=sT, eT=sT + endpoint,
                 plotsavepath=track_op_folder[:-1])
+
+    from create_database import runSizeIntensityAnalysis
+    runSizeIntensityAnalysis(dbpath=track_op_folder[:-1],sT=sT,trackedimagepath=track_op_folder + 'TrackedCombined.nii', origImgPath=imageNameO)

@@ -209,9 +209,11 @@ def generateFamilyTree(excelFile, ftFolder, tidlist):
         tmax = allFamMemExistTimes['timeend'].max()
         tmin = allFamMemExistTimes['timestart'].min()
 
-        totalTimes = tmax - tmin + 2
+        totalTimes = tmax - tmin + 3
         over4xN = 1 if totalTimes%4 > 0 else 0
-        fig = plt.figure(num=1, clear=True, figsize=(25, int(np.ceil(totalTimes / 5)) * 5), constrained_layout=True)
+
+        figsize = (20, int(np.ceil(totalTimes / 5)) * 4)
+        fig = plt.figure(num=1, clear=True, figsize=figsize, constrained_layout=True)
         fig.patch.set_facecolor('white')
         fig.suptitle(str(tid))
 

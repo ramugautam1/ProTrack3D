@@ -466,7 +466,7 @@ def predict(model,image, startpoint, endpoint, modelCheckpointName, op_folder):
         # Create a binary image of pixels greater than 0
         binary_image = (Fullsize > 0)
         # Label connected components
-        labeled_image = skimage.measure.label(binary_image)
+        labeled_image = skimage.measure.label(binary_image, connectivity=2)
         # count objects
         num_objects = np.max(labeled_image)
         # unique labels

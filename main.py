@@ -618,10 +618,10 @@ entryFt4.insert(1, '1')
 buttonFt8 = tk.Button(fam_page, text='Enter Object ID', font=('System', 15))
 entryFt5 = tk.Entry(fam_page, textvariable=objId, font=('System', 15))
 
-buttonFt6 = tk.Button(fam_page, text="Generate Family Tree", font=('System', 15),
+buttonFt6 = tk.Button(fam_page, text="Generate Family Tree for Entered ID(s)", font=('System', 15),
                       command=lambda: generateFamilyTree(excelFile=excelFile.get(), ftFolder=ftOpFolder.get(), tidlist=objId.get()),
                       background='blue', foreground='white')
-buttonFt7 = tk.Button(fam_page, text="Generate  Family Trees for Target IDs",
+buttonFt7 = tk.Button(fam_page, text="Generate  Family Trees for All Target IDs",
                       command=lambda: generateFamilyTrees(excelFile=excelFile.get(), ftFolder=ftOpFolder.get()),
                       font=('System', 15), background="navy", foreground="white")
 

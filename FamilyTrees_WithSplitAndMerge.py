@@ -248,9 +248,7 @@ def generateFamilyTrees(excelFile, ftFolder):
             ax.grid('off')
             ax.view_init(40, 50)
         fig.tight_layout()
-        filename = ftFolder + '/FamilyTrees_3D/' + 'FT3D_ID_' + prefix + str(parentId) + '_' + str(
-            list(idlist)).replace(' ',
-                                  '')
+        filename = ftFolder + '/FamilyTrees_3D/' + 'FT3D_ID_' + prefix + str(parentId) + '_' + str(list(idlist)).replace(' ', '')
 
         print(f'\rProcessing ID {prefix}{tid}{figsize1}{figsize}', end='', flush=True)
         filename = filename[:250]  # due to file name length limit

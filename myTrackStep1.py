@@ -21,7 +21,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from datetime import datetime
 from cycler import cycler
 import skimage
-from functions import niftiwrite, dashline, starline, niftiwriteF, niftiread, niftiwriteu16, niftireadu16
+from functions import niftiwrite, dashline, starline, niftiwriteF, niftiread, niftiwriteu16, niftireadu16, niftireadu32
 
 
 def myTrackStep1(segmentationOutputAddress, trackingOutputAddress, startTime, endTime, imageNameS, imageNameO):
@@ -39,7 +39,7 @@ def myTrackStep1(segmentationOutputAddress, trackingOutputAddress, startTime, en
     segAddr = segmentationOutputAddress
     trackAddr = trackingOutputAddress
 
-    segmented = niftireadu16(segAddr + 'CombinedSO/CombinedSO.nii')
+    segmented = niftireadu32(segAddr + 'CombinedSO/CombinedSO.nii')
     print(segAddr)
     print(trackAddr)
     for time in range(t1, t2 + 1):

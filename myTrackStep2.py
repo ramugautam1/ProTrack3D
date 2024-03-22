@@ -401,6 +401,17 @@ def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein
 
         finalMatrix[:, :, :, timepoint - startpoint] = tMatrix
 
+    # THis block of code ensures the bigger object retains the ID during split.
+    finalv, finalc = np.unique(newArray[newArray > 0], return_counts=True)
+    vcdict = {v: c for v, c in list(zip(finalv, finalc))}
+    for sfrom, soff, _ in splitList:  # If the bigger object is treated by the algorithm as secondary --> swap
+        if vcdict[soff] > vcdict[sfrom]:
+            indexfrom = np.where(newArray == sfrom)
+            indexoff = np.where(newArray == soff)
+
+            newArray[indexfrom] = soff
+            newArray[indexoff] = sfrom
+
     niftiwriteu32(finalMatrix, track_op_folder + 'TrackedCombined.nii')
 
     globalSplitList = [[splitEvent for splitEvent in timeSplitList if splitEvent[0] != 1] for timeSplitList in globalSplitList]

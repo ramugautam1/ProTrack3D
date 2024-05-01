@@ -46,8 +46,32 @@ def intersect(a, b):
     c = aux[:-1][aux[1:] == aux[:-1]]
     return c
 
-
 import re
+def range_to_list(input_string):
+    # Remove spaces from the input string
+    input_string = input_string.replace(' ', '')
+
+    ranges = input_string.split(',')
+    result = []
+
+    try:
+        for r in ranges:
+            if '-' in r:
+                start, end = map(int, r.split('-'))
+                result.extend(range(start, end + 1))
+            else:
+                result.append(int(r))
+    except (ValueError, IndexError):
+        print("Invalid Input. Please provide a valid sequence in the format 'start-end' separated by ','." \
+               "\n--------------------------- \nFollow the following Format:\n" \
+               "\tValid input: 1,2,13,62\n" \
+               "\tValid Input: 76\n" \
+               "\tValid Input: 1-29\n" \
+               "\tValid Input: 1-4,23-27, 88-121\n")
+
+    return result
+
+
 
 def generateFamilyTree(excelFile, ftFolder, tidlist):
 
@@ -83,7 +107,10 @@ def generateFamilyTree(excelFile, ftFolder, tidlist):
     if re.sub(r'[^a-zA-Z0-9 ]', '', tidlist).lower() == 'all':
         targetIds = [i for i in range(1, existForDF.index.max()+1)]
     else:
-        targetIds = [int(num) for num in tidlist.split(',')]
+        # if '-' in tidlist:
+        targetIds = range_to_list(tidlist)
+        # else:
+        #     targetIds = [int(num) for num in tidlist.split(',')]
     print('\n=================================================\n')
     print('Generating Family Trees for IDs: ', '\n\t', targetIds)
 
@@ -225,10 +252,14 @@ def generateFamilyTree(excelFile, ftFolder, tidlist):
             ax = fig.add_subplot(subplotloc, 5, i - tmin + 3, projection='3d')
             # plot_3d_matrix(matrix, idlist, indicesRange, colors, ax)
 
-            ax.xaxis.set_tick_params(labelbottom=True)
-            ax.yaxis.set_tick_params(labelleft=True)
+            ax.xaxis.set_tick_params(labelbottom=True, labelsize=12)
+            ax.yaxis.set_tick_params(labelleft=True, labelsize=12)
             ax.zaxis.set_tick_params(labelright=False)
             ax.zaxis.set_ticklabels([])
+
+            ax.set_xlabel('X', fontsize=12)  # Set x-axis label and font size
+            ax.set_ylabel('Y', fontsize=12)  # Set y-axis label and font size
+            ax.set_zlabel('Z', fontsize=12)  # Set y-axis label and font size
 
 
             axtitle = list(np.unique(mtrx))
@@ -250,6 +281,7 @@ def generateFamilyTree(excelFile, ftFolder, tidlist):
                         # ax.set_box_aspect([1, 1, 0.25])
 
                         # ax.text(x=int((indicesRange[0][1] - indicesRange[0][0]) / 2), y=int(indicesRange[1][1] - 10-j*10), z=indicesRange[2][1]-1,  s=str(id))
+                        ax.text(x=x[0], y=y[0], z=z[0], s=str(id), fontsize=12)
                     except(Exception):
                         None
 

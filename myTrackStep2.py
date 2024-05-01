@@ -321,6 +321,30 @@ def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein
                                                    len(dead_id_dict[time + 1]), len(truemerged_id_dict[time+1]), len(splitmerge_id_dict[time+1])]
 
 
+        # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+        # THis block of code ensures the bigger object retains the ID during split.
+        finalv, finalc = np.unique(newArray[newArray > 0], return_counts=True)
+        vcdict = {v: c for v, c in list(zip(finalv, finalc))}
+        for sfrom, soff, _ in splitList:  # If the bigger object is treated by the algorithm as secondary --> swap
+            if vcdict[soff] > vcdict[sfrom]:
+                indexfrom = np.where(newArray == sfrom)
+                indexoff = np.where(newArray == soff)
+
+                newArray[indexfrom] = soff
+                newArray[indexoff] = sfrom
+
+                for sublist in mergedList:
+                    if sublist[0]==sfrom:
+                        sublist[0]=soff
+                    elif sublist[0]==soff:
+                        sublist[0]=sfrom
+                    if sublist[1] == sfrom:
+                        sublist[1] = soff
+                    elif sublist[1] == soff:
+                        sublist[1] = sfrom
+
+
+        # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
         # We need to isolate true merge from split-and-merge. True merge means two object combine to form one object.
         # There is one less object. Split-and-merge means a fraction of one object splits and merges with another object
@@ -401,16 +425,16 @@ def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein
 
         finalMatrix[:, :, :, timepoint - startpoint] = tMatrix
 
-    # THis block of code ensures the bigger object retains the ID during split.
-    finalv, finalc = np.unique(newArray[newArray > 0], return_counts=True)
-    vcdict = {v: c for v, c in list(zip(finalv, finalc))}
-    for sfrom, soff, _ in splitList:  # If the bigger object is treated by the algorithm as secondary --> swap
-        if vcdict[soff] > vcdict[sfrom]:
-            indexfrom = np.where(newArray == sfrom)
-            indexoff = np.where(newArray == soff)
-
-            newArray[indexfrom] = soff
-            newArray[indexoff] = sfrom
+    # # THis block of code ensures the bigger object retains the ID during split.
+    # finalv, finalc = np.unique(newArray[newArray > 0], return_counts=True)
+    # vcdict = {v: c for v, c in list(zip(finalv, finalc))}
+    # for sfrom, soff, _ in splitList:  # If the bigger object is treated by the algorithm as secondary --> swap
+    #     if vcdict[soff] > vcdict[sfrom]:
+    #         indexfrom = np.where(newArray == sfrom)
+    #         indexoff = np.where(newArray == soff)
+    # 
+    #         newArray[indexfrom] = soff
+    #         newArray[indexoff] = sfrom
 
     niftiwriteu32(finalMatrix, track_op_folder + 'TrackedCombined.nii')
 

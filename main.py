@@ -625,6 +625,7 @@ buttonFt7 = tk.Button(fam_page, text="Generate  Family Trees for All Target IDs"
                       command=lambda: generateFamilyTrees(excelFile=excelFile.get(), ftFolder=ftOpFolder.get()),
                       font=('System', 15), background="navy", foreground="white")
 
+labelFTB6 = tk.Label(fam_page, text=" Valid Inputs :  |   76   |   1, 2, 13, 62   |   1-29   |   1-4, 23-27, 88-121   |   1-4, 19, 88-121   |   all   |", font=('System', 12))
 
 buttonFt1.place(x=50, y=50)
 buttonFt2.place(x=50, y=200)
@@ -634,18 +635,27 @@ entryFt3.place(x=400, y=250, width=300)
 buttonFt4.place(x=50, y=300)
 entryFt4.place(x=400, y=300, width=100)
 buttonFt6.place(x=50, y=450)
-buttonFt7.place(x=50, y=500)
+# buttonFt7.place(x=50, y=500) # This is the 'generate for all' button
 buttonFt8.place(x=50, y=350)
 entryFt5.place(x=400, y=350)
-
+labelFTB6.place(x=50, y=400)
 CreateToolTip(buttonFt2, text='Select the excel file that contains the tracking data.\n'
                               'You can find it in the folder you selected to save the tracking results.!')
 CreateToolTip(buttonFt3,
               text='Click here to select a folder to store your family trees. \nPlease select an empty folder!')
 CreateToolTip(buttonFt4,
               text='Select the minimum time frames an object has to exist \nto be considered for the family tree.')
-CreateToolTip(buttonFt7, text='Click here to draw family trees for ALL target IDs! \n Target IDs are object IDs that start as new objects, not a result of split event. '
-                              '\n Use "Generate Family Tree" button with "all" as object ID to generate family tree for every single object.')
+# CreateToolTip(buttonFt7, text='Click here to draw family trees for ALL target IDs! \n Target IDs are object IDs that start as new objects, not a result of split event. '
+#                               '\n Use "Generate Family Tree" button with "all" as object ID to generate family tree for every single object.')
+# CreateToolTip(buttonFt6, text='Click here to draw family trees for the entered IDs! \n' \
+#  "Follow one of the following Format:\n" \
+#                               "\tValid input: 12\n" \
+#                "\tValid input: 1,2,13,62\n" \
+#                "\tValid Input: 76\n" \
+#                "\tValid Input: 1-29\n" \
+#                "\tValid Input: 1-4,23-27, 88-121\n"\
+#                 "\tValid Input: 1-4,19, 88-121\n" \
+#               "\tall (generate for all IDs, may take longer.")
 ########################################################################################################################
 
 

@@ -74,6 +74,9 @@ def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein
     globalBirthList = []
     globalIdList = []
 
+    globalSplitFilterList = []
+    globalMergeFilterList = []
+
     globalTrueMergeList = []
     globalSplitAndMergeList = []
 
@@ -228,7 +231,7 @@ def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein
                             if newArray[(i[0], i[1], i[2])] == u[count_index]:
                                 newArray[(i[0], i[1], i[2])] = mod
 
-        birth_id_dict[time+1] = sorted([int(identity) for identity in bornlist])
+        # birth_id_dict[time+1] = sorted([int(identity) for identity in bornlist]) # moved below filter
 
         merged_id_list=[]
         truemerged_id_list=[]
@@ -278,8 +281,8 @@ def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein
                 # print(f'{mode_i} splitted into {mode_i} and {maxx + 1} at t={time + 1}')
                 maxx += 1
 
-        split_id_dict[time+1] = sorted([int(identity) for identity in splitIdList])
-        id_that_split_dict[time+1] = sorted([int(identity) for identity in idThatSplitList])
+        # split_id_dict[time+1] = sorted([int(identity) for identity in splitIdList])
+        # id_that_split_dict[time+1] = sorted([int(identity) for identity in idThatSplitList])
 
         idlist_now = []
         deathList = []
@@ -290,8 +293,6 @@ def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein
 
         truemerged_id_list = [i_d for i_d in merged_id_list if i_d not in all_id_dict[time+1]]
         splitmerge_id_list = [i_d for i_d in merged_id_list if i_d in all_id_dict[time+1]]
-
-
 
         merged_id_dict[time + 1] = sorted([int(identity) for identity in merged_id_list])
         truemerged_id_dict[time + 1] = sorted([int(identity) for identity in truemerged_id_list])
@@ -308,23 +309,26 @@ def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein
                 trackedList.append([theId, time + 1])
             else:
                 newList.append([theId, time + 1])
+        # moved below after filtering (s and m filters)
+        # deadIdList=[]
+        # for oldId in idlist_previous:
+        #     if oldId not in idlist_now and oldId not in merged_id_dict[time+1]:
+        #         deadIdList.append(oldId)
+        #         deathList.append([oldId, time + 1])
+        # dead_id_dict[time+1]=sorted([int(identity) for identity in deadIdList])
 
-        deadIdList=[]
-        for oldId in idlist_previous:
-            if oldId not in idlist_now and oldId not in merged_id_dict[time+1]:
-                deadIdList.append(oldId)
-                deathList.append([oldId, time + 1])
-        dead_id_dict[time+1]=sorted([int(identity) for identity in deadIdList])
-
-        events_counts[time - startpoint + 1, :] = [len(all_id_dict[time+1]), len(split_id_dict[time + 1]),
-                                                   len(merged_id_dict[time + 1]), len(birth_id_dict[time + 1]),
-                                                   len(dead_id_dict[time + 1]), len(truemerged_id_dict[time+1]), len(splitmerge_id_dict[time+1])]
-
+        # events_counts[time - startpoint + 1, :] = [len(all_id_dict[time+1]), len(split_id_dict[time + 1]),
+        #                                            len(merged_id_dict[time + 1]), len(birth_id_dict[time + 1]),
+        #                                            len(dead_id_dict[time + 1]), len(truemerged_id_dict[time+1]), len(splitmerge_id_dict[time+1])]
 
         # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-        # THis block of code ensures the bigger object retains the ID during split.
         finalv, finalc = np.unique(newArray[newArray > 0], return_counts=True)
         vcdict = {v: c for v, c in list(zip(finalv, finalc))}
+        # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+        # THis block of code ensures the bigger object retains the ID during split.
+        # finalv, finalc = np.unique(newArray[newArray > 0], return_counts=True)
+        # vcdict = {v: c for v, c in list(zip(finalv, finalc))}
+
         for sfrom, soff, _ in splitList:  # If the bigger object is treated by the algorithm as secondary --> swap
             if vcdict[soff] > vcdict[sfrom]:
                 indexfrom = np.where(newArray == sfrom)
@@ -343,6 +347,54 @@ def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein
                     elif sublist[1] == soff:
                         sublist[1] = sfrom
 
+        # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$SPLIT FILTER$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+        splitIdList = []
+        idThatSplitList = []
+
+        # THis block of code applies this filter to split events: pixel count of products < 1.0 * pixel count of orig
+        finalv, finalc = np.unique(newArray[newArray > 0], return_counts=True)
+        vcdict = {v: c for v, c in list(zip(finalv, finalc))}
+
+        try:
+            previous_t = niftireadu32(folder + t1 + '/Fullsize_2_aftertracking_' + t1 + '.nii')
+        except FileNotFoundError:
+            previous_t = niftireadu32(addr1 + 'Fullsize_label_' + t1 + '.nii')
+
+        previous_v, previous_c = np.unique(previous_t[previous_t > 0], return_counts=True)
+        previous_vcdict = {v: c for v, c in list(zip(previous_v, previous_c))}
+
+
+        removeSplitList = []
+        splitBeforeAfterSize = []
+
+        for [sfrom, soff, _] in splitList:
+            splitIdList.append(soff)
+            idThatSplitList.append(sfrom)
+
+            previous_sfrom_size = previous_vcdict[sfrom]
+            current_total_size = vcdict[sfrom] + vcdict[soff]
+
+            if 1.3*previous_sfrom_size < current_total_size:
+                splitIdList.pop()
+                idThatSplitList.pop()
+                splitBeforeAfterSize.append([sfrom, soff, _] + [int(previous_sfrom_size), int(current_total_size), 'removed'] )
+
+                removeSplitList.append([sfrom, soff, _])
+                bornlist.append(soff)
+                globalTargetIdList.append(soff)
+            else:
+                splitBeforeAfterSize.append([sfrom, soff, _] + [int(previous_sfrom_size), int(current_total_size), 'kept'])
+
+        globalSplitFilterList += splitBeforeAfterSize
+
+        for xRemove in removeSplitList:
+            splitList.remove(xRemove)
+
+        split_id_dict[time+1] = sorted([int(identity) for identity in splitIdList])
+        id_that_split_dict[time+1] = sorted([int(identity) for identity in idThatSplitList])
+
+        birth_id_dict[time + 1] = sorted([int(identity) for identity in bornlist])
+
 
         # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
@@ -353,11 +405,53 @@ def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein
         trueMergedList = [[mergedIntoId, mergedId,mergeTime] for (mergedIntoId, mergedId,mergeTime) in mergedList if mergedId not in idlist_now]
         splitAndMergeList = [[mergedIntoId, mergedId,mergeTime] for (mergedIntoId, mergedId,mergeTime) in mergedList if mergedId in idlist_now]
 
+        ################MERGE FILTER##################
+        removeMergeList = []
+        mergeBeforeAfterSize = []
+
+        for [pri, sec, _] in trueMergedList:
+            prevvar = 0
+            prevprivar = 0
+            try:
+                prevvar = previous_vcdict[sec]
+                prevprivar = previous_vcdict[pri]
+            except:
+                pass
+            previous_total_size = prevprivar + prevvar
+            current_pri_size = vcdict[pri]
+
+            if 0.75*(previous_total_size) > current_pri_size:
+                # splitIdList.pop()
+                # idThatSplitList.pop()
+                mergeBeforeAfterSize.append([pri, sec, _] + [int(previous_total_size), int(current_pri_size), 'remove'] )
+                removeMergeList.append([pri, sec, _])
+                deathList.append(sec)
+                # globalTargetIdList.append(soff)
+            else:
+                mergeBeforeAfterSize.append([pri, sec, _] + [int(previous_total_size), int(current_pri_size), 'keep'])
+
+        globalMergeFilterList += mergeBeforeAfterSize
+
+        for xRemove in removeMergeList:
+            trueMergedList.remove(xRemove)
+        ##############################################
+
         truemerge_as_primary_id_list = [int(mergedIntoId) for (mergedIntoId, mergedId,mergeTime) in trueMergedList]
         truemerge_as_secondary_id_list = [int(mergedId) for (mergedIntoId, mergedId,mergeTime) in trueMergedList]
 
         truemerge_as_primary_id_dict[time+1] = truemerge_as_primary_id_list
         truemerge_as_secondary_id_dict[time+1] = truemerge_as_secondary_id_list
+
+
+        ### m oved from above###
+        deadIdList=[]
+        for oldId in idlist_previous:
+            if oldId not in idlist_now and oldId not in truemerge_as_secondary_id_dict[time+1]:
+                deadIdList.append(oldId)
+                deathList.append([oldId, time + 1])
+        dead_id_dict[time+1]=sorted([int(identity) for identity in deadIdList])
+
+        ######
 
         globalSplitList.append(splitList)
         globalMergeList.append(mergedList)
@@ -369,9 +463,25 @@ def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein
         globalTrueMergeList.append(trueMergedList)
         globalSplitAndMergeList.append(splitAndMergeList)
 
+        events_counts[time - startpoint + 1, :] = [len(all_id_dict[time + 1]), len(split_id_dict[time + 1]),
+                                                   len(merged_id_dict[time + 1]), len(birth_id_dict[time + 1]),
+                                                   len(dead_id_dict[time + 1]), len(truemerged_id_dict[time + 1]),
+                                                   len(splitmerge_id_dict[time + 1])]
+
         niftiwriteu32(newArray, folder + t2 + '/Fullsize_2_aftertracking_' + t2 + '.nii')
 
         max_old = maxx
+    import csv
+    with open(folder + 'split_filtering.csv', 'w', newline='') as csvfile:
+        csvwriter = csv.writer(csvfile)
+        # Writing the data
+        csvwriter.writerow(['parent','child','time','before size','after size total', 'filtered'])
+        csvwriter.writerows(globalSplitFilterList)
+    with open(folder + 'merge_filtering.csv', 'w', newline='') as csvfile:
+        csvwriter = csv.writer(csvfile)
+        # Writing the data
+        csvwriter.writerow(['Primary','Secondary','time','before size','after size total', 'filter'])
+        csvwriter.writerows(globalMergeFilterList)
 
 
     jdead = json.dumps(dead_id_dict)
@@ -679,7 +789,19 @@ def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein
     #             trackedimagepath=track_op_folder + 'TrackedCombined.nii',
     #             sT=sT, eT=sT + endpoint,
     #             plotsavepath=track_op_folder[:-1])
-    print('Generating 3D projections of tracked image.')
+
+    # It is better to create the database first then generate all plots from there.
+    # print('\n\nRunning size-dependent analysis...')
+    # runAnalysisNewWay(origImgPath=imageNameO,
+    #             trackedimagepath=track_op_folder + 'TrackedCombined.nii',
+    #             sT=sT, eT=sT + endpoint,
+    #             plotsavepath=track_op_folder[:-1])
+
+    from create_database import runSizeIntensityAnalysis
+    runSizeIntensityAnalysis(dbpath=track_op_folder[:-1],sT=sT,trackedimagepath=track_op_folder + 'TrackedCombined.nii', origImgPath=imageNameO)
+
+    print('Tracking and analysis complete. \nGenerating 3D projections of tracked image...')
+
     def niftireadu16(arg):
         return np.asarray(nib.load(arg).dataobj).astype(np.uint16).squeeze()
     tI_fig = niftireadu16(track_op_folder + 'TrackedCombined.nii')
@@ -702,7 +824,7 @@ def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein
     for ii in range(tI_fig.shape[-1]):
         print(f'\r t = {ii+1}                  ', end='')
         start = datetime.now()
-        fig = plt.figure(num=1, clear=True, figsize=(30, 30), constrained_layout=True)
+        fig = plt.figure(num=1, clear=True, figsize=(10, 10), constrained_layout=True)
         fig.patch.set_facecolor('white')
         ax = plt.subplot(projection='3d')
         tI_ii = tI_fig[:, :, :, ii]
@@ -718,20 +840,13 @@ def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein
                     ax.set_xlabel('x');
                     ax.set_ylabel('y');
                     ax.set_zlabel('z')
-                    ax.text(np.mean(x), np.mean(y), np.mean(z), label, fontsize=12)
+                    ax.text(np.mean(x), np.mean(y), np.mean(z), label, fontsize=6)
                 except(Exception):
                     None
-                ax.set_title('t=' + str(ii + 1), fontsize=30)
-                ax.view_init(40, 50)
+                ax.set_title('t=' + str(ii + 1), fontsize=20)
+                ax.view_init(220, 310)
         ext = '' if ii >= 1000 else '0' if ii >= 100 else '00' if ii >= 10 else '000'
         plt.savefig(os.path.join(savePath3D, 't_' + ext + str(ii+1) + '_3D.png'), facecolor='white')
         plt.close()
 
-    print('\n\nRunning size-dependent analysis...')
-    runAnalysisNewWay(origImgPath=imageNameO,
-                trackedimagepath=track_op_folder + 'TrackedCombined.nii',
-                sT=sT, eT=sT + endpoint,
-                plotsavepath=track_op_folder[:-1])
-
-    from create_database import runSizeIntensityAnalysis
-    runSizeIntensityAnalysis(dbpath=track_op_folder[:-1],sT=sT,trackedimagepath=track_op_folder + 'TrackedCombined.nii', origImgPath=imageNameO)
+    print('\n\n ##################### TRACKING COMPLETE #####################\n\n')

@@ -625,7 +625,7 @@ buttonFt7 = tk.Button(fam_page, text="Generate  Family Trees for All Target IDs"
                       command=lambda: generateFamilyTrees(excelFile=excelFile.get(), ftFolder=ftOpFolder.get()),
                       font=('System', 15), background="navy", foreground="white")
 
-labelFTB6 = tk.Label(fam_page, text=" Valid Inputs :  |   76   |   1, 2, 13, 62   |   1-29   |   1-4, 23-27, 88-121   |   1-4, 19, 88-121   |   all   |", font=('System', 12))
+labelFTB6 = tk.Label(fam_page, text=" Valid Inputs :  |   76   |   1, 2, 13, 62   |   1-29   |   1-4, 23-27, 88-121   |   1-4, 19, 88-121   |   all   |", font=('System', 10))
 
 buttonFt1.place(x=50, y=50)
 buttonFt2.place(x=50, y=200)

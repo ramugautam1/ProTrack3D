@@ -484,7 +484,7 @@ def predict(model,image, startpoint, endpoint, modelCheckpointName, op_folder):
             z_min = np.min(object_coords[2])
             z_max = np.max(object_coords[2])
             z_depth = z_max - z_min + 1
-            if (num_voxels <= 9 or (z_depth == 1 and num_voxels <= 9)):# and z_max != mydimensions[2] - 1)) : #final layer could contrain fragments of objects out of image field
+            if (num_voxels <= 5 or (z_depth == 1 and num_voxels <= 5)):# and z_max != mydimensions[2] - 1)) : #final layer could contrain fragments of objects out of image field
                 tinylist.append(label)
 
         for star in tinylist:

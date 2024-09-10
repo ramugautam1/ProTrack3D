@@ -2,6 +2,7 @@ import tkinter as tk
 # from PIL import Image, ImageTk
 import tkinter.filedialog as fd
 from runTracking import runTracking
+from allAnalysis import all_analysis_app
 import tkinter.font as font
 from tkinter import ttk
 from segment import segmentation, segmentation_predict
@@ -11,6 +12,7 @@ import os
 from FamilyTrees_WithSplitAndMerge import generateFamilyTrees
 from FamilyTreeWithSplitAndMerge import generateFamilyTree
 from convert2nii import czi2nii, tif2nii
+import pandas as pd
 
 Font_tuple = ("Courier", 45, "bold")
 Option_font_tuple = ("Courier", 20, "bold")
@@ -85,7 +87,7 @@ cross_corr_page = tk.Frame(window)
 
 def_font = font.Font(family='System')
 for frame in (homepage, seg_page, track_page, fam_page, help_page, train_page, test_page, predict_page, cross_corr_page,
-              convert_page):
+              convert_page,analysis_page):
     frame.grid(row=0, column=0, sticky='nsew')
 
 
@@ -127,8 +129,8 @@ my_menu.add_command(label='Family Tree', command=lambda: show_frame(fam_page))
 my_menu.add_separator()
 # my_menu.add_command(label='Convert Files', command=lambda: show_frame(convert_page))
 # my_menu.add_separator()
-# my_menu.add_cascade(label='Analysis', menu=ana_menu)
-# my_menu.add_separator()
+my_menu.add_command(label='Analysis',  command=lambda: show_frame(analysis_page))
+my_menu.add_separator()
 my_menu.add_command(label='Help', command=lambda: show_frame(help_page))
 
 file_menu.add_command(label='New', font=('System', 15))
@@ -710,7 +712,66 @@ optionCC.place(x=50, y=350)
 c1.place(x=70, y=400)
 c2.place(x=70, y=450)
 buttonCC6.place(x=50, y=550)
+
+################ ANALYSIS ###########################################################################################
+
+origImageA = tk.StringVar()
+segFolderA = tk.StringVar()
+trackFolderA = tk.StringVar()
+sT = tk.StringVar()
+
+
+def setSegFolder():
+    segFolderA.set(fd.askdirectory())
+def setTrackFolder():
+    trackFolderA.set(fd.askdirectory())
+def browseOrigImage():
+    origImageA.set(fd.askopenfilename(defaultextension='.tif', filetypes=[("TIF Files", "*.tif"),
+                                                                       ("TIFF Files", "*.tiff"),
+                                                                       ("NIFTI Files", "*.nii")]))
+
+analysis_page_greet  = tk.Label(analysis_page, text='Analysis', font=('Courier', 40, 'bold'))
+analysis_page_greet.place(x=50, y=120)
+
+buttonA1 = tk.Button(analysis_page, text="Back", command=lambda: show_frame(homepage), font=('System', 15))
+
+buttonA2 = tk.Button(analysis_page, text="Select Original Images", command=lambda: browseOrigImage(), font=('System', 15))
+buttonA3 = tk.Button(analysis_page, text="Select Folder with Segmentation Results", command=lambda: setSegFolder(),
+                      font=('System', 15))
+buttonA4 = tk.Button(analysis_page, text="Select Folder with Tracking Results", command=lambda: setTrackFolder(),
+                      font=('System', 15))
+buttonA5 = tk.Button(analysis_page, width=10, text="RUN", font=('System', 15), background="blue", foreground="white",
+                      command=lambda: all_analysis_app(trackedimagepath=trackFolderA.get() + '/TrackedCombined.nii', segPath = segFolderA.get(), origImgPath=origImageA.get()))
+
+
+
+entryA2 = ttk.Entry(analysis_page, textvariable=origImageA, font=('System', 15))
+entryA3 = ttk.Entry(analysis_page, textvariable=segFolderA, font=('System', 15))
+entryA4 = ttk.Entry(analysis_page, textvariable=trackFolderA, font=('System', 15))
+
+buttonA1.place(x=50, y=50)
+buttonA2.place(x=50, y=200)
+entryA2.place(x=400, y=200, width=300)
+buttonA3.place(x=50, y=250)
+entryA3.place(x=400, y=250, width=300)
+buttonA4.place(x=50, y=300)
+entryA4.place(x=400, y=300, width=300)
+
+buttonA5.place(x=50, y=400)
+
 ########################################################################################################################
+
+
+
+
+
+########################################################################################################################
+
+
+
+
+
+
 
 help_page_greet = tk.Label(help_page, text='Help', font=('Courier', 40, 'bold'))
 help_page_greet.place(x=50, y=120)

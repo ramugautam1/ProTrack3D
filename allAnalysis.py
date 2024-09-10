@@ -730,8 +730,8 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath):
                 pass
             else:
                 ax = axes[i, j]
-                if i < 1 and j < 4 and j > 0:
-                    ax.set_ylim(0, 0.3)
+                # if i < 1 and j < 4 and j > 0:
+                #     ax.set_ylim(0, 0.3)
                 df = dfs[i * jx + j].drop(columns=['t'])
                 df.rolling(window=21, min_periods=1).mean().plot(ax=ax, color=colors)
                 #                 ax.axvline(x=acp, color='green', linestyle='--', label='apical constriction point')

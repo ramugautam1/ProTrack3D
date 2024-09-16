@@ -177,7 +177,15 @@ def runSizeIntensityAnalysis(dbpath, sT, trackedimagepath, origImgPath):
 
     sq1, sq2, sq3 = getSizeQuartiles(image, matrix)
 
+    print('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
     print(q1, q2, q3, '\n', sq1, sq2, sq3)
+    print('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
+
+    with open(os.path.join(dbpath, 'quartiles.txt'), 'w') as file:
+        file.write(f"{sq1},{sq2},{sq3}")
+
+    with open(os.path.join(dbpath, 'intensity_quartiles.txt'), 'w') as file:
+        file.write(f"{q1},{q2},{q3}")
 
     all_id_and_progeny = {}
     splitted_ = splitlist['Splitted']

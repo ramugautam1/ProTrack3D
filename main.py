@@ -2,7 +2,7 @@ import tkinter as tk
 # from PIL import Image, ImageTk
 import tkinter.filedialog as fd
 from runTracking import runTracking
-from allAnalysis import all_analysis_app
+from allAnalysisApp import all_analysis_app
 import tkinter.font as font
 from tkinter import ttk
 from segment import segmentation, segmentation_predict
@@ -719,6 +719,9 @@ origImageA = tk.StringVar()
 segFolderA = tk.StringVar()
 trackFolderA = tk.StringVar()
 sT = tk.StringVar()
+at1 = tk.StringVar()
+at2 = tk.StringVar()
+
 
 
 def setSegFolder():
@@ -741,13 +744,20 @@ buttonA3 = tk.Button(analysis_page, text="Select Folder with Segmentation Result
 buttonA4 = tk.Button(analysis_page, text="Select Folder with Tracking Results", command=lambda: setTrackFolder(),
                       font=('System', 15))
 buttonA5 = tk.Button(analysis_page, width=10, text="RUN", font=('System', 15), background="blue", foreground="white",
-                      command=lambda: all_analysis_app(trackedimagepath=trackFolderA.get() + '/TrackedCombined.nii', segPath = segFolderA.get(), origImgPath=origImageA.get()))
+                      command=lambda: all_analysis_app(trackedimagepath=trackFolderA.get() + '/TrackedCombined.nii', segPath = segFolderA.get(), origImgPath=origImageA.get(), t1=int(at1.get()), t2=int(at2.get())))
+labelA1 = tk.Label(analysis_page, text = 'Start Time', font=('System', 15))
+
+labelA2 = tk.Label(analysis_page, text = 'End Time', font=('System', 15))
 
 
 
 entryA2 = ttk.Entry(analysis_page, textvariable=origImageA, font=('System', 15))
 entryA3 = ttk.Entry(analysis_page, textvariable=segFolderA, font=('System', 15))
 entryA4 = ttk.Entry(analysis_page, textvariable=trackFolderA, font=('System', 15))
+entryAL1 = ttk.Entry(analysis_page, textvariable=at1, font=('System', 15))
+entryAL1.insert(0,'1')
+entryAL2 = ttk.Entry(analysis_page, textvariable=at2, font=('System', 15))
+entryAL2.insert(0,'41')
 
 buttonA1.place(x=50, y=50)
 buttonA2.place(x=50, y=200)
@@ -756,8 +766,11 @@ buttonA3.place(x=50, y=250)
 entryA3.place(x=400, y=250, width=300)
 buttonA4.place(x=50, y=300)
 entryA4.place(x=400, y=300, width=300)
-
-buttonA5.place(x=50, y=400)
+labelA1.place(x=50, y=350)
+entryAL1.place(x=400, y=350, width = 150)
+labelA2.place(x=50, y=400)
+entryAL2.place(x=400, y=400, width=150)
+buttonA5.place(x=50, y=600)
 
 ########################################################################################################################
 

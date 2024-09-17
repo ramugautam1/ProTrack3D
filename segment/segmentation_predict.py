@@ -107,6 +107,30 @@ def str2bool(v):
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
+def reshape32(image):
+        # save_path_o = image_path[:-4] + '_BEFORE.tif'
+        im = tifffile.imread(image)
+        if im.ndim==4:
+            # tifffile.imsave(save_path_o, temp, imagej=True, metadata={'axes': 'TZYX'})
+            newshapex = im.shape[3] if im.shape[3] % 32 == 0 else (im.shape[3] // 32 + 1) * 32 if im.shape[3] % 32 > 4 else (im.shape[3] // 32) * 32
+            newshapey = im.shape[2] if im.shape[2] % 32 == 0 else (im.shape[2] // 32 + 1) * 32 if im.shape[2] % 32 > 4 else (im.shape[2] // 32) * 32
+
+            temp = np.zeros((im.shape[0], im.shape[1], newshapey, newshapex), dtype=np.uint32)  # Ensure the array has a compatible data type
+            for t in range(im.shape[0]):
+                for i in range(im.shape[1]):
+                    temp[t, i, :, :] = cv2.resize(im[t, i, :, :], (newshapex, newshapey), interpolation=cv2.INTER_LANCZOS4)
+            temp = temp[:, :, :, :].astype('uint16')
+            tifffile.imsave(image, temp, imagej=True, metadata={'axes': 'TZYX'})
+
+        if im.ndim == 3:
+            newshapex = im.shape[2] if im.shape[2] % 32 == 0 else (im.shape[2] // 32 + 1) * 32 if im.shape[2] % 32 > 4 else (im.shape[2] // 32) * 32
+            newshapey = im.shape[1] if im.shape[1] % 32 == 0 else (im.shape[1] // 32 + 1) * 32 if im.shape[1] % 32 > 4 else (im.shape[1] // 32) * 32
+
+            temp = np.zeros((im.shape[0], newshapey, newshapex), dtype=im.dtype)
+            for i in range(im.shape[0]):
+                temp[i, :, :] = cv2.resize(im[i, :, :], (newshapex, newshapey), interpolation=cv2.INTER_LANCZOS4)
+                temp = temp[:, :, :].astype('uint16')
+                tifffile.imsave(image, temp, imagej=True, metadata={'axes': 'ZYX'})
 
 def predictionSampleGeneration(image, startpoint, endpoint,oppath):
     global mydimensions
@@ -119,11 +143,16 @@ def predictionSampleGeneration(image, startpoint, endpoint,oppath):
 
     ####
     if image.endswith('.tif') or image.endswith('.tiff'):
+        reshape32(image)
         V_sample = tifffile.imread(image)
+
         if(np.size(np.shape(V_sample)))==5:
             V_sample = np.transpose(V_sample,(4,3,2,1,0))
         elif np.size(np.shape(V_sample))==4:
             V_sample = np.transpose(V_sample,(3,2,1,0))
+        elif np.size(np.shape(V_sample))==3:
+            V_sample = np.transpose(V_sample, (2,1,0))
+            V_sample = np.expand_dims(V_sample, axis=3)
     elif image.endswith('.nii'):
         V_sample = niftireadI(image)
 

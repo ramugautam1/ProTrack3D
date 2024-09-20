@@ -715,7 +715,7 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
              'Average Intensity',
              'Life Expectancy in Timepoints',
              'Life Expectancy of New Obj.',
-             'Fraction of Objects of the save group',
+             'Fraction of Objects of the same group',
              'Fraction of Objects of the same group'
              ]
 
@@ -741,9 +741,53 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
                 ax.legend(fontsize=15)
     plt.tight_layout()
     plt.savefig(plotsavepath + '/Size_Distribution_of_Events_and_Expectancy_over_Time.png')
+    plt.close()
+#######################################################################
 
 
-#     plt.show()
+    output_file = plotsavepath + "/Event_Frequency_Distribution.csv"
+
+    fractions1 = pd.concat([splitObj['Q1splitFrac'], mergeObj['Q1MergeFrac'], deadObj['Q1deathFrac'], intensityIncDF['Q1intensityIncFrac'], intensityDecDF['Q1intensityDecFrac']], axis=1)
+    fractions1.columns = ['split', 'merge', 'death', 'stayInc', 'stayDec']
+
+    fractions2 = pd.concat(
+        [splitObj['Q2splitFrac'], mergeObj['Q2MergeFrac'], deadObj['Q2deathFrac'], intensityIncDF['Q2intensityIncFrac'], intensityDecDF['Q2intensityDecFrac']], axis=1)
+    fractions2.columns = ['split', 'merge', 'death', 'stayInc', 'stayDec']
+
+    fractions3 = pd.concat(
+        [splitObj['Q3splitFrac'], mergeObj['Q3MergeFrac'], deadObj['Q3deathFrac'], intensityIncDF['Q3intensityIncFrac'], intensityDecDF['Q3intensityDecFrac']], axis=1)
+    fractions3.columns = ['split', 'merge', 'death', 'stayInc', 'stayDec']
+
+    fractions4 = pd.concat(
+        [splitObj['Q4splitFrac'], mergeObj['Q4MergeFrac'], deadObj['Q4deathFrac'], intensityIncDF['Q4intensityIncFrac'], intensityDecDF['Q4intensityDecFrac']], axis=1)
+    fractions4.columns = ['split', 'merge', 'death', 'stayInc', 'stayDec']
+
+
+    dfs = [fractions1, fractions2, fractions3, fractions4]
+    merged_df = merge_dataframes_and_save(dfs, output_file)
+    titles = ['Q1', 'Q2', 'Q3', 'Q4']
+
+    y_axs = ['Fraction of Objects',
+             'Fraction of Objects',
+             'Fraction of Objects',
+             'Fraction of Objects',
+             'Fraction of Objects',
+            ]
+
+    ix = 4; jx=1
+    fig, axes = plt.subplots(ix, jx, figsize=(10 * jx, ix * 10))
+    for i in range(ix):
+        ax = axes[i]
+        df = dfs[i]
+        df.rolling(window=21, min_periods=1).mean().plot(kind='line', ax=ax, color=['orange','green','red','blue','magenta'])
+        #                 ax.axvline(x=acp, color='green', linestyle='--', label='apical constriction point')
+        ax.set_title(titles[i] + ' (Moving Average)', fontsize=15)
+        ax.set_xlabel('timepoint', fontsize=15)
+        ax.set_ylabel(y_axs[i], fontsize=15)
+
+    plt.tight_layout()
+    plt.savefig(plotsavepath + '/Event_Frequency_Distribution.png')
+#######################################################################
 
 ####################################################################################################################################
 ####################################################################################################################################

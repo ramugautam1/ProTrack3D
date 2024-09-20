@@ -32,6 +32,118 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath):
     dbpath = os.path.dirname(trackedimagepath)
     samplename = os.path.basename(origImgPath)[:-4]
 
+    #######################################################################
+
+    conn = sqlite3.connect(os.path.join(dbpath, 'ObjectsProperties.db'))
+    cursor = conn.cursor()
+
+    query = f"""
+            SELECT 
+                t,
+                -- Counts for sizeQ = 1 (Q1)
+                SUM(CASE WHEN sizeQ = 1 AND next_sizeQ > sizeQ THEN 1 ELSE 0 END) AS sizeInc_Q1,
+                SUM(CASE WHEN sizeQ = 1 AND next_sizeQ = sizeQ THEN 1 ELSE 0 END) AS sizeEq_Q1,
+                SUM(CASE WHEN sizeQ = 1 AND next_sizeQ < sizeQ THEN 1 ELSE 0 END) AS sizeDec_Q1,
+                COUNT(CASE WHEN sizeQ = 1 THEN id END) AS count_Q1,  -- Count for sizeQ = 1
+
+                -- Counts for sizeQ = 2 (Q2)
+                SUM(CASE WHEN sizeQ = 2 AND next_sizeQ > sizeQ THEN 1 ELSE 0 END) AS sizeInc_Q2,
+                SUM(CASE WHEN sizeQ = 2 AND next_sizeQ = sizeQ THEN 1 ELSE 0 END) AS sizeEq_Q2,
+                SUM(CASE WHEN sizeQ = 2 AND next_sizeQ < sizeQ THEN 1 ELSE 0 END) AS sizeDec_Q2,
+                COUNT(CASE WHEN sizeQ = 2 THEN id END) AS count_Q2,  -- Count for sizeQ = 2
+
+                -- Counts for sizeQ = 3 (Q3)
+                SUM(CASE WHEN sizeQ = 3 AND next_sizeQ > sizeQ THEN 1 ELSE 0 END) AS sizeInc_Q3,
+                SUM(CASE WHEN sizeQ = 3 AND next_sizeQ = sizeQ THEN 1 ELSE 0 END) AS sizeEq_Q3,
+                SUM(CASE WHEN sizeQ = 3 AND next_sizeQ < sizeQ THEN 1 ELSE 0 END) AS sizeDec_Q3,
+                COUNT(CASE WHEN sizeQ = 3 THEN id END) AS count_Q3,  -- Count for sizeQ = 3
+
+                -- Counts for sizeQ = 4 (Q4)
+                SUM(CASE WHEN sizeQ = 4 AND next_sizeQ > sizeQ THEN 1 ELSE 0 END) AS sizeInc_Q4,
+                SUM(CASE WHEN sizeQ = 4 AND next_sizeQ = sizeQ THEN 1 ELSE 0 END) AS sizeEq_Q4,
+                SUM(CASE WHEN sizeQ = 4 AND next_sizeQ < sizeQ THEN 1 ELSE 0 END) AS sizeDec_Q4,
+                COUNT(CASE WHEN sizeQ = 4 THEN id END) AS count_Q4   -- Count for sizeQ = 4
+
+            FROM 
+                object_properties
+            WHERE 
+                exists_next  
+            GROUP BY 
+                t
+            ORDER BY 
+                t;
+        """
+
+    cursor.execute(query)
+    columns = [column[0] for column in cursor.description]
+    results = cursor.fetchall()
+    newDF = pd.DataFrame(results)
+    newDF.columns = columns
+    conn.close()
+    FlowObj = newDF[newDF['t'] > 2]  # .drop(columns=['t'])
+    # splitObj.rolling(window=21, min_periods=1).mean().plot(color = color5, figsize=(10,6), title=f'Split')
+
+    # Calculate fractions for sizeQ1
+    FlowObj['Inc_Q1'] = np.where(FlowObj['count_Q1'] > 0, FlowObj['sizeInc_Q1'] / FlowObj['count_Q1'], 0)
+    FlowObj['Eq_Q1'] = np.where(FlowObj['count_Q1'] > 0, FlowObj['sizeEq_Q1'] / FlowObj['count_Q1'], 0)
+    FlowObj['Dec_Q1'] = np.where(FlowObj['count_Q1'] > 0, FlowObj['sizeDec_Q1'] / FlowObj['count_Q1'], 0)
+
+    # Calculate fractions for sizeQ2
+    FlowObj['Inc_Q2'] = np.where(FlowObj['count_Q2'] > 0, FlowObj['sizeInc_Q2'] / FlowObj['count_Q2'], 0)
+    FlowObj['Eq_Q2'] = np.where(FlowObj['count_Q2'] > 0, FlowObj['sizeEq_Q2'] / FlowObj['count_Q2'], 0)
+    FlowObj['Dec_Q2'] = np.where(FlowObj['count_Q2'] > 0, FlowObj['sizeDec_Q2'] / FlowObj['count_Q2'], 0)
+
+    # Calculate fractions for sizeQ3
+    FlowObj['Inc_Q3'] = np.where(FlowObj['count_Q3'] > 0, FlowObj['sizeInc_Q3'] / FlowObj['count_Q3'], 0)
+    FlowObj['Eq_Q3'] = np.where(FlowObj['count_Q3'] > 0, FlowObj['sizeEq_Q3'] / FlowObj['count_Q3'], 0)
+    FlowObj['Dec_Q3'] = np.where(FlowObj['count_Q3'] > 0, FlowObj['sizeDec_Q3'] / FlowObj['count_Q3'], 0)
+
+    # Calculate fractions for sizeQ4
+    FlowObj['Inc_Q4'] = np.where(FlowObj['count_Q4'] > 0, FlowObj['sizeInc_Q4'] / FlowObj['count_Q4'], 0)
+    FlowObj['Eq_Q4'] = np.where(FlowObj['count_Q4'] > 0, FlowObj['sizeEq_Q4'] / FlowObj['count_Q4'], 0)
+    FlowObj['Dec_Q4'] = np.where(FlowObj['count_Q4'] > 0, FlowObj['sizeDec_Q4'] / FlowObj['count_Q4'], 0)
+
+    # Create separate DataFrames for each sizeQ category
+    sizeQ1_df = FlowObj[['t', 'Inc_Q1', 'Eq_Q1', 'Dec_Q1']]
+    sizeQ2_df = FlowObj[['t', 'Inc_Q2', 'Eq_Q2', 'Dec_Q2']]
+    sizeQ3_df = FlowObj[['t', 'Inc_Q3', 'Eq_Q3', 'Dec_Q3']]
+    sizeQ4_df = FlowObj[['t', 'Inc_Q4', 'Eq_Q4', 'Dec_Q4']]
+
+    # Optionally, reset index if needed
+    sizeQ1_df.reset_index(drop=True, inplace=True)
+    sizeQ2_df.reset_index(drop=True, inplace=True)
+    sizeQ3_df.reset_index(drop=True, inplace=True)
+    sizeQ4_df.reset_index(drop=True, inplace=True)
+
+    flowDFs = [sizeQ1_df, sizeQ2_df, sizeQ3_df, sizeQ4_df]
+
+    titles = ['Q1', 'Q2', 'Q3', 'Q4']
+
+    y_axs = ['Fraction of Objects',
+             'Fraction of Objects',
+             'Fraction of Objects',
+             'Fraction of Objects',
+             'Fraction of Objects',
+             ]
+
+    ix = 4
+    jx = 1
+    fig, axes = plt.subplots(ix, jx, figsize=(10 * jx, ix * 10))
+    for i in range(ix):
+        ax = axes[i]
+        df = flowDFs[i].drop(columns=['t'])
+        df.rolling(window=21, min_periods=1).mean().plot(kind='line', ax=ax,
+                                                         color=['green', 'orange', 'red'])
+        #                 ax.axvline(x=acp, color='green', linestyle='--', label='apical constriction point')
+        ax.set_title(titles[i], fontsize=15)
+        ax.set_xlabel('timepoint', fontsize=15)
+        ax.set_ylabel(y_axs[i], fontsize=15)
+
+    plt.tight_layout()
+    plt.savefig(plotsavepath + '/ObjectFlowDiagram.png')
+    plt.close()
+    #######################################################################
+
     conn = sqlite3.connect(os.path.join(dbpath, 'ObjectsProperties.db'))
     cursor = conn.cursor()
 

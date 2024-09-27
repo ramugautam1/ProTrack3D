@@ -18,15 +18,29 @@ category = 'size'
 
 
 def merge_dataframes_and_save(df_list, output_file):
+    dflist=[]
+    for df in df_list:
+        if 't' in df.columns:
+            df = df.dropna()
+            print(df.head())
+            df['t'] = df['t'].astype('Int64')  # Use 'Int64' for nullable integers
+            mint = df['t'].min()
+            maxt = df['t'].max()
+            complete_range = pd.DataFrame({'t': range(int(mint), int(maxt + 1))})
+            df_filled = pd.merge(complete_range, df, on='t', how='left')
+            df_filled = df_filled.fillna(0)
+            dflist.append(df_filled)
+        else:
+            dflist.append(df)
+
     # Merge the DataFrames
-    merged_df = pd.concat(df_list, axis=1)
+    merged_df = pd.concat(dflist, axis=1)
 
     # Save the merged DataFrame to a CSV file
     merged_df.to_csv(output_file, index=False)
 
     print(f"Merged DataFrame saved to {output_file}")
     return merged_df
-
 
 def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=None, t2=None):
     dbpath = os.path.dirname(trackedimagepath)

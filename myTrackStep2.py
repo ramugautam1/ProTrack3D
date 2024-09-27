@@ -842,7 +842,7 @@ def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein
                     ax.set_xlabel('x');
                     ax.set_ylabel('y');
                     ax.set_zlabel('z')
-                    ax.text(np.mean(x), np.mean(y), np.mean(z), label, fontsize=6)
+                    # ax.text(np.mean(x), np.mean(y), np.mean(z), label, fontsize=6)
                 except(Exception):
                     None
                 ax.set_title('t=' + str(ii + 1), fontsize=20)

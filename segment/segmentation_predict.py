@@ -111,26 +111,28 @@ def reshape32(image):
         # save_path_o = image_path[:-4] + '_BEFORE.tif'
         im = tifffile.imread(image)
         if im.ndim==4:
-            # tifffile.imsave(save_path_o, temp, imagej=True, metadata={'axes': 'TZYX'})
-            newshapex = im.shape[3] if im.shape[3] % 32 == 0 else (im.shape[3] // 32 + 1) * 32 if im.shape[3] % 32 > 4 else (im.shape[3] // 32) * 32
-            newshapey = im.shape[2] if im.shape[2] % 32 == 0 else (im.shape[2] // 32 + 1) * 32 if im.shape[2] % 32 > 4 else (im.shape[2] // 32) * 32
+            if im.shape[3] % 32 > 0 and im.shape[2] % 32 > 0:
+                # tifffile.imsave(save_path_o, temp, imagej=True, metadata={'axes': 'TZYX'})
+                newshapex = im.shape[3] if im.shape[3] % 32 == 0 else (im.shape[3] // 32 + 1) * 32 if im.shape[3] % 32 > 4 else (im.shape[3] // 32) * 32
+                newshapey = im.shape[2] if im.shape[2] % 32 == 0 else (im.shape[2] // 32 + 1) * 32 if im.shape[2] % 32 > 4 else (im.shape[2] // 32) * 32
 
-            temp = np.zeros((im.shape[0], im.shape[1], newshapey, newshapex), dtype=np.uint32)  # Ensure the array has a compatible data type
-            for t in range(im.shape[0]):
-                for i in range(im.shape[1]):
-                    temp[t, i, :, :] = cv2.resize(im[t, i, :, :], (newshapex, newshapey), interpolation=cv2.INTER_LANCZOS4)
-            temp = temp[:, :, :, :].astype('uint16')
-            tifffile.imsave(image, temp, imagej=True, metadata={'axes': 'TZYX'})
+                temp = np.zeros((im.shape[0], im.shape[1], newshapey, newshapex), dtype=np.uint32)  # Ensure the array has a compatible data type
+                for t in range(im.shape[0]):
+                    for i in range(im.shape[1]):
+                        temp[t, i, :, :] = cv2.resize(im[t, i, :, :], (newshapex, newshapey), interpolation=cv2.INTER_LANCZOS4)
+                temp = temp[:, :, :, :].astype('uint16')
+                tifffile.imsave(image, temp, imagej=True, metadata={'axes': 'TZYX'})
 
         if im.ndim == 3:
-            newshapex = im.shape[2] if im.shape[2] % 32 == 0 else (im.shape[2] // 32 + 1) * 32 if im.shape[2] % 32 > 4 else (im.shape[2] // 32) * 32
-            newshapey = im.shape[1] if im.shape[1] % 32 == 0 else (im.shape[1] // 32 + 1) * 32 if im.shape[1] % 32 > 4 else (im.shape[1] // 32) * 32
+            if im.shape[2] % 32 > 0 and im.shape[1] % 32 > 0:
+                newshapex = im.shape[2] if im.shape[2] % 32 == 0 else (im.shape[2] // 32 + 1) * 32 if im.shape[2] % 32 > 4 else (im.shape[2] // 32) * 32
+                newshapey = im.shape[1] if im.shape[1] % 32 == 0 else (im.shape[1] // 32 + 1) * 32 if im.shape[1] % 32 > 4 else (im.shape[1] // 32) * 32
 
-            temp = np.zeros((im.shape[0], newshapey, newshapex), dtype=im.dtype)
-            for i in range(im.shape[0]):
-                temp[i, :, :] = cv2.resize(im[i, :, :], (newshapex, newshapey), interpolation=cv2.INTER_LANCZOS4)
-                temp = temp[:, :, :].astype('uint16')
-                tifffile.imsave(image, temp, imagej=True, metadata={'axes': 'ZYX'})
+                temp = np.zeros((im.shape[0], newshapey, newshapex), dtype=im.dtype)
+                for i in range(im.shape[0]):
+                    temp[i, :, :] = cv2.resize(im[i, :, :], (newshapex, newshapey), interpolation=cv2.INTER_LANCZOS4)
+                    temp = temp[:, :, :].astype('uint16')
+                    tifffile.imsave(image, temp, imagej=True, metadata={'axes': 'ZYX'})
 
 def predictionSampleGeneration(image, startpoint, endpoint,oppath):
     global mydimensions
@@ -157,6 +159,8 @@ def predictionSampleGeneration(image, startpoint, endpoint,oppath):
         V_sample = niftireadI(image)
 
     V_sample = V_sample[:,:,:,t1-1:t2]
+
+    oV_sample = V_sample.copy()
 
     # Multiple of 32 in X and Y dimensions
     x_, y_, z_,t_ = np.shape(V_sample)
@@ -185,11 +189,15 @@ def predictionSampleGeneration(image, startpoint, endpoint,oppath):
     # Following code block is just to save the niftii file for the given time points. Don't affect the segmentation.
     ################
     V_sampleX  = (V_sample-np.min(V_sample))/(np.max(V_sample)-np.min(V_sample))*0.5 + 0.5
+    # V_sampleX = (V_sample - 0) / (65535 - 0) * 0.5 + 0.5
 
     V_to_save = V_sampleX[:,:,:,:]
     # V_to_view = V_sample[:,:,1:14,:]
 
-    V_to_save = V_to_save*32768-49152
+    V_to_save = V_to_save * 32768-49152
+
+
+
     V_to_save = nib.Nifti1Image(V_to_save,np.eye(4))
     nib.save(V_to_save,oppath+'/'+ os.path.basename(image)[:-4]+'.nii')
     ################
@@ -249,7 +257,7 @@ def predictionSampleGeneration(image, startpoint, endpoint,oppath):
 
     print('Data Preparation Complete!')
     # sampleAddress = '/home/nirvan/Desktop/AppTestRun/PredSamples'
-    return np.array(I3d2),sampleAddress
+    return np.array(I3d2),sampleAddress, oV_sample
 
 
 def predict(model,image, startpoint, endpoint, modelCheckpointName, op_folder):
@@ -264,7 +272,7 @@ def predict(model,image, startpoint, endpoint, modelCheckpointName, op_folder):
     if not os.path.isdir(oppath_):
         os.makedirs(oppath_)
     
-    I3d2,pdataset = predictionSampleGeneration(image,startpoint,endpoint,oppath=oppath_)
+    I3d2,pdataset, oV_sample = predictionSampleGeneration(image,startpoint,endpoint,oppath=oppath_)
 
     seg_params_DF = pd.DataFrame(columns=['startTime', 'endTime'])
     seg_params_DF['startTime'] = [int(startpoint)]
@@ -504,7 +512,7 @@ def predict(model,image, startpoint, endpoint, modelCheckpointName, op_folder):
         tinylist=[]
         # Calculate size of each component
         component_sizes = np.bincount(labeled_image.ravel())
-        for label in object_labels:
+        for label in object_labels:  # CHANGE BACK; UNCOMMENT.
             # find coordinates of object in labeled image
             object_coords = np.where(labeled_image == label)
             # calculate number of voxels in object
@@ -513,7 +521,7 @@ def predict(model,image, startpoint, endpoint, modelCheckpointName, op_folder):
             z_min = np.min(object_coords[2])
             z_max = np.max(object_coords[2])
             z_depth = z_max - z_min + 1
-            if (num_voxels <= 5 or (z_depth == 1 and num_voxels <= 5)):# and z_max != mydimensions[2] - 1)) : #final layer could contrain fragments of objects out of image field
+            if (num_voxels <= 5 or (z_depth == 1 and num_voxels <= 4)):# and z_max != mydimensions[2] - 1)) : #final layer could contrain fragments of objects out of image field
                 tinylist.append(label)
 
         for star in tinylist:
@@ -533,5 +541,25 @@ def predict(model,image, startpoint, endpoint, modelCheckpointName, op_folder):
     if not os.path.isdir(segAddr+'CombinedSO'):
         os.makedirs(segAddr+'CombinedSO')
     nib.save(nib.Nifti1Image(np.uint16(Image), affine=np.eye(4)), segAddr + 'CombinedSO' + '/CombinedSO.nii')
+
+    if oV_sample.shape[-1] > 1:
+        ox,oy,oz,ot = oV_sample.shape
+        combo = np.zeros((ox,oy,oz,ot,2))
+        combo[:,:,:,:,0] = oV_sample
+        combo[:,:,:,:,1] = Image
+
+        combo = np.transpose(combo, (2,4,3,1,0))
+        print(combo.shape)
+        tifffile.imwrite(segAddr + 'ImageSegmentationComposite.tif', combo, metadata={'axes':'ZCTYX'})
+    else:
+        oV_sample = oV_sample.squeeze()
+        Image = Image.squeeze()
+        ox,oy,oz = oV_sample.shape
+        combo = np.zeros((ox,oy,oz,2))
+        combo[:,:,:,0] = oV_sample
+        combo[:,:,:,1] = Image
+        combo = np.transpose(combo, (2,3,1,0))
+        print(combo.shape)
+        tifffile.imwrite(segAddr + 'ImageSegmentationComposite.tif', combo, imagej=True, metadata={'axes':'ZCYX'})
 
     gc.collect()

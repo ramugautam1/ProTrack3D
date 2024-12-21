@@ -94,7 +94,8 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
     newDF = pd.DataFrame(results)
     newDF.columns = columns
     conn.close()
-    FlowObj = newDF[newDF['t'] > 2]  # .drop(columns=['t'])
+    # FlowObj = newDF[newDF['t'] > 2]  # .drop(columns=['t'])
+    FlowObj = newDF[(newDF['t'] > t1) & (newDF['t'] <= t2)]
     # splitObj.rolling(window=21, min_periods=1).mean().plot(color = color5, figsize=(10,6), title=f'Split')
 
     # Calculate fractions for sizeQ1
@@ -814,10 +815,107 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
     peakIntDF
 
     #######################################################################
+    #######################################################################
+
+    conn = sqlite3.connect(os.path.join(dbpath, 'ObjectsProperties.db'))
+    cursor = conn.cursor()
+
+    event = 'split'
+    query = f"""
+                select t1.t,  t1.splitcount* 1.0 / t2.totalcount as splitFrac
+                from 
+                 ( select t,count(*) as splitcount from object_properties where will_split_next and merge_primary_at_next_t=0 group by t ) as t1
+                 inner join
+                 (select t, count(*) as totalcount from object_properties group by t) as t2
+                 on t1.t=t2.t
+            """
+
+    cursor.execute(query)
+    columns = [column[0] for column in cursor.description]
+    results = cursor.fetchall()
+    newDF = pd.DataFrame(results)
+    newDF.columns = columns
+    # Close the connection
+    conn.close()
+    splitCombObj = newDF[(newDF['t'] > 2) & (newDF['t'] >= t1) & (newDF['t']<=t2)]  # .drop(columns=['t'])
+    # splitObj.rolling(window=21, min_periods=1).mean().plot(color = color5, figsize=(10,6), title=f'Split')
+    splitCombObj
+
+    #######################################################################
+
+    conn = sqlite3.connect(os.path.join(dbpath, 'ObjectsProperties.db'))
+    cursor = conn.cursor()
+
+    event = 'Merge'
+    query = f"""
+        SELECT 
+            t1.t,
+            t1.{event}Count * 1.0 / t2.AllCount AS {event}Frac
+        FROM
+            (SELECT
+                t,
+                COUNT(*) AS {event}Count
+            FROM
+                object_properties
+            WHERE
+             merge_primary_at_next_t or merge_secondary_at_next_t 
+            GROUP BY
+                t) AS t1
+        INNER JOIN 
+            (SELECT
+                t,
+                COUNT(*) AS AllCount
+            FROM
+                object_properties
+            GROUP BY
+                t) AS t2
+        ON t1.t = t2.t;
+    """
+
+    cursor.execute(query)
+    columns = [column[0] for column in cursor.description]
+    results = cursor.fetchall()
+    newDF = pd.DataFrame(results)
+    newDF.columns = columns
+    # Close the connection
+    conn.close()
+    mergeCombObj = newDF[(newDF['t'] > 2) & (newDF['t'] >= t1) & (newDF['t']<=t2)]  # .drop(columns=['t'])
+    # splitObj.rolling(window=21, min_periods=1).mean().plot(color = color5, figsize=(10,6), title=f'Split')
+    mergeCombObj
+
+    #######################################################################
+
+    conn = sqlite3.connect(os.path.join(dbpath, 'ObjectsProperties.db'))
+    cursor = conn.cursor()
+
+    query = """
+                select t1.t, t1.total / t2.countt as average_intensity from
+
+                (select t, sum(intensity) as total from object_properties group by t) as t1
+                inner join
+
+                (select t, count(*) as countt from object_properties group by t) as t2
+                on t1.t=t2.t
+            """
+    cursor.execute(query)
+    columns = [column[0] for column in cursor.description]
+    results = cursor.fetchall()
+    newDF = pd.DataFrame(results)
+    newDF.columns = columns
+    # Close the connection
+    conn.close()
+    avgIntObj = newDF[(newDF['t'] > 2) & (newDF['t'] >= t1) & (newDF['t']<=t2)]  # .drop(columns=['t'])
+    # splitObj.rolling(window=21, min_periods=1).mean().plot(color = color5, figsize=(10,6), title=f'Split')
+    avgIntObj
+
+    #######################################################################
+    #######################################################################
 
     dfs = [splitObj, mergeObj, mergePrimObj, mergeSecObj, deadObj, bornObj,
            totObj, totInt, intDF, peakIntDF, densityDF,
-           avgIntensityDF, expDF, expDFnew, intensityIncDF, intensityDecDF]
+           avgIntensityDF, expDF, expDFnew, intensityIncDF, intensityDecDF, mergeCombObj, avgIntObj
+           # ,splitCombObj
+           ]
     output_file = plotsavepath + "/Size_Distribution_of_Events_and_Expectancy_over_Time.csv"
     merged_df = merge_dataframes_and_save(dfs, output_file)
 
@@ -825,7 +923,8 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
               'Death Fraction', 'Birth Count',
               'Total Objects', 'Total Intensity', 'Group Intensity', 'Avg. Peak Intensity', 'Average Density',
               'Average Intensity', 'Avg. Life Expectancy', 'Avg. Life Expectancy of New Objects',
-              'Fraction of objects with intensity increase', 'Fraction of objects with intensity decrease'
+              'Fraction of objects with intensity increase', 'Fraction of objects with intensity decrease',
+               'Merge Fraction, Overall' , 'Average Intensity' # 'Split Fraction, Overall',
               ]
 
     y_axs = ['Fraction of Objects of the Same Group',
@@ -845,7 +944,10 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
              'Life Expectancy in Timepoints',
              'Life Expectancy of New Obj.',
              'Fraction of Objects of the same group',
-             'Fraction of Objects of the same group'
+             'Fraction of Objects of the same group',
+             'Fraction of All Objects',
+             'Average Intensity'
+             # 'Fraction of All Objects'
              ]
 
     colors = ['blue', 'purple', 'magenta', 'red']
@@ -855,7 +957,7 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
     fig, axes = plt.subplots(ix, jx, figsize=(10 * jx, ix * 10))
     for i in range(ix):
         for j in range(jx):
-            if i > 2 and j > 0:
+            if i > 2 and j > 2:
                 pass
             else:
                 ax = axes[i, j]
@@ -2570,7 +2672,7 @@ def getHistogramUno(trackedimagepath, plotsavepath, t1=None, t2=None):
     image = niftireadu32(trackedimagepath)
     sizelist = []
 
-    for t_ in range(image.shape[-1]):
+    for t_ in range(t1-1,t2):
         u, c = np.unique(image[:, :, :, t_], return_counts=True)
         c = c[1:]
         sizelist.append(list(c))
@@ -2584,7 +2686,7 @@ def getHistogramUno(trackedimagepath, plotsavepath, t1=None, t2=None):
 
     # Define a colormap
     cmap = plt.get_cmap('rainbow')
-    n_bins = image.shape[-1]
+    n_bins = t2-t1+1
     cmap_name = 'rainbow'
     colors = ["Violet", "Blue", "Cyan", "Green", "Yellow", "Orange", "Red"]
 
@@ -2609,7 +2711,11 @@ def getHistogramUno(trackedimagepath, plotsavepath, t1=None, t2=None):
     plt.colorbar(scatter, label='Count')
 
     # Customize the plot
-    plt.xticks(range(len(data)), [f'Timepoint {i + 1}' for i in range(len(data))])
+    # plt.xticks(range(len(data)), [f'Timepoint {i + 1}' for i in range(len(data)) if i%5==4])
+    plt.xticks(
+        [i for i in range(len(data)) if (i + 1) % 5 == 0],
+        [f'{t1 + i }' for i in range(len(data)) if (i + 1) % 5 == 0]
+    )
     plt.xlabel('Time Point')
     plt.ylabel('Value')
     plt.title('Color coded scatter plots of size counts')
@@ -2637,6 +2743,6 @@ def all_analysis_app(trackedimagepath, segPath, origImgPath, t1=None, t2=None):
     getIntensityChangeContribution(dbpath,sT, origImgPath, plotsavepath, t1=t1, t2=t2)
     getIntensityChange(dbpath, sT, origImgPath,plotsavepath, t1=t1, t2=t2)
     getIntensityChangeAvg(dbpath, sT, origImgPath,plotsavepath, t1=t1, t2=t2)
-    getHistogram(trackedimagepath,plotsavepath, t1=t1, t2=t2)
+    # getHistogram(trackedimagepath,plotsavepath, t1=t1, t2=t2)
     getHistogramUno(trackedimagepath, plotsavepath, t1=t1, t2=t2)
 

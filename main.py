@@ -408,7 +408,7 @@ entryPr1 = tk.Entry(predict_page, textvariable=startT, font=('System', 15), widt
 entryPr1.insert(0, '1')
 label3 = tk.Label(predict_page, text='End Time', font=('System', 15))
 entryPr2 = tk.Entry(predict_page, textvariable=endT, font=('System', 15), width=10)
-entryPr2.insert(0, '41')
+entryPr2.insert(0, '1')
 
 buttonPr4 = tk.Button(predict_page, text="Select Folder with Trained Model", font=('System', 15),
                       command=lambda: getTrainedModel())

@@ -21,8 +21,8 @@ def merge_dataframes_and_save(df_list, output_file):
     dflist=[]
     for df in df_list:
         if 't' in df.columns:
-            df = df.dropna()
-            print(df.head())
+            # df = df.dropna()
+            # print(df.head())
             df['t'] = df['t'].astype('Int64')  # Use 'Int64' for nullable integers
             mint = df['t'].min()
             maxt = df['t'].max()
@@ -904,12 +904,39 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath):
     avgIntObj = newDF[newDF['t'] > 2]  # .drop(columns=['t'])
     # splitObj.rolling(window=21, min_periods=1).mean().plot(color = color5, figsize=(10,6), title=f'Split')
     avgIntObj
+    #######################################################################
+    conn = sqlite3.connect(os.path.join(dbpath, 'ObjectsProperties.db'))
+    cursor = conn.cursor()
 
+    query = f"""
+                        SELECT 
+            t,
+                AVG(CASE WHEN {category}Q = 1 THEN size END) AS {category}Q1_sizeAvg,
+                AVG(CASE WHEN {category}Q = 2 THEN size END) AS {category}Q4_sizeAvg,
+                AVG(CASE WHEN {category}Q = 3 THEN size END) AS {category}Q4_sizeAvg,
+                AVG(CASE WHEN {category}Q = 4 THEN size END) AS {category}Q4_sizeAvg
+            FROM 
+                object_properties
+            GROUP BY 
+                t
+            ORDER BY 
+                t;
+                """
+    cursor.execute(query)
+    columns = [column[0] for column in cursor.description]
+    results = cursor.fetchall()
+    newDF = pd.DataFrame(results)
+    newDF.columns = columns
+    # Close the connection
+    conn.close()
+    avgSizeObj = newDF[newDF['t'] > 2]  # .drop(columns=['t'])
+    # splitObj.rolling(window=21, min_periods=1).mean().plot(color = color5, figsize=(10,6), title=f'Split')
+    avgSizeObj
     #######################################################################
     dfs = [splitObj, mergeObj, mergePrimObj, mergeSecObj, deadObj, bornObj,
            totObj, totInt, intDF, peakIntDF, densityDF,
            avgIntensityDF, expDF, expDFnew, intensityIncDF, intensityDecDF,
-           mergeCombObj, avgIntObj]
+           mergeCombObj, avgIntObj,avgSizeObj]
            #, splitCombObj,]
     output_file = plotsavepath + "/Size_Distribution_of_Events_and_Expectancy_over_Time.csv"
     merged_df = merge_dataframes_and_save(dfs, output_file)
@@ -919,7 +946,7 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath):
               'Total Objects', 'Total Intensity', 'Group Intensity', 'Avg. Peak Intensity', 'Average Density',
               'Average Intensity', 'Avg. Life Expectancy', 'Avg. Life Expectancy of New Objects',
               'Fraction of objects with intensity increase', 'Fraction of objects with intensity decrease',
-              'Merge Fraction, Overall', 'Average Intensity'
+              'Merge Fraction, Overall', 'Average Intensity', 'Average Size'
               #, 'Split Fraction, Overall'
               ]
 
@@ -943,7 +970,8 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath):
              'Fraction of Objects of the same group',
              'Fraction of All Objects',
              # 'Fraction of All Objects',
-             'Average Intensity'
+             'Average Intensity',
+             'Average Size'
              ]
 
     colors = ['blue', 'purple', 'magenta', 'red']
@@ -953,7 +981,7 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath):
     fig, axes = plt.subplots(ix, jx, figsize=(10 * jx, ix * 10))
     for i in range(ix):
         for j in range(jx):
-            if i > 2 and j > 2:
+            if i > 2 and j > 3:
                 pass
             else:
                 ax = axes[i, j]

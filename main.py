@@ -780,12 +780,6 @@ buttonA5.place(x=50, y=600)
 
 ########################################################################################################################
 
-
-
-
-
-
-
 help_page_greet = tk.Label(help_page, text='Help', font=('Courier', 40, 'bold'))
 help_page_greet.place(x=50, y=120)
 

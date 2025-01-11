@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import json
 import sqlite3
 from matplotlib.colors import LinearSegmentedColormap
+from itertools import zip_longest
 
 
 
@@ -16,13 +17,12 @@ color6 = ['orange','green','purple','magenta','cyan','red']
 
 category = 'size'
 
-
 def merge_dataframes_and_save(df_list, output_file):
     dflist=[]
     for df in df_list:
         if 't' in df.columns:
-            df = df.dropna()
-            print(df.head())
+            # df = df.dropna()
+            # print(df.head())
             df['t'] = df['t'].astype('Int64')  # Use 'Int64' for nullable integers
             mint = df['t'].min()
             maxt = df['t'].max()
@@ -782,7 +782,7 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
     avgIntensityDF = newDF[(newDF['t'] > 2) & (newDF['t'] >= t1) & (newDF['t']<=t2)]  # .drop(columns=['t'])
     # avgIntensityDF.rolling(window=21, min_periods=1).mean().plot(color = color5, figsize=(10,6), title=f'Merge')
     avgIntensityDF
-
+    # print(avgIntensityDF)
     #######################################################################
 
     conn = sqlite3.connect(os.path.join(dbpath, 'ObjectsProperties.db'))
@@ -909,22 +909,66 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
     avgIntObj
 
     #######################################################################
+    conn = sqlite3.connect(os.path.join(dbpath, 'ObjectsProperties.db'))
+    cursor = conn.cursor()
+
+    query = f"""
+                    SELECT 
+        t,
+            AVG(CASE WHEN {category}Q = 1 THEN size END) AS {category}Q1_sizeAvg,
+            AVG(CASE WHEN {category}Q = 2 THEN size END) AS {category}Q4_sizeAvg,
+            AVG(CASE WHEN {category}Q = 3 THEN size END) AS {category}Q4_sizeAvg,
+            AVG(CASE WHEN {category}Q = 4 THEN size END) AS {category}Q4_sizeAvg
+        FROM 
+            object_properties
+        GROUP BY 
+            t
+        ORDER BY 
+            t;
+            """
+    cursor.execute(query)
+    columns = [column[0] for column in cursor.description]
+    results = cursor.fetchall()
+    newDF = pd.DataFrame(results)
+    newDF.columns = columns
+    # Close the connection
+    conn.close()
+    avgSizeObj = newDF[(newDF['t'] > 2) & (newDF['t'] >= t1) & (newDF['t']<=t2)]  # .drop(columns=['t'])
+    # splitObj.rolling(window=21, min_periods=1).mean().plot(color = color5, figsize=(10,6), title=f'Split')
+    avgSizeObj
+
+
+
     #######################################################################
 
     dfs = [splitObj, mergeObj, mergePrimObj, mergeSecObj, deadObj, bornObj,
            totObj, totInt, intDF, peakIntDF, densityDF,
-           avgIntensityDF, expDF, expDFnew, intensityIncDF, intensityDecDF, mergeCombObj, avgIntObj
+           avgIntensityDF, expDF, expDFnew, intensityIncDF, intensityDecDF, mergeCombObj, avgIntObj, avgSizeObj
            # ,splitCombObj
            ]
     output_file = plotsavepath + "/Size_Distribution_of_Events_and_Expectancy_over_Time.csv"
     merged_df = merge_dataframes_and_save(dfs, output_file)
 
-    titles = ['Split Fraction', 'Total Merge Fraction', 'Primary merge Fraction', 'Secondary Merge Fraction',
-              'Death Fraction', 'Birth Count',
-              'Total Objects', 'Total Intensity', 'Group Intensity', 'Avg. Peak Intensity', 'Average Density',
-              'Average Intensity', 'Avg. Life Expectancy', 'Avg. Life Expectancy of New Objects',
-              'Fraction of objects with intensity increase', 'Fraction of objects with intensity decrease',
-               'Merge Fraction, Overall' , 'Average Intensity' # 'Split Fraction, Overall',
+    titles = ['Split Fraction',
+              'Total Merge Fraction',
+              'Primary merge Fraction',
+              'Secondary Merge Fraction',
+              'Death Fraction',
+              'Birth Count',
+              'Total Objects',
+              'Total Intensity',
+              'Group Intensity',
+              'Avg. Peak Intensity',
+              'Average Density',
+              'Average Intensity',
+              'Avg. Life Expectancy',
+              'Avg. Life Expectancy of New Objects',
+              'Fraction of objects with intensity increase',
+              'Fraction of objects with intensity decrease',
+               'Merge Fraction, Overall' ,
+              'Average Intensity',
+              'Average Size'
+              # 'Split Fraction, Overall',
               ]
 
     y_axs = ['Fraction of Objects of the Same Group',
@@ -946,7 +990,8 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
              'Fraction of Objects of the same group',
              'Fraction of Objects of the same group',
              'Fraction of All Objects',
-             'Average Intensity'
+             'Average Intensity',
+             'Average Size'
              # 'Fraction of All Objects'
              ]
 
@@ -957,7 +1002,7 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
     fig, axes = plt.subplots(ix, jx, figsize=(10 * jx, ix * 10))
     for i in range(ix):
         for j in range(jx):
-            if i > 2 and j > 2:
+            if i > 2 and j > 3:
                 pass
             else:
                 ax = axes[i, j]
@@ -1423,7 +1468,7 @@ def getIntensityChange(dbpath, sT, origImgPath, plotsavepath, t1=None, t2=None):
     plt.savefig(plotsavepath + '/' + 'BY_' + category.upper() + '_change_in_Intensity.png')
     #     plt.savefig(dbpath + '/Change_in_Intensity_due_to_various_events' +  '.png')
     #     plt.show()
-    print('=================================================================================')
+    # print('=================================================================================')
 
     #     print(SplitBy.loc[20:30,:])
     #     print(IncBy.loc[20:30,:])
@@ -2334,7 +2379,7 @@ def getIntensityChangeContribution(dbpath, sT, origImgPath, plotsavepath, t1=Non
     newDF = pd.DataFrame(results)
     newDF.columns = columns
     # newDF=newDF.drop(columns=['t'])
-    print(newDF)
+    # print(newDF)
 
     # Close the connection
     conn.close()
@@ -2668,60 +2713,125 @@ def getHistogram(trackedimagepath, plotsavepath, t1=None, t2=None):
     plt.savefig(plotsavepath + '/' + 'sizeHistogram.png')
 
 
-def getHistogramUno(trackedimagepath, plotsavepath, t1=None, t2=None):
-    image = niftireadu32(trackedimagepath)
-    sizelist = []
+def getHistogramUno(dbpath, plotsavepath, t1=None, t2=None):
+    conn = sqlite3.connect(os.path.join(dbpath, 'ObjectsProperties.db'))
+    cursor = conn.cursor()
 
-    for t_ in range(t1-1,t2):
-        u, c = np.unique(image[:, :, :, t_], return_counts=True)
-        c = c[1:]
-        sizelist.append(list(c))
-    # print(sizelist)
+    query = f"""
+        select t,size from object_properties  where t>={t1} and t<={t2}
+        """
 
-    # Your data with time points
-    data = sizelist
+    cursor.execute(query)
+    columns = [column[0] for column in cursor.description]
+    results = cursor.fetchall()
+    newDF = pd.DataFrame(results)
+    newDF.columns = columns
+    conn.close()
+    dict1 = newDF.groupby('t')['size'].apply(list).to_dict()
+    data = []
+    for akey in dict1.keys():
+        data.append(dict1[akey])
 
-    # Initialize the plot
-    plt.figure(figsize=(24, 6))
-
-    # Define a colormap
+    plt.figure(figsize=(10, 6))
     cmap = plt.get_cmap('rainbow')
     n_bins = t2-t1+1
     cmap_name = 'rainbow'
     colors = ["Violet", "Blue", "Cyan", "Green", "Yellow", "Orange", "Red"]
-
     cmap = LinearSegmentedColormap.from_list(cmap_name, colors, N=n_bins)
-
     cmap = plt.get_cmap('rainbow')
 
-    print(
-        '################################################\n################################################\n################################################\n################################################\n################################################\n################################################\n')
-    # Iterate over each time point
     for time_index, values in enumerate(data):
         # Count occurrences of each value
         unique, counts = np.unique(values, return_counts=True)
-
-        # Create a scatter plot with color coding
         scatter = plt.scatter([time_index] * len(values), values,
                               c=[counts[np.where(unique == v)[0][0]] for v in values],
                               cmap=cmap, marker='s', s=10, edgecolor='none', alpha=0.7,
                               label=f'Timepoint {time_index + 1}')
 
+    keys_ = dict1.keys()
+    values_ = zip_longest(*dict1.values(), fillvalue=None)
+    df_ = pd.DataFrame(values_, columns=keys_)
+    df_.to_csv(plotsavepath + '/' + 'sizeHistogramNotBucket.csv')
+    # newDF.to_csv(plotsavepath + '/' + 'sizeHistogramNotBucket.csv')
+
     # Add color bar to show the count scale
     plt.colorbar(scatter, label='Count')
-
-    # Customize the plot
-    # plt.xticks(range(len(data)), [f'Timepoint {i + 1}' for i in range(len(data)) if i%5==4])
     plt.xticks(
         [i for i in range(len(data)) if (i + 1) % 5 == 0],
         [f'{t1 + i }' for i in range(len(data)) if (i + 1) % 5 == 0]
     )
+    plt.ylim(0,300)
     plt.xlabel('Time Point')
     plt.ylabel('Value')
     plt.title('Color coded scatter plots of size counts')
-    # plt.legend()
     plt.grid(axis='y', linestyle='--', alpha=0.7)
     plt.savefig(plotsavepath + '/' + 'sizeHistogramNotBucket.png')
+
+
+    #########################
+    # image = niftireadu32(trackedimagepath)
+    # sizelist = []
+    #
+    # for t_ in range(t1-1,t2):
+    #     u, c = np.unique(image[:, :, :, t_], return_counts=True)
+    #     c = c[1:]
+    #     sizelist.append(list(c))
+    #
+    #
+    # # print(sizelist)
+    #
+    # # Your data with time points
+    # data = sizelist
+    #
+    # # Initialize the plot
+    # plt.figure(figsize=(10, 6))
+    #
+    # # Define a colormap
+    # cmap = plt.get_cmap('rainbow')
+    # n_bins = t2-t1+1
+    # cmap_name = 'rainbow'
+    # colors = ["Violet", "Blue", "Cyan", "Green", "Yellow", "Orange", "Red"]
+    #
+    # cmap = LinearSegmentedColormap.from_list(cmap_name, colors, N=n_bins)
+    #
+    # cmap = plt.get_cmap('rainbow')
+    #
+    # # print(
+    # #     '################################################\n################################################\n################################################\n################################################\n################################################\n################################################\n')
+    # # Iterate over each time point
+    # biglist = {}
+    # for time_index, values in enumerate(data):
+    #     # Count occurrences of each value
+    #     unique, counts = np.unique(values, return_counts=True)
+    #
+    #     # Create a scatter plot with color coding
+    #     scatter = plt.scatter([time_index] * len(values), values,
+    #                           c=[counts[np.where(unique == v)[0][0]] for v in values],
+    #                           cmap=cmap, marker='s', s=10, edgecolor='none', alpha=0.7,
+    #                           label=f'Timepoint {time_index + 1}')
+    #     biglist[time_index+t1] = [counts[np.where(unique == v)[0][0]] for v in values]
+    #
+    # keys_ = biglist.keys()
+    # values_ = zip_longest(*biglist.values(), fillvalue=None)
+    # df_ = pd.DataFrame(values_, columns=keys_)
+    # df_.to_csv(plotsavepath + '/' + 'sizeHistogramNotBucket.csv')
+    #
+    # # Add color bar to show the count scale
+    # plt.colorbar(scatter, label='Count')
+    #
+    # # Customize the plot
+    # # plt.xticks(range(len(data)), [f'Timepoint {i + 1}' for i in range(len(data)) if i%5==4])
+    # plt.xticks(
+    #     [i for i in range(len(data)) if (i + 1) % 5 == 0],
+    #     [f'{t1 + i }' for i in range(len(data)) if (i + 1) % 5 == 0]
+    # )
+    # plt.ylim(0,300)
+    # plt.xlabel('Time Point')
+    # plt.ylabel('Value')
+    # plt.title('Color coded scatter plots of size counts')
+    # # plt.legend()
+    # plt.grid(axis='y', linestyle='--', alpha=0.7)
+    # plt.savefig(plotsavepath + '/' + 'sizeHistogramNotBucket.png')
 
 
 def all_analysis_app(trackedimagepath, segPath, origImgPath, t1=None, t2=None):
@@ -2744,5 +2854,6 @@ def all_analysis_app(trackedimagepath, segPath, origImgPath, t1=None, t2=None):
     getIntensityChange(dbpath, sT, origImgPath,plotsavepath, t1=t1, t2=t2)
     getIntensityChangeAvg(dbpath, sT, origImgPath,plotsavepath, t1=t1, t2=t2)
     # getHistogram(trackedimagepath,plotsavepath, t1=t1, t2=t2)
-    getHistogramUno(trackedimagepath, plotsavepath, t1=t1, t2=t2)
-
+    getHistogramUno(dbpath, plotsavepath, t1=t1, t2=t2)
+    print('\n','#'*30, '\n')
+    print('DONE!!!')

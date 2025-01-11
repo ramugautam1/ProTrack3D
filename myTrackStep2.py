@@ -800,12 +800,13 @@ def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein
     from create_database import runSizeIntensityAnalysis
     runSizeIntensityAnalysis(dbpath=track_op_folder[:-1],sT=sT,trackedimagepath=track_op_folder + 'TrackedCombined.nii', origImgPath=imageNameO)
     from allAnalysis import all_analysis
-    all_analysis(trackedimagepath=track_op_folder + 'TrackedCombined.nii', origImgPath=imageNameO, sT=sT)
+    # all_analysis(trackedimagepath=track_op_folder + 'TrackedCombined.nii', origImgPath=imageNameO, sT=sT)
 
     print('Tracking and analysis complete. \nGenerating 3D projections of tracked image...')
 
     def niftireadu16(arg):
         return np.asarray(nib.load(arg).dataobj).astype(np.uint16).squeeze()
+
     tI_fig = niftireadu16(track_op_folder + 'TrackedCombined.nii')
     savePath3D = track_op_folder + '3DProjection'
     if not os.path.isdir(savePath3D):

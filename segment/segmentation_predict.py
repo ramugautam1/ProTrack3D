@@ -24,7 +24,7 @@ import nibabel as nib
 # from keras.models import load_model
 import math as math
 from skimage.color import hsv2rgb, rgb2hsv, gray2rgb
-from skimage import io, exposure
+from skimage import io, exposure, measure
 
 
 from skimage.color import hsv2rgb, rgb2hsv, gray2rgb
@@ -43,7 +43,7 @@ import subprocess
 import segment.helpers as helpers
 import pandas as pd
 import csv
-
+from matplotlib.colors import LinearSegmentedColormap
 
 def IoU(y_true, y_pred):
     assert y_true.dtype == bool and y_pred.dtype == bool
@@ -124,7 +124,7 @@ def reshape32(image):
                 tifffile.imsave(image, temp, imagej=True, metadata={'axes': 'TZYX'})
 
         if im.ndim == 3:
-            if im.shape[2] % 32 > 0 and im.shape[1] % 32 > 0:
+            if im.shape[2] % 32 > 0 or im.shape[1] % 32 > 0:
                 newshapex = im.shape[2] if im.shape[2] % 32 == 0 else (im.shape[2] // 32 + 1) * 32 if im.shape[2] % 32 > 4 else (im.shape[2] // 32) * 32
                 newshapey = im.shape[1] if im.shape[1] % 32 == 0 else (im.shape[1] // 32 + 1) * 32 if im.shape[1] % 32 > 4 else (im.shape[1] // 32) * 32
 
@@ -133,6 +133,42 @@ def reshape32(image):
                     temp[i, :, :] = cv2.resize(im[i, :, :], (newshapex, newshapey), interpolation=cv2.INTER_LANCZOS4)
                     temp = temp[:, :, :].astype('uint16')
                     tifffile.imsave(image, temp, imagej=True, metadata={'axes': 'ZYX'})
+
+
+def getSizeHistogram(labeledImage, plotsavepath, t1=None, t2=None):
+    image = labeledImage
+    sizelist = []
+    for t_ in range(t1 - 1, t2):
+        u, c = np.unique(image[:, :, :, t_], return_counts=True)
+        c = c[1:]
+        sizelist.append(list(c))
+    data = sizelist
+    plt.figure(figsize=(6, 6))
+    cmap = plt.get_cmap('rainbow')
+    n_bins = t2 - t1 + 1
+    cmap_name = 'rainbow'
+    colors = ["Violet", "Blue", "Cyan", "Green", "Yellow", "Orange", "Red"]
+    cmap = LinearSegmentedColormap.from_list(cmap_name, colors, N=n_bins)
+    cmap = plt.get_cmap('rainbow')
+    for time_index, values in enumerate(data):
+        # Count occurrences of each value
+        unique, counts = np.unique(values, return_counts=True)
+        # Create a scatter plot with color coding
+        scatter = plt.scatter([time_index] * len(values), values,
+                              c=[counts[np.where(unique == v)[0][0]] for v in values],
+                              cmap=cmap, marker='s', s=10, edgecolor='none', alpha=0.7,
+                              label=f'Timepoint {time_index + 1}')
+    plt.colorbar(scatter, label='Count')
+    plt.xticks(
+        [i for i in range(len(data)) if (i + 1) % 5 == 0],
+        [f'{t1 + i}' for i in range(len(data)) if (i + 1) % 5 == 0]
+    )
+    plt.xlabel('Time Point')
+    plt.ylabel('Value')
+    plt.title('Size Histogram')
+    # plt.legend()
+    plt.grid(axis='y', linestyle='--', alpha=0.7)
+    plt.savefig(plotsavepath)
 
 def predictionSampleGeneration(image, startpoint, endpoint,oppath):
     global mydimensions
@@ -521,7 +557,7 @@ def predict(model,image, startpoint, endpoint, modelCheckpointName, op_folder):
             z_min = np.min(object_coords[2])
             z_max = np.max(object_coords[2])
             z_depth = z_max - z_min + 1
-            if (num_voxels <= 5 or (z_depth == 1 and num_voxels <= 4)):# and z_max != mydimensions[2] - 1)) : #final layer could contrain fragments of objects out of image field
+            if (num_voxels <= 5): #or (z_depth == 1 and num_voxels <= 4)):# and z_max != mydimensions[2] - 1)) : #final layer could contrain fragments of objects out of image field
                 tinylist.append(label)
 
         for star in tinylist:
@@ -542,24 +578,32 @@ def predict(model,image, startpoint, endpoint, modelCheckpointName, op_folder):
         os.makedirs(segAddr+'CombinedSO')
     nib.save(nib.Nifti1Image(np.uint16(Image), affine=np.eye(4)), segAddr + 'CombinedSO' + '/CombinedSO.nii')
 
-    if oV_sample.shape[-1] > 1:
-        ox,oy,oz,ot = oV_sample.shape
-        combo = np.zeros((ox,oy,oz,ot,2))
-        combo[:,:,:,:,0] = oV_sample
-        combo[:,:,:,:,1] = Image
 
-        combo = np.transpose(combo, (2,4,3,1,0))
-        print(combo.shape)
-        tifffile.imwrite(segAddr + 'ImageSegmentationComposite.tif', combo, metadata={'axes':'ZCTYX'})
-    else:
-        oV_sample = oV_sample.squeeze()
-        Image = Image.squeeze()
-        ox,oy,oz = oV_sample.shape
-        combo = np.zeros((ox,oy,oz,2))
-        combo[:,:,:,0] = oV_sample
-        combo[:,:,:,1] = Image
-        combo = np.transpose(combo, (2,3,1,0))
-        print(combo.shape)
-        tifffile.imwrite(segAddr + 'ImageSegmentationComposite.tif', combo, imagej=True, metadata={'axes':'ZCYX'})
+
+    if Image.shape[-1] == 1:
+        stack_after_BW = Image.astype(bool)
+        CC = skimage.measure.label(stack_after_BW, connectivity=2)
+        nib.save(nib.Nifti1Image(np.uint16(CC), affine=np.eye(4)), segAddr + 'COmbinedSO' + '/LabeledSO.nii')
+        getSizeHistogram(np.uint16(CC), segAddr + 'CombinedSO' + '/SizeHistogram.png', 1, 1)
+
+
+    # if oV_sample.shape[-1] > 1:
+    #     ox,oy,oz,ot = oV_sample.shape
+    #     combo = np.zeros((ox,oy,oz,ot,2))
+    #     combo[:,:,:,:,0] = oV_sample
+    #     combo[:,:,:,:,1] = Image
+    #     combo = np.transpose(combo, (2,4,3,1,0))
+    #     print(combo.shape)
+    #     tifffile.imwrite(segAddr + 'ImageSegmentationComposite.tif', combo, metadata={'axes':'ZCTYX'})
+    # else:
+    #     oV_sample = oV_sample.squeeze()
+    #     Image = Image.squeeze()
+    #     ox,oy,oz = oV_sample.shape
+    #     combo = np.zeros((ox,oy,oz,2))
+    #     combo[:,:,:,0] = oV_sample
+    #     combo[:,:,:,1] = Image
+    #     combo = np.transpose(combo, (2,3,1,0))
+    #     print(combo.shape)
+    #     tifffile.imwrite(segAddr + 'ImageSegmentationComposite.tif', combo, imagej=True, metadata={'axes':'ZCYX'})
 
     gc.collect()

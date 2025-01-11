@@ -3,8 +3,8 @@ from prepare import prepare
 from trackStep1 import trackStep1
 from trackStep2 import trackStep2
 
-#this is for testing
 from myTrackStep2 import myTrackStep2
+# from CTC_MyTrackStep2 import myTrackStep2
 from myTrackStep1 import myTrackStep1
 import glob
 import time as theTime

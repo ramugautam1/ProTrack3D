@@ -2712,7 +2712,8 @@ def getHistogram(trackedimagepath, plotsavepath, t1=None, t2=None):
     plt.grid(axis='y', linestyle='--', alpha=0.7)
     plt.savefig(plotsavepath + '/' + 'sizeHistogram.png')
 
-
+from matplotlib.patches import PathPatch
+from matplotlib.path import Path
 def getHistogramUno(dbpath, plotsavepath, t1=None, t2=None):
     conn = sqlite3.connect(os.path.join(dbpath, 'ObjectsProperties.db'))
     cursor = conn.cursor()
@@ -2732,20 +2733,28 @@ def getHistogramUno(dbpath, plotsavepath, t1=None, t2=None):
     for akey in dict1.keys():
         data.append(dict1[akey])
 
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(10, 10))
     cmap = plt.get_cmap('rainbow')
-    n_bins = t2-t1+1
+    n_bins = t2 - t1 + 1
     cmap_name = 'rainbow'
     colors = ["Violet", "Blue", "Cyan", "Green", "Yellow", "Orange", "Red"]
     cmap = LinearSegmentedColormap.from_list(cmap_name, colors, N=n_bins)
     cmap = plt.get_cmap('rainbow')
+
+    # Define a custom wide marker
+    custom_marker = Path(
+        [
+            (-1, -0.3), (1, -0.3), (1, 0.3), (-1, 0.3), (-1, -0.3)
+        ],
+        [Path.MOVETO, Path.LINETO, Path.LINETO, Path.LINETO, Path.CLOSEPOLY]
+    )
 
     for time_index, values in enumerate(data):
         # Count occurrences of each value
         unique, counts = np.unique(values, return_counts=True)
         scatter = plt.scatter([time_index] * len(values), values,
                               c=[counts[np.where(unique == v)[0][0]] for v in values],
-                              cmap=cmap, marker='s', s=10, edgecolor='none', alpha=0.7,
+                              cmap=cmap, marker=custom_marker, s=10, edgecolor='none', alpha=0.7,
                               label=f'Timepoint {time_index + 1}')
 
     keys_ = dict1.keys()

@@ -284,7 +284,7 @@ def getAndSetPreTrainedModelForTL():
 
 
 ##########################
-train_page_greet = tk.Label(train_page, text='Train', font=('Courier', 40, 'bold'))
+train_page_greet = tk.Label(train_page, text='Training', font=('Courier', 40, 'bold'))
 train_page_greet.place(x=50, y=120)
 
 numEpochs = tk.IntVar()
@@ -377,7 +377,7 @@ def callPredict(model, image, startTime, endTime, trModelPath, predictOPpath):
                                  modelCheckpointName=trModelPath, op_folder=predictOPpath)
 
 
-predict_page_greet = tk.Label(predict_page, text='Segment', font=('Courier', 40, 'bold'))
+predict_page_greet = tk.Label(predict_page, text='Inference', font=('Courier', 40, 'bold'))
 predict_page_greet.place(x=50, y=120)
 
 ## dropdown
@@ -770,7 +770,7 @@ labelA1.place(x=50, y=350)
 entryAL1.place(x=400, y=350, width = 150)
 labelA2.place(x=50, y=400)
 entryAL2.place(x=400, y=400, width=150)
-buttonA5.place(x=50, y=600)
+buttonA5.place(x=50, y=450)
 
 ########################################################################################################################
 

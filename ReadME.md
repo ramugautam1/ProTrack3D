@@ -34,3 +34,10 @@ git clone https://github.com/ramugautam1/ProTrack3D.git
   cd ProTrack3D # get inside the project folder
   python main.py
 ```
+
+## Bazooka Model
+https://drive.google.com/drive/folders/1koS-f6sOxCH2zFlLpy2vRh7zoakYUXIq?usp=sharing
+
+
+## Bazooka Image
+https://drive.google.com/drive/folders/1ZPFuF1n3Kr6jI60Pj3Kk5zeGV2lV5qnK?usp=sharing

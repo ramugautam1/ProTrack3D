@@ -80,9 +80,9 @@ def correlation(Fullsize_1, Fullsize_2, Fullsize_regression_1, Fullsize_regressi
                                    VoxelList[i][index][2] - 1:VoxelList[i][index][2] + 1 + 1,
                                    :])
 
-            for m1 in range(-1, 2):
+            for m1 in range(-3, 4):
                 x = 2 * m1
-                for m2 in range(-1, 2):
+                for m2 in range(-3, 4):
                     y = 2 * m2
                     for m3 in range(-1, 2):
                         z = m3
@@ -176,25 +176,3 @@ def correlation(Fullsize_1, Fullsize_2, Fullsize_regression_1, Fullsize_regressi
                 addr2 + 'correlation_map_padding_hide_traceback' + str(time) + '_' + t2 + '.nii')
 
     print('\nfiles saved.')
-
-# time=1;t1='1';t2='2'
-# trackedImageT1 = niftireadI('C:/Users/ramu_admin/Desktop/Baz/Apr6/SegTrack1014-1/1/Fullsize_label_1.nii')
-# labeledImageT2 = niftireadI('C:/Users/ramu_admin/Desktop/Baz/Apr6/SegTrack1014-1/3/Fullsize_label_3.nii')
-# maskT1 = niftireadI('C:/Users/ramu_admin/Desktop/Baz/Apr6/SegTrack1014-1/1/Fullsize_1.nii')
-# maskT2 = niftireadI('C:/Users/ramu_admin/Desktop/Baz/Apr6/SegTrack1014-1/3/Fullsize_3.nii')
-# weightsT1 = niftiread('C:/Users/ramu_admin/Desktop/Baz/Apr6/SegTrack1014-1/1/Weights_1.nii')
-# weightsT2 = niftiread('C:/Users/ramu_admin/Desktop/Baz/Apr6/SegTrack1014-1/3/Weights_3.nii')
-# padding=[20,20,2]
-# addr = 'C:/Users/ramu_admin/Desktop/Baz/Apr6/SegTrack1014-1/'
-#
-# spatial_extend_matrix = np.full((10, 10, 3, 64),
-#                                     0)  # the weight decay of 'extended search' (not used right now in correlation calculation)
-#
-# for i1 in range(0, 10):
-#     for i2 in range(0, 10):
-#         for i3 in range(0, 3):
-#             spatial_extend_matrix[i1, i2, i3, :] = math.exp(((i1 + 1 - 5) + (i2 + 1 - 5) + (i3 + 1 - 2)) / 20)
-#
-#
-# correlation(Fullsize_1 = trackedImageT1, Fullsize_2=labeledImageT2, Fullsize_regression_1=weightsT1, Fullsize_regression_2=weightsT2,
-#                 t2=t2, time=time, spatial_extend_matrix=spatial_extend_matrix, addr2=addr, padding=padding)

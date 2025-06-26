@@ -158,7 +158,18 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
     plt.savefig(plotsavepath + '/ObjectFlowDiagram.png')
     plt.close()
     #######################################################################
-
+    #######################################################################
+    #######################################################################
+    #######################################################################
+    #######################################################################
+    #######################################################################
+    # THE FOLLOWING SECTION OF CODE PRODUCES THE BIG GRAPH WITH MANY PLOTS
+    #######################################################################
+    #######################################################################
+    #######################################################################
+    #######################################################################
+    #######################################################################
+    #######################################################################
     #######################################################################
 
     conn = sqlite3.connect(os.path.join(dbpath, 'ObjectsProperties.db'))
@@ -214,7 +225,7 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
             FROM
                 object_properties
             WHERE
-                will_split_next and merge_primary_at_next_t=0
+                will_split_next and merge_primary_at_next_t=0  
             GROUP BY
                 t) AS t1
         INNER JOIN 
@@ -266,7 +277,7 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
             FROM
                 object_properties
             WHERE
-                (merge_primary_at_next_t or merge_secondary_at_next_t)
+                (merge_primary_at_next_t or merge_secondary_at_next_t)  
             GROUP BY
                 t) AS t1
         INNER JOIN 
@@ -319,7 +330,7 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
             FROM
                 object_properties
             WHERE
-                (merge_primary_at_next_t)
+                (merge_primary_at_next_t  )
             GROUP BY
                 t) AS t1
         INNER JOIN 
@@ -371,7 +382,7 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
             FROM
                 object_properties
             WHERE
-                (merge_secondary_at_next_t)
+                (merge_secondary_at_next_t  ) 
             GROUP BY
                 t) AS t1
         INNER JOIN 
@@ -421,7 +432,7 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
             FROM
                 object_properties
             WHERE
-                dead_after_t
+                dead_after_t  
             GROUP BY
                 t) AS t1
         INNER JOIN 
@@ -465,7 +476,7 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
             FROM
                 object_properties
             WHERE
-                born_at_t
+                born_at_t  
             GROUP BY
                 t
     """
@@ -579,7 +590,7 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
             FROM
                 object_properties
             WHERE
-                born_at_t
+                born_at_t   
             GROUP BY
                 t
     """
@@ -650,7 +661,7 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
             FROM
                 object_properties
             WHERE
-                intensity_change_next>0 and will_split_next=0 and merge_secondary_at_next_t=0 and merge_primary_at_next_t=0
+                intensity_change_next>0 and will_split_next=0 and merge_secondary_at_next_t=0 and merge_primary_at_next_t=0  
             GROUP BY
                 t) AS t1
         INNER JOIN 
@@ -702,7 +713,7 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
             FROM
                 object_properties
             WHERE
-                merge_primary_at_next_t=0 AND will_split_next=0 AND merge_secondary_at_next_t=0 AND dead_after_t=0 AND intensity_change_next<0
+                merge_primary_at_next_t=0 AND will_split_next=0 AND merge_secondary_at_next_t=0 AND dead_after_t=0 AND intensity_change_next<0  
 
             GROUP BY
                 t) AS t1
@@ -755,7 +766,7 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
             FROM
                 object_properties
             WHERE
-                intensity_change_next>0
+                intensity_change_next>0  
             GROUP BY
                 t) AS t1
         INNER JOIN 
@@ -822,10 +833,28 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
 
     event = 'split'
     query = f"""
-                select t1.t,  t1.splitcount* 1.0 / t2.totalcount as splitFrac
+                select 
+                    t1.t,  
+                    t1.splitcount* 1.0 / t2.totalcount 
+                as 
+                    splitFrac
                 from 
-                 ( select t,count(*) as splitcount from object_properties where will_split_next and merge_primary_at_next_t=0 group by t ) as t1
-                 inner join
+                 ( 
+                    select 
+                        t,
+                        count(*) 
+                    as 
+                        splitcount 
+                    from 
+                        object_properties 
+                    where 
+                        will_split_next and merge_primary_at_next_t=0  
+                    group by 
+                        t 
+                    ) 
+                as 
+                    t1
+                inner join
                  (select t, count(*) as totalcount from object_properties group by t) as t2
                  on t1.t=t2.t
             """
@@ -858,7 +887,7 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
             FROM
                 object_properties
             WHERE
-             merge_primary_at_next_t or merge_secondary_at_next_t 
+             merge_primary_at_next_t or merge_secondary_at_next_t  
             GROUP BY
                 t) AS t1
         INNER JOIN 
@@ -944,7 +973,7 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
     dfs = [splitObj, mergeObj, mergePrimObj, mergeSecObj, deadObj, bornObj,
            totObj, totInt, intDF, peakIntDF, densityDF,
            avgIntensityDF, expDF, expDFnew, intensityIncDF, intensityDecDF, mergeCombObj, avgIntObj, avgSizeObj
-           # ,splitCombObj
+           ,splitCombObj
            ]
     output_file = plotsavepath + "/Size_Distribution_of_Events_and_Expectancy_over_Time.csv"
     merged_df = merge_dataframes_and_save(dfs, output_file)
@@ -954,21 +983,24 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
               'Primary merge Fraction',
               'Secondary Merge Fraction',
               'Death Fraction',
+
               'Birth Count',
               'Total Objects',
               'Total Intensity',
               'Group Intensity',
               'Avg. Peak Intensity',
+
               'Average Density',
               'Average Intensity',
               'Avg. Life Expectancy',
               'Avg. Life Expectancy of New Objects',
               'Fraction of objects with intensity increase',
+
               'Fraction of objects with intensity decrease',
                'Merge Fraction, Overall' ,
               'Average Intensity',
-              'Average Size'
-              # 'Split Fraction, Overall',
+              'Average Size',
+              'Split Fraction, Overall',
               ]
 
     y_axs = ['Fraction of Objects of the Same Group',
@@ -991,8 +1023,8 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
              'Fraction of Objects of the same group',
              'Fraction of All Objects',
              'Average Intensity',
-             'Average Size'
-             # 'Fraction of All Objects'
+             'Average Size',
+             'Fraction of All Objects'
              ]
 
     colors = ['blue', 'purple', 'magenta', 'red']
@@ -1002,19 +1034,19 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
     fig, axes = plt.subplots(ix, jx, figsize=(10 * jx, ix * 10))
     for i in range(ix):
         for j in range(jx):
-            if i > 2 and j > 3:
-                pass
-            else:
-                ax = axes[i, j]
-                if i < 1 and j < 4 and j > 0:
-                    ax.set_ylim(0, 0.3)
-                df = dfs[i * jx + j].drop(columns=['t'])
-                df.rolling(window=21, min_periods=1).mean().plot(ax=ax, color=colors)
-                #                 ax.axvline(x=acp, color='green', linestyle='--', label='apical constriction point')
-                ax.set_title(titles[i * jx + j] + ' (Moving Average)', fontsize=15)
-                ax.set_xlabel('timepoint', fontsize=15)
-                ax.set_ylabel(y_axs[i * jx + j], fontsize=15)
-                ax.legend(fontsize=15)
+            # if i > 2 and j > 3:
+            #     pass
+            # else:
+            ax = axes[i, j]
+            if i < 1 and j < 4 and j > 0:
+                ax.set_ylim(0, 0.3)
+            df = dfs[i * jx + j].drop(columns=['t'])
+            df.rolling(window=21, min_periods=1).mean().plot(ax=ax, color=colors)
+            #                 ax.axvline(x=acp, color='green', linestyle='--', label='apical constriction point')
+            ax.set_title(titles[i * jx + j] + ' (Moving Average)', fontsize=15)
+            ax.set_xlabel('timepoint', fontsize=15)
+            ax.set_ylabel(y_axs[i * jx + j], fontsize=15)
+            ax.legend(fontsize=15)
     plt.tight_layout()
     plt.savefig(plotsavepath + '/Size_Distribution_of_Events_and_Expectancy_over_Time.png')
     plt.close()
@@ -1417,7 +1449,7 @@ def getIntensityChange(dbpath, sT, origImgPath, plotsavepath, t1=None, t2=None):
     #     SumBy = SplitBy + MergeBy + BirthBy + DeathBy + IncBy + DecBy
     # ===========================================================================================================
 
-    SplitBy['CondQ4Val'].rolling(window=21, min_periods=1).mean(figsize=(10, 4)).plot()
+    # SplitBy['CondQ4Val'].rolling(window=21, min_periods=1).mean(figsize=(10, 4)).plot()
 
     dfs = [SplitBy, MergeBy, BirthBy, DeathBy, IncBy, DecBy]
     alldf = pd.concat(
@@ -2858,6 +2890,7 @@ def all_analysis_app(trackedimagepath, segPath, origImgPath, t1=None, t2=None):
     plotsavepath = dbpath + ppath
     if not os.path.isdir(plotsavepath):
         os.makedirs(plotsavepath)
+    getHistogramUno(dbpath, plotsavepath, t1=t1, t2=t2)
     getEventIntensityPlots(plotsavepath, sT, trackedimagepath,origImgPath, t1=t1, t2=t2)
     getIntensityChangeContribution(dbpath,sT, origImgPath, plotsavepath, t1=t1, t2=t2)
     getIntensityChange(dbpath, sT, origImgPath,plotsavepath, t1=t1, t2=t2)

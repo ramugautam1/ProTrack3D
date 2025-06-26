@@ -6,7 +6,7 @@ import nibabel as nib
 import matplotlib.pyplot as plt
 import json
 import sqlite3
-
+from scipy.ndimage import label, center_of_mass
 
 def niftireadUint16(arg):
     return np.asarray(nib.load(arg).dataobj).astype(np.uint32).squeeze()
@@ -33,6 +33,9 @@ def runSizeIntensityAnalysis(dbpath, sT, trackedimagepath, origImgPath):
     Features saved for each object at every timepoint
         t INTEGER,
         id INTEGER,
+        x INTEGER,
+        y INTEGER,
+        z INTEGER,
         size INTEGER,
         intensity BIGINT,
         peak_intensity BIGINT,
@@ -156,6 +159,11 @@ def runSizeIntensityAnalysis(dbpath, sT, trackedimagepath, origImgPath):
         count = count[1:]
         t_id_count_dict = {unique[i]: count[i] for i in range(len(unique))}
         for id_ in all_ids[t]:
+            centroids_xyz = center_of_mass(matrix[:,:,:,t-1]==id_)
+            xc, yc, zc = [round(xyzc) for xyzc in centroids_xyz]
+            xdim, ydim, zdim, tdim = matrix.shape
+
+
             Data[t][id_] = {}
 
             int_1 = int(image[:, :, :, t - 1][matrix[:, :, :, t - 1] == id_].sum())
@@ -165,6 +173,24 @@ def runSizeIntensityAnalysis(dbpath, sT, trackedimagepath, origImgPath):
             sze = int(t_id_count_dict[id_])
             densityDict[(t, id_)] = int_1 / sze
             sizeDict[(t, id_)] = sze
+
+            Data[t][id_]["x"]=xc
+            Data[t][id_]["y"]=yc
+            Data[t][id_]["z"]=zc
+
+            if xc<20 or xc>xdim-20:
+                Data[t][id_]['edge_x'] = True
+            else:
+                Data[t][id_]['edge_x'] = False
+            if yc<20 or yc>ydim-20:
+                Data[t][id_]['edge_y'] = True
+            else:
+                Data[t][id_]['edge_y'] = False
+            if zc < 1 or zc > zdim - 1:
+                Data[t][id_]['edge_z'] = True
+            else:
+                Data[t][id_]['edge_z'] = False
+
             Data[t][id_]['peak_intensity'] = peak_1
             Data[t][id_]['size'] = sze
             Data[t][id_]['intensity'] = int(int_1)
@@ -315,8 +341,14 @@ def runSizeIntensityAnalysis(dbpath, sT, trackedimagepath, origImgPath):
 
     cursor.execute('''CREATE TABLE IF NOT EXISTS object_properties (
                 t INTEGER, 
-                id INTEGER,       
+                id INTEGER,     
+                x INTEGER,
+                y INTEGER,
+                z INTEGER,  
                 size INTEGER, 
+                edge_x BOOL,
+                edge_y BOOL,
+                edge_z BOOL,
                 intensity BIGINT,
                 peak_intensity BIGINT,
                 density FLOAT,           
@@ -350,8 +382,14 @@ def runSizeIntensityAnalysis(dbpath, sT, trackedimagepath, origImgPath):
             cursor.execute('''
                 INSERT into object_properties (
                 t,
-                id,       
+                id,   
+                x,
+                y,
+                z,    
                 size, 
+                edge_x,
+                edge_y,
+                edge_z,
                 intensity, 
                 peak_intensity,
                 density,        
@@ -379,11 +417,17 @@ def runSizeIntensityAnalysis(dbpath, sT, trackedimagepath, origImgPath):
 
                 )
 
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
 
             ''', (t,
                   id_,
+                  int(data['x']),
+                  int(data['y']),
+                  int(data['z']),
                   int(data['size']),
+                  data['edge_x'],
+                  data['edge_y'],
+                  data['edge_z'],
                   int(data['intensity']),
                   int(data['peak_intensity']),
                   float(data['density']),

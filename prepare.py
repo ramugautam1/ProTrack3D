@@ -40,7 +40,7 @@ def prepare(imageName, imageNameO, protein1Name, protein2Name):
     # if not os.path.isdir(originalImageAddress + "3DImage"):
     #     os.makedirs(originalImageAddress + "3DImage")
 
-    dirp1 = originalImageAddress + '3DImage/' + originalImageName[:-4] + '/' + protein1name
+    dirp1 = os.path.join(originalImageAddress + '3DImage/' + originalImageName[:-4], protein1name)
     dirp2 = originalImageAddress + '3DImage/' + originalImageName[:-4] + '/' + protein2name
 
     if not os.path.isdir(dirp1):

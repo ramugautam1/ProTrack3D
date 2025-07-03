@@ -4,17 +4,28 @@
 
 
 Install from GitHub
-* Download code
-
 
 Windows
+
+* Install Git
+[Download git] (https://github.com/git-for-windows/git/releases/download/v2.50.0.windows.2/Git-2.50.0.2-64-bit.exe)
+* Run the executable to install git.
+
+
+* Install Python
+[Download Python] (https://www.python.org/ftp/python/3.8.0/python-3.8.0-amd64.exe)
+* Run the executable to install python
+
 ```bash
+# open command prompt (search: cmd)
 git clone https://github.com/ramugautam1/ProTrack3D.git
 ```
   * First Run 
-    * run ProTrack3D > dist > firstTimeRun.exe
+    * Navigate to ProTrack3D/dist  
+    * run firstTimeRun.exe
   * Otherwise
-    * run ProTrack3D > dist > proTrack3D.exe
+    * Navigate to ProTrack3D/dist  
+    * run proTrack3D.exe
     
 
 ### Linux

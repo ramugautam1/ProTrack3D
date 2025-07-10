@@ -573,6 +573,7 @@ def predict(model,image, startpoint, endpoint, modelCheckpointName, op_folder):
         ########## Uncomment to save a combined image at every timepoint #############################################################################################################################################################
         # nib.save(nib.Nifti1Image(np.uint16(Fullsize), affine=np.eye(4)), addr + 'ZZZcombined_'+str(time+1)+'.nii')
 
+    print('\n\n ')
     # Image = (1 - Image) * 65535
     if not os.path.isdir(segAddr+'CombinedSO'):
         os.makedirs(segAddr+'CombinedSO')
@@ -583,7 +584,7 @@ def predict(model,image, startpoint, endpoint, modelCheckpointName, op_folder):
     if Image.shape[-1] == 1:
         stack_after_BW = Image.astype(bool)
         CC = skimage.measure.label(stack_after_BW, connectivity=2)
-        nib.save(nib.Nifti1Image(np.uint16(CC), affine=np.eye(4)), segAddr + 'COmbinedSO' + '/LabeledSO.nii')
+        nib.save(nib.Nifti1Image(np.uint16(CC), affine=np.eye(4)), segAddr + 'CombinedSO' + '/LabeledSO.nii')
         getSizeHistogram(np.uint16(CC), segAddr + 'CombinedSO' + '/SizeHistogram.png', 1, 1)
 
 
@@ -605,5 +606,5 @@ def predict(model,image, startpoint, endpoint, modelCheckpointName, op_folder):
     #     combo = np.transpose(combo, (2,3,1,0))
     #     print(combo.shape)
     #     tifffile.imwrite(segAddr + 'ImageSegmentationComposite.tif', combo, imagej=True, metadata={'axes':'ZCYX'})
-
+    print('DONE!!!')
     gc.collect()

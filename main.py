@@ -18,6 +18,13 @@ Font_tuple = ("Courier", 45, "bold")
 Option_font_tuple = ("Courier", 20, "bold")
 
 
+# Font definitions
+LARGE_FONT = ("Courier", 24, "bold")
+MEDIUM_FONT = ("Courier", 16, "bold")
+SMALL_FONT = ("Courier", 12)
+BUTTON_FONT = ("System", 12)
+ENTRY_FONT = ("System", 12)
+
 ########################################################################################################################
 ########################################################################################################################
 ########################################################################################################################
@@ -53,15 +60,18 @@ class ToolTip(object):
 def CreateToolTip(widget, text):
     toolTip = ToolTip(widget)
 
-    def enter(event):
-        toolTip.showtip(text)
+    # def enter(event):
+    #     toolTip.showtip(text)
 
-    def leave(event):
-        toolTip.hidetip()
+    # def leave(event):
+    #     toolTip.hidetip()
 
-    widget.bind('<Enter>', enter)
-    widget.bind('<Leave>', leave)
+    # widget.bind('<Enter>', enter)
+    # widget.bind('<Leave>', leave)
 
+    widget.bind('<Enter>', lambda event: toolTip.showtip(text))
+    widget.bind('<Leave>', lambda event: toolTip.hidetip())
+    widget.bind('<Button-1>', lambda event: toolTip.hidetip())
 
 ########################################################################################################################
 ########################################################################################################################
@@ -116,11 +126,11 @@ my_menu.add_command(label='Home', command=lambda: show_frame(homepage))
 my_menu.add_separator()
 my_menu.add_cascade(label='Segmentation', menu=seg_menu)  # , command=lambda: show_frame(seg_page))
 #
-seg_menu.add_command(label='Segmentation Home', font=('System', 15), command=lambda: show_frame(seg_page))
+seg_menu.add_command(label='Segmentation Home', font=('System', 12), command=lambda: show_frame(seg_page))
 seg_menu.add_separator()
-seg_menu.add_command(label='Train', font=('System', 15), command=lambda: show_frame(train_page))
-# seg_menu.add_command(label='Test', command=lambda: show_frame(test_page), font=('System', 15))
-seg_menu.add_command(label='Segment', font=('System', 15), command=lambda: show_frame(predict_page))
+seg_menu.add_command(label='Train', font=('System', 12), command=lambda: show_frame(train_page))
+# seg_menu.add_command(label='Test', command=lambda: show_frame(test_page), font=('System', 12))
+seg_menu.add_command(label='Segment', font=('System', 12), command=lambda: show_frame(predict_page))
 #
 my_menu.add_separator()
 my_menu.add_command(label='Tracking', command=lambda: show_frame(track_page))
@@ -133,68 +143,78 @@ my_menu.add_command(label='Analysis',  command=lambda: show_frame(analysis_page)
 my_menu.add_separator()
 my_menu.add_command(label='Help', command=lambda: show_frame(help_page))
 
-file_menu.add_command(label='New', font=('System', 15))
-file_menu.add_command(label='Open', font=('System', 15))
-file_menu.add_command(label='Save', font=('System', 15))
-file_menu.add_command(label='Save as', font=('System', 15))
+file_menu.add_command(label='New', font=('System', 12))
+file_menu.add_command(label='Open', font=('System', 12))
+file_menu.add_command(label='Save', font=('System', 12))
+file_menu.add_command(label='Save as', font=('System', 12))
 
 # seg_menu.add_command(label='Segmentation',command=lambda: show_frame(seg_page))
 # app_menu.add_command(label='Quit!', command=window.quit, background='blue')
-# app_menu.add_command(label='Home', command=lambda: show_frame(homepage), background='green', font=('System', 15))
+# app_menu.add_command(label='Home', command=lambda: show_frame(homepage), background='green', font=('System', 12))
 
-ana_menu.add_command(label='Cross-Correlation', font=('System', 15), command=lambda: show_frame(cross_corr_page))
-ana_menu.add_command(label='Other Analysis', font=('System', 15))
-ana_menu.add_command(label='Analysis III', font=('System', 15))
+ana_menu.add_command(label='Cross-Correlation', font=('System', 12), command=lambda: show_frame(cross_corr_page))
+ana_menu.add_command(label='Other Analysis', font=('System', 12))
+ana_menu.add_command(label='Analysis III', font=('System', 12))
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Homepage
-# homepage_greet = tk.Label(homepage, text='WELCOME TO ProTrack3D')
-homepage_greet = tk.Label(homepage, text=' ProTrack3D')
+# Get the screen width and height to calculate relative positions
+screen_width = homepage.winfo_screenwidth()
+screen_height = homepage.winfo_screenheight()
+
+# Configure the homepage to expand with window resizing
+homepage.pack_propagate(False)  # Prevent the frame from shrinking to fit contents
+homepage.grid_propagate(False)
+
+# Center the label
+homepage_greet = tk.Label(homepage, text='ProTrack3D')
 homepage_greet.configure(font=Font_tuple)
-homepage_greet.place(x=50, y=100)
-buttonH1 = tk.Button(homepage, text="Segmentation", width=15, command=lambda: show_frame(seg_page),
-                     font=Option_font_tuple)
+homepage_greet.place(relx=0.5, rely=0.1, anchor='center')
 
-buttonH2 = tk.Button(homepage, text="Tracking", width=15,
-                     command=lambda: show_frame(track_page), font=Option_font_tuple)
-buttonH3 = tk.Button(homepage, width=15, text="Family Tree", command=lambda: show_frame(fam_page),
-                     font=Option_font_tuple)
-buttonH4 = tk.Button(homepage, width=15, text="Analysis", command=lambda: show_frame(analysis_page),
-                     font=Option_font_tuple)
-# buttonH5 = tk.Button(homepage, width=15, text = "Convert to .nii", \
-# command=lambda : show_frame(convert_page), font=Option_font_tuple)
-buttonH1.place(x=150, y=200)
-buttonH2.place(x=150, y=300)
-buttonH3.place(x=150, y=400)
-buttonH4.place(x=150, y=500)
-# buttonH5.place(x=200, y=600)
+# Create buttons with consistent styling
+buttons = [
+    ("Segmentation", lambda: show_frame(seg_page),
+     "Click here for Segmentation!\nYou can proceed by training a model with your ground truth or \nyou can use pre-trained models for segmentation."),
+    ("Tracking", lambda: show_frame(track_page),
+     "Click here to track objects in segmented images!"),
+    ("Family Tree", lambda: show_frame(fam_page),
+     "Click here to draw Family Trees using Tracking results!"),
+    ("Analysis", lambda: show_frame(analysis_page),
+     "Click here for Analysis Menu!")
+]
 
-CreateToolTip(buttonH2, text='Click here to track objects in segmented images.!')
-CreateToolTip(buttonH1,
-              text='Click here for Segmentation!\nYou can proceed by training a model with your ground truth or '
-                   '\nyou can use pre-trained models for segmentation.')
-CreateToolTip(buttonH3, text='Click here to draw Family Trees using Tracking results!')
-CreateToolTip(buttonH4, text='Click here for Analysis Menu!')
-# CreateToolTip(buttonH5, text='Clich here to convert files to .nii format')
+# Place buttons vertically centered with equal spacing
+for i, (text, command, tooltip) in enumerate(buttons):
+    btn = tk.Button(homepage, text=text, width=20, command=command, font=Option_font_tuple)
+    btn.place(relx=0.5, rely=0.3 + i*0.15, anchor='center')
+    CreateToolTip(btn, text=tooltip)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Segmentation page
 
+# Centered label
 seg_page_greet = tk.Label(seg_page, text='Segmentation', font=('Courier', 40, 'bold'))
-seg_page_greet.place(x=50, y=120)
+seg_page_greet.place(relx=0.5, rely=0.2, anchor='center')
 
-buttonS1 = tk.Button(seg_page, text="Back", command=lambda: show_frame(homepage), font=('System', 15))
-buttonS2 = tk.Button(seg_page, width=15, text="Train", command=lambda: show_frame(train_page), font=('System', 16))
-buttonS3 = tk.Button(seg_page, width=15, text="Segment", command=lambda: show_frame(predict_page), font=('System', 16))
-buttonS4 = tk.Button(seg_page, width=15, text="Test", command=lambda: show_frame(track_page), font=('System', 16))
+# Back button (top-left corner)
+buttonS1 = tk.Button(seg_page, text="Back", command=lambda: show_frame(homepage), font=('System', 12))
+buttonS1.place(relx=0.05, rely=0.05, anchor='nw')  # 5% from left, 5% from top
 
-buttonS1.place(x=50, y=50)
-buttonS2.place(x=50, y=200)
-buttonS3.place(x=50, y=250)
-# buttonS4.place(x=50, y=300)
-CreateToolTip(buttonS2, text='Click to use your own data with ground truth to train a segmentation model.\n'
-                             'If you want to use an already-trained model, please select Segment.')
-CreateToolTip(buttonS3, text='Select to run segmentation on your data.')
+# Main action buttons centered vertically
+buttons = [
+    ("Train", lambda: show_frame(train_page),
+     'Click to use your own data with ground truth to train a segmentation model.\n'
+     'If you want to use an already-trained model, please select Segment.'),
+    ("Segment", lambda: show_frame(predict_page),
+     'Select to run segmentation on your data.'),
+    # ("Test", lambda: show_frame(track_page), "")
+]
+
+for i, (text, command, tooltip) in enumerate(buttons):
+    btn = tk.Button(seg_page, text=text, width=15, command=command, font=('System', 16))
+    btn.place(relx=0.5, rely=0.4 + i*0.15, anchor='center')
+    CreateToolTip(btn, text=tooltip)
+
 ############
 predictOutputPath = tk.StringVar()
 epochs = 0
@@ -284,80 +304,106 @@ def getAndSetPreTrainedModelForTL():
 
 
 ##########################
-train_page_greet = tk.Label(train_page, text='Training', font=('Courier', 40, 'bold'))
-train_page_greet.place(x=50, y=120)
 
-numEpochs = tk.IntVar()
-label2 = tk.Label(train_page, text="No. of Epochs", font=('System', 15))
-entry1 = tk.Entry(train_page, textvariable=numEpochs, font=('System', 15), width=14)
-entry1.insert(0, '10')
-button1 = tk.Button(train_page, text="Back", command=lambda: show_frame(seg_page), font=('System', 15))
-
-button2 = tk.Button(train_page, text="Select Folder with Training Data", font=('System', 15),
-                    command=lambda: browseGT())
-entry2 = ttk.Entry(train_page, textvariable=gt_path, width=25, font=('System', 15))
-
-button3 = tk.Button(train_page, text="Select Folder to Save Training Output", command=lambda: trainOutputLocation(),
-                    font=('System', 15))
-entry3 = ttk.Entry(train_page, textvariable=train_output_location, width=25, font=('System', 15))
-#
 modelNameList = ['FC-DenseNet', 'MobileUNet3D' ] # 'AdapNet3D', 'BiSeNet3D', 'DDSC3D', 'DeepLabp3D', 'DeepLabV3_plus3D', 'DenseASPP3D', 'Encoder_Decoder3D', 'FCN3D', 'FRRN3D', 'GCN3D', 'ICNet3D', 'PSPNet3D', 'RefineNet3D', 'resnet_utils3D', 'resnet_v23D']
+numEpochs = tk.IntVar()
 
-trainModelName.set(modelNameList[0])
-modelMenu = tk.OptionMenu(train_page, trainModelName, *modelNameList, command=setTrainModelName)
-modelMenu.config(font=('System', 15))
+trainModelName.set('FC-DenseNet')
 
-c1 = tk.Checkbutton(train_page, text='Continue Training',variable=contTrain, onvalue=1, offvalue=0, command=setWhetherContinueTraining, font=('System', 15))
-c2 = tk.Checkbutton(train_page, text='Transfer Learning',variable=transferLearn, onvalue=1, offvalue=0, command=setWhetherTransferLearning, font=('System', 15))
-buttonTxx4 = tk.Button(train_page, text="Select Pre-Trained Model for Transfer Learning", font=('System', 15), command=lambda: getAndSetPreTrainedModelForTL())
-entryTxx4 = ttk.Entry(train_page, textvariable=transferModel, width=25, font=('System', 15))
-# buttonVal = tk.Button(train_page,text = "Select Folder with Validation Data", \
-# font=('System',15), command=lambda : browse_validation_data())
-# entryVal = tk.Entry(train_page, textvariable=val_path, width=25, font=('System',15))
-#
-button4 = tk.Button(train_page, width=10, text="Check",
-                    command=lambda: print(
-                        trainModelName.get() + '\n' + str(
-                            numEpochs.get()) + '\n' + gt_path.get() + '\n' + train_output_location.get()),
-                    font=('System', 15))
-button5 = tk.Button(train_page, width=10, text="RUN", background="blue", foreground="white",
-                    command=lambda: callTrain(trainModelName.get(), numEpochs.get(), gt_path.get(),
-                                              train_output_location.get(), transferModel.get(), contTrain.get(), transferLearn.get()),
-                    font=('System', 15))
-## dropdown
-label1 = tk.Label(train_page, text='Model', font=('System', 15))
-label1.place(x=50, y=200)
+train_page_greet = tk.Label(train_page, text='Training', font=('Courier', 40, 'bold'))
+train_page_greet.place(relx=0.5, rely=0.1, anchor='center')
 
-modelMenu.place(x=400, y=200)
-##
-button1.place(x=50, y=50)
-label2.place(x=50, y=250)
-entry1.place(x=400, y=250)
-button2.place(x=50, y=300)
-# button3.place(x=50, y=400)
-# buttonVal.place(x=50, y=350)
-# entryVal.place(x=500, y=350)
+# Back button (top-left)
+button1 = tk.Button(train_page, text="Back", command=lambda: show_frame(seg_page), font=('System', 12))
+button1.place(relx=0.05, rely=0.05, anchor='nw')
 
-button4.place(x=50, y=650)
-button5.place(x=50, y=500)
+# Main form container
+form_frame = tk.Frame(train_page)
+form_frame.place(relx=0.5, rely=0.45, anchor='center')
 
-entry2.place(x=400, y=300)
+# Model selection
+tk.Label(form_frame, text="Model:", font=('System', 12)).grid(row=0, column=0, sticky='w', pady=5, padx=5)
+modelMenu = tk.OptionMenu(form_frame, trainModelName, *modelNameList, command=setTrainModelName)
+modelMenu.config(font=('System', 12), width=20)
+modelMenu.grid(row=0, column=1, pady=5, sticky='w')
 
-c1.place(x=50, y=350)
-c2.place(x=50, y=400)
-buttonTxx4.place(x=50, y=450)
-entryTxx4.place(x=400,y=450)
-# entry3.place(x=500, y=400)
+# Epochs
+tk.Label(form_frame, text="No. of Epochs:", font=('System', 12)).grid(row=1, column=0, sticky='w', pady=5, padx=5)
+entry1 = tk.Entry(form_frame, textvariable=numEpochs, font=('System', 12), width=15)
+entry1.insert(0, '10')
+entry1.grid(row=1, column=1, pady=5, sticky='w')
 
-CreateToolTip(train_page_greet, text='You can use your own data with ground truth to train a segmentation model.\n'
-                                     'If you want to use an already-trained model, please go back and select Predict.')
+# Training data
+button2 = tk.Button(form_frame, text="Training Data Folder", font=('System', 12), command=browseGT)
+button2.grid(row=2, column=0, pady=5, padx=5, sticky='w')
+entry2 = ttk.Entry(form_frame, textvariable=gt_path, width=25, font=('System', 12))
+entry2.grid(row=2, column=1, pady=5, sticky='w')
 
-CreateToolTip(label1, text='Select the Machine Learning model to use. Choices will be shown in the dropdown menu.')
-CreateToolTip(label2, text='How many System do you want to train the model on training data? Default: 100')
+# Output location
+button3 = tk.Button(form_frame, text="Output Folder", font=('System', 12), command=trainOutputLocation)
+button3.grid(row=3, column=0, pady=5, padx=5, sticky='w')
+entry3 = ttk.Entry(form_frame, textvariable=train_output_location, width=25, font=('System', 12))
+entry3.grid(row=3, column=1, pady=5, sticky='w')
+
+# cboxes
+checkbox_frame1 = tk.Frame(form_frame)
+checkbox_frame1.grid(row=4, column=0, columnspan=3, pady=5, sticky='w')
+
+tk.Label(checkbox_frame1, text='Continue Training', font=('System', 12)).pack(side='left', padx=(0, 10))
+
+c1 = tk.Checkbutton(checkbox_frame1,
+                   variable=contTrain,
+                   command=setWhetherContinueTraining,
+                   indicatoron=True,  # Keep as checkbox style
+                   width=2,          # Makes the box wider
+                   height=2,         # Makes the box taller
+                   borderwidth=2,    # Thicker border
+                   relief='ridge')   # More visible border
+c1.pack(side='right')
+
+checkbox_frame2 = tk.Frame(form_frame)
+checkbox_frame2.grid(row=5, column=0, columnspan=3, pady=5, sticky='w')
+
+tk.Label(checkbox_frame2, text='Transfer Learning', font=('System', 12)).pack(side='left', padx=(0, 10))
+
+c2 = tk.Checkbutton(checkbox_frame2,
+                   variable=transferLearn,
+                   command=setWhetherTransferLearning,
+                   indicatoron=True,
+                   width=2,
+                   height=2,
+                   borderwidth=2,
+                   relief='ridge')
+c2.pack(side='right')
+
+# Transfer learning model
+buttonTxx4 = tk.Button(form_frame, text="Pre-Trained Model", font=('System', 12),
+                      command=getAndSetPreTrainedModelForTL)
+buttonTxx4.grid(row=6, column=0, pady=5, padx=5, sticky='w')
+entryTxx4 = ttk.Entry(form_frame, textvariable=transferModel, width=25, font=('System', 12))
+entryTxx4.grid(row=6, column=1, pady=5, sticky='w')
+
+# Action buttons
+button_frame = tk.Frame(train_page)
+button_frame.place(relx=0.5, rely=0.85, anchor='center')
+
+button4 = tk.Button(button_frame, text="Check", width=10, font=('System', 12),
+                  command=lambda: print(trainModelName.get() + '\n' + str(numEpochs.get()) + '\n' + gt_path.get() + '\n' + train_output_location.get()))
+button4.pack(side='left', padx=10)
+
+button5 = tk.Button(button_frame, text="RUN", width=10, background="blue", foreground="white", font=('System', 12),
+                  command=lambda: callTrain(trainModelName.get(), numEpochs.get(), gt_path.get(),
+                                          train_output_location.get(), transferModel.get(),
+                                          contTrain.get(), transferLearn.get()))
+button5.pack(side='left', padx=10)
+
+# Tooltips (maintained from original)
+CreateToolTip(train_page_greet, text='You can use your own data with ground truth to train a segmentation model.\nIf you want to use an already-trained model, please go back and select Predict.')
 CreateToolTip(button2, text='Select the folder that contains the training data.')
 CreateToolTip(button3, text='Select the folder to save the outputs of training.')
 CreateToolTip(button4, text='Click to check the console if everything you selected is correct.')
 CreateToolTip(button5, text='Start training the selected model with your training data!')
+
 
 # button6 = tk.Button(train_page, text='printModelName', command=lambda: print(modelName.get()))
 # button6.place(x=400, y= 800)
@@ -365,7 +411,7 @@ CreateToolTip(button5, text='Start training the selected model with your trainin
 trainedModelPath = tk.StringVar()
 trainedModel = tk.StringVar()
 predict_output_path = tk.StringVar()
-
+predictModelName.set('FC-DenseNet')
 
 def getTrainedModel():
     trainedModelPath.set(fd.askdirectory(initialdir=os.getcwd() + '/checkpoints/' + predictModelName.get()))
@@ -376,76 +422,76 @@ def callPredict(model, image, startTime, endTime, trModelPath, predictOPpath):
     segmentation_predict.predict(model=model, image=image, startpoint=int(startTime), endpoint=int(endTime),
                                  modelCheckpointName=trModelPath, op_folder=predictOPpath)
 
-
-predict_page_greet = tk.Label(predict_page, text='Inference', font=('Courier', 40, 'bold'))
-predict_page_greet.place(x=50, y=120)
-
-## dropdown
-label1 = tk.Label(predict_page, text='Model', font=('System', 15))
-
-modelNameList = ['FC-DenseNet', 'MobileUNet3D-Skip', 'ResNet-101', 'Encoder_Decoder3D', 'Encoder_Decoder3D_contrib',
-                 'DeepLabV33D', 'FRRN-A', 'FRRN-B', 'FCN8', 'GCN-Res50', 'GCN-Res101', 'GCN-Res152', 'AdapNet3D',
-                 'ICNet-Res50', 'ICNet-Res101', 'ICNet-Res152', 'PSPNet-Res50', 'PSPNet-Res101', 'PSPNet-Res152']
-
-predictModelName.set('FC-DenseNet')
-modelMenu = tk.OptionMenu(predict_page, predictModelName, *modelNameList, command=setPredictModelName)
-modelMenu.config(font=('System', 15))
-
-##
-
-buttonPr1 = tk.Button(predict_page, text="Back", command=lambda: show_frame(seg_page), font=('System', 15))
-
-buttonPr2 = tk.Button(predict_page, text="Select Image to Segment", command=lambda: browseImage(), font=('System', 15))
-entryPr3 = tk.Entry(predict_page, textvariable=imageName, font=('System', 15))
-buttonPr3 = tk.Button(predict_page, text="Select Folder to Save Segmentation Output",
-                      command=lambda: predictOutputLocation(),
-                      font=('System', 15))
-entryPr4 = tk.Entry(predict_page, textvariable=predictOutputPath, font=('System', 15))
 startT = tk.StringVar()
 endT = tk.StringVar()
-label2 = tk.Label(predict_page, text="Start Time", font=('System', 15))
-entryPr1 = tk.Entry(predict_page, textvariable=startT, font=('System', 15), width=10)
+
+
+predict_page_greet = tk.Label(predict_page, text='Inference', font=('Courier', 40, 'bold'))
+predict_page_greet.place(relx=0.5, rely=0.1, anchor='center')
+
+# Back button
+buttonPr1 = tk.Button(predict_page, text="Back", command=lambda: show_frame(seg_page), font=('System', 12))
+buttonPr1.place(relx=0.05, rely=0.05, anchor='nw')
+
+# Main form container
+form_frame = tk.Frame(predict_page)
+form_frame.place(relx=0.5, rely=0.45, anchor='center')
+
+# Model selection
+tk.Label(form_frame, text="Model  ", font=('System', 12)).grid(row=0, column=0, sticky='w', pady=5, padx=5)
+modelMenu = tk.OptionMenu(form_frame, predictModelName, *modelNameList, command=setPredictModelName)
+modelMenu.config(font=('System', 12), width=20)
+modelMenu.grid(row=0, column=1, pady=5, sticky='w')
+
+# Time range
+tk.Label(form_frame, text="Start Time  ", font=('System', 12)).grid(row=1, column=0, sticky='w', pady=5, padx=5)
+entryPr1 = tk.Entry(form_frame, textvariable=startT, font=('System', 12), width=10)
 entryPr1.insert(0, '1')
-label3 = tk.Label(predict_page, text='End Time', font=('System', 15))
-entryPr2 = tk.Entry(predict_page, textvariable=endT, font=('System', 15), width=10)
+entryPr1.grid(row=1, column=1, pady=5, sticky='w')
+
+tk.Label(form_frame, text="End Time  ", font=('System', 12)).grid(row=2, column=0, sticky='w', pady=5, padx=5)
+entryPr2 = tk.Entry(form_frame, textvariable=endT, font=('System', 12), width=10)
 entryPr2.insert(0, '1')
+entryPr2.grid(row=2, column=1, pady=5, sticky='w')
 
-buttonPr4 = tk.Button(predict_page, text="Select Folder with Trained Model", font=('System', 15),
-                      command=lambda: getTrainedModel())
-entryPr5 = tk.Entry(predict_page, textvariable=trainedModel, font=('System', 15))
+# Image selection
+buttonPr2 = tk.Button(form_frame, text="Input Image", font=('System', 12), command=browseImage)
+buttonPr2.grid(row=3, column=0, pady=5, padx=5, sticky='w')
+entryPr3 = tk.Entry(form_frame, textvariable=imageName, font=('System', 12))
+entryPr3.grid(row=3, column=1, pady=5, sticky='w')
 
-buttonPr5 = tk.Button(predict_page, width=10, text="Check",
-                      command=lambda: print(predictModelName.get(), imageName.get(), startT.get(),
-                                            endT.get(), predictOutputPath.get()), font=('System', 15))
-buttonPr6 = tk.Button(predict_page, width=10, text="RUN", background="blue", foreground="white",
-                      command=lambda: callPredict(predictModelName.get(), imageName.get(), startT.get(), endT.get(),
-                                                  trainedModel.get(), predictOutputPath.get()), font=('System', 15))
+# Output location
+buttonPr3 = tk.Button(form_frame, text="Output Folder", font=('System', 12), command=predictOutputLocation)
+buttonPr3.grid(row=4, column=0, pady=5, padx=5, sticky='w')
+entryPr4 = tk.Entry(form_frame, textvariable=predictOutputPath, font=('System', 12))
+entryPr4.grid(row=4, column=1, pady=5, sticky='w')
 
-buttonPr1.place(x=50, y=50)
+# Model path
+buttonPr4 = tk.Button(form_frame, text="Trained Model", font=('System', 12), command=getTrainedModel)
+buttonPr4.grid(row=5, column=0, pady=5, padx=5, sticky='e')
+entryPr5 = tk.Entry(form_frame, textvariable=trainedModel, font=('System', 12))
+entryPr5.grid(row=5, column=1, pady=5, sticky='w')
 
-label1.place(x=50, y=200);
-modelMenu.place(x=420, y=200)
-label2.place(x=50, y=250);
-entryPr1.place(x=420, y=250)
-label3.place(x=50, y=300);
-entryPr2.place(x=420, y=300)
-buttonPr2.place(x=50, y=350);
-entryPr3.place(x=420, y=350)
-buttonPr4.place(x=50, y=450);
-entryPr5.place(x=420, y=450)
+# Action buttons
+button_frame = tk.Frame(predict_page)
+button_frame.place(relx=0.5, rely=0.85, anchor='center')
 
-buttonPr3.place(x=50, y=400);
-entryPr4.place(x=420, y=400)
+buttonPr5 = tk.Button(button_frame, text="Check", width=10, font=('System', 12),
+                    command=lambda: print(predictModelName.get(), imageName.get(),
+                                        startT.get(), endT.get(), predictOutputPath.get()))
+buttonPr5.pack(side='left', padx=10)
 
-buttonPr5.place(x=50, y=600)
-buttonPr6.place(x=50, y=550)
+buttonPr6 = tk.Button(button_frame, text="RUN", width=10, background="blue", foreground="white", font=('System', 12),
+                    command=lambda: callPredict(predictModelName.get(), imageName.get(),
+                                              startT.get(), endT.get(), trainedModel.get(),
+                                              predictOutputPath.get()))
+buttonPr6.pack(side='left', padx=10)
 
-CreateToolTip(label2, text='SEnter the time frame to start segmentation. Default: 1')
-CreateToolTip(label3, text='Enter the time frame to stop segmentation. Default: 41')
+# Tooltips (maintained from original)
 CreateToolTip(buttonPr2, text='Select the Image you want to run segmentation on.')
 CreateToolTip(buttonPr3, text='Select the folder to save the outputs of segmentation.')
 CreateToolTip(buttonPr5, text='Click to check the console if everything you selected is correct.')
-CreateToolTip(buttonPr6, text='Start segmentation of your image.!')
+CreateToolTip(buttonPr6, text='Start segmentation of your image!')
 
 ################ TRACKING ###########################################################################################
 
@@ -478,76 +524,82 @@ def browseImageTr():
                                                                        ("TIFF Files", "*.tiff"),
                                                                        ("NIFTI Files", "*.nii")]))
 
-
-# def callTracking():
-#     tracking()
-
-
+# Title
 track_page_greet = tk.Label(track_page, text='Tracking', font=('Courier', 40, 'bold'))
-track_page_greet.place(x=50, y=120)
+track_page_greet.place(relx=0.5, rely=0.1, anchor='center')
 
-buttonTr1 = tk.Button(track_page, text="Back", command=lambda: show_frame(homepage), font=('System', 15))
+# Back button
+buttonTr1 = tk.Button(track_page, text="Back", command=lambda: show_frame(homepage), font=('System', 12))
+buttonTr1.place(relx=0.05, rely=0.05, anchor='nw')
 
-buttonTr2 = tk.Button(track_page, text="Select Original Images", command=lambda: browseImageTr(), font=('System', 15))
-buttonTr3 = tk.Button(track_page, text="Select Folder with Segmentation Results", command=lambda: segOPfolder(),
-                      font=('System', 15))
-buttonTr4 = tk.Button(track_page, text="Select Folder to Save Tracking Results", command=lambda: trackOPfolder(),
-                      font=('System', 15))
-buttonTr5 = tk.Button(track_page, width=10, text="Check", font=('System', 15),
-                      command=lambda: print("Check check check"))
-buttonTr6 = tk.Button(track_page, width=10, text="RUN", font=('System', 15), background="blue", foreground="white",
-                      command=lambda: runTracking(imageName=imgname.get(),
-                                                  segmentationOPFolder=segloc.get(),
-                                                  # trackingOPFolder=trackloc.get(),
-                                                  startTime=int(strT.get()),
-                                                  endTime=int(enT.get()), trackbackTime=int(trbT.get()),
-                                                  min_obj_size=int(ost.get()),
-                                                  protein1Name=p1n.get(),
-                                                  protein2Name=p2n.get()))
+# Main form frame
+form_frame = tk.Frame(track_page)
+form_frame.place(relx=0.5, rely=0.45, anchor='center')
 
-labelTr1 = tk.Label(track_page, text="Start Time", font=('System', 15))
-labelTr2 = tk.Label(track_page, text="Total Frames to Track", font=('System', 15))
-labelTr3 = tk.Label(track_page, text="Min Size Threshold", font=('System', 15))
-labelTr4 = tk.Label(track_page, text="Trackback Time", font=('System', 15))
-# labelTr5 = tk.Label(track_page, text="Protein 1 Name", font=('System',15,'bold'))
-# labelTr6 = tk.Label(track_page, text="Protein 2 Name", font=('System',15,'bold'))
+# Row 0: Original Images
+buttonTr2 = tk.Button(form_frame, text="Select Original Images", font=('System', 12), command=browseImageTr)
+buttonTr2.grid(row=0, column=0, padx=5, pady=5, sticky='w')
 
-entryTr1 = ttk.Entry(track_page, textvariable=imgname, font=('System', 15))
-entryTr2 = ttk.Entry(track_page, textvariable=segloc, font=('System', 15))
-entryTr3 = ttk.Entry(track_page, textvariable=trackloc, font=('System', 15))
+entryTr1 = ttk.Entry(form_frame, textvariable=imgname, font=('System', 12))
+entryTr1.grid(row=0, column=1, padx=5, pady=5, sticky='w')
+# Row 1: Segmentation Results
+buttonTr3 = tk.Button(form_frame, text="Select Folder with Segmentation Results", font=('System', 12), command=segOPfolder)
+buttonTr3.grid(row=1, column=0, padx=5, pady=5, sticky='w')
 
-entryTr4 = ttk.Entry(track_page, textvariable=strT, font=('System', 15))
+entryTr2 = ttk.Entry(form_frame, textvariable=segloc, font=('System', 12))
+entryTr2.grid(row=1, column=1, padx=5, pady=5, sticky='w')
+# Row 2: Tracking Output Folder
+buttonTr4 = tk.Button(form_frame, text="Select Folder to Save Tracking Results", font=('System', 12), command=trackOPfolder)
+buttonTr4.grid(
+    row=2, column=0, padx=5, pady=5, sticky='w')
+entryTr3 = ttk.Entry(form_frame, textvariable=trackloc, font=('System', 12))
+entryTr3.grid(row=2, column=1, padx=5, pady=5, sticky='w')
+# Row 3: Start Time
+labelTr1 = tk.Label(form_frame, text="Start Time", font=('System', 12))
+labelTr1.grid(row=3, column=0, padx=5, pady=5, sticky='w')
+entryTr4 = ttk.Entry(form_frame, textvariable=strT, font=('System', 12), width=10)
 entryTr4.insert(0, '1')
-entryTr5 = ttk.Entry(track_page, textvariable=enT, font=('System', 15))
+entryTr4.grid(row=3, column=1, padx=5, pady=5, sticky='w')
+# Row 4: End Time
+labelTr2 = tk.Label(form_frame, text="Total Frames to Track", font=('System', 12))
+labelTr2.grid(row=4, column=0, padx=5, pady=5, sticky='w')
+entryTr5 = ttk.Entry(form_frame, textvariable=enT, font=('System', 12), width=10)
 entryTr5.insert(0, '41')
-entryTr6 = ttk.Entry(track_page, textvariable=trbT, font=('System', 15))
+entryTr5.grid(row=4, column=1, padx=5, pady=5, sticky='w')
+# Row 5: Trackback Time
+labelTr3 = tk.Label(form_frame, text="Trackback Time", font=('System', 12))
+labelTr3.grid(row=5, column=0, padx=5, pady=5, sticky='w')
+entryTr6 = ttk.Entry(form_frame, textvariable=trbT, font=('System', 12), width=10)
 entryTr6.insert(0, '2')
-entryTr7 = ttk.Entry(track_page, textvariable=ost, font=('System', 15))
+entryTr6.grid(row=5, column=1, padx=5, pady=5, sticky='w')
+# Row 6: Min Object Size
+labelTr4 = tk.Label(form_frame, text="Min Size Threshold", font=('System', 12))
+labelTr4.grid(row=6, column=0, padx=5, pady=5, sticky='w')
+entryTr7 = ttk.Entry(form_frame, textvariable=ost, font=('System', 12), width=10)
 entryTr7.insert(0, '6')
-# entryTr8 = ttk.Entry(track_page, textvariable=p1n, font=('System',15,'bold'))
-# entryTr9 = ttk.Entry(track_page, textvariable=p2n, font=('System',15,'bold'))
+entryTr7.grid(row=6, column=1, padx=5, pady=5, sticky='w')
+# Bottom Button Frame
+button_frame = tk.Frame(track_page)
+button_frame.place(relx=0.5, rely=0.85, anchor='center')
 
-buttonTr1.place(x=50, y=50)
-buttonTr2.place(x=50, y=200);
-entryTr1.place(x=400, y=200, width=300)
-buttonTr3.place(x=50, y=250);
-entryTr2.place(x=400, y=250, width=300)
-# buttonTr4.place(x=50, y=300);
-# entryTr3.place(x=500, y=300, width=400)
+buttonTr5 = tk.Button(button_frame, width=10, text="Check", font=('System', 12),
+                      command=lambda: print("Check check check"))
+buttonTr5.pack(side='left', padx=10)
 
-# labelTr1.place(x=50, y=350);
-# entryTr4.place(x=300, y=350, width=100)
-labelTr2.place(x=50, y=400);
-entryTr5.place(x=300, y=400, width=100)
-# labelTr3.place(x=50, y=450);
-# entryTr7.place(x=300, y=450, width=100)
-labelTr4.place(x=50, y=450);
-entryTr6.place(x=300, y=450, width=100)
-# labelTr5.place(x=50, y=550); entryTr8.place(x=400, y=550, width=100)
-# labelTr6.place(x=50, y=600); entryTr9.place(x=400, y=600, width=100)
+buttonTr6 = tk.Button(button_frame, width=10, text="RUN", font=('System', 12),
+                      background="blue", foreground="white",
+                      command=lambda: runTracking(
+                          imageName=imgname.get(),
+                          segmentationOPFolder=segloc.get(),
+                          startTime=int(strT.get()),
+                          endTime=int(enT.get()),
+                          trackbackTime=int(trbT.get()),
+                          min_obj_size=int(ost.get()),
+                          protein1Name=p1n.get(),
+                          protein2Name=p2n.get()
+                      ))
+buttonTr6.pack(side='left', padx=10)
 
-buttonTr5.place(x=50, y=600, width=100)
-buttonTr6.place(x=50, y=500, width=100)
 
 CreateToolTip(buttonTr2, text='Select the image you want to track objects from.')
 CreateToolTip(buttonTr3, text='Select the folder that contains the output of segmentation process.')
@@ -600,53 +652,72 @@ def selectFtOutputFolder():
 # def generateFamilyTree():
 #     print('Generating Family Tree for your object...')
 
-
+# Page title
 fam_page_greet = tk.Label(fam_page, text='Family Tree', font=('Courier', 40, 'bold'))
-fam_page_greet.place(x=50, y=120)
+fam_page_greet.place(relx=0.5, rely=0.1, anchor='center')
 
-buttonFt1 = tk.Button(fam_page, text="Back", command=lambda: show_frame(homepage), font=('System', 15))
+# Back button
+buttonFt1 = tk.Button(fam_page, text="Back", command=lambda: show_frame(homepage), font=('System', 12))
+buttonFt1.place(relx=0.05, rely=0.05, anchor='nw')
 
-# buttonFt2 = tk.Button(fam_page, text="Select Tracking Results", command=lambda: selectExcelFile(), font=('System', 15))
-buttonFt2 = tk.Button(fam_page, text="Select Tracking Results", command=lambda: selectCsvFile(), font=('System', 15))
-entryFt2 = tk.Entry(fam_page, textvariable=excelFile, font=('System', 15))
-buttonFt3 = tk.Button(fam_page, text="Select Folder to Save Family Trees", command=lambda: selectFtOutputFolder(),
-                      font=('System', 15))
-entryFt3 = tk.Entry(fam_page, textvariable=ftOpFolder, font=('System', 15))
-buttonFt4 = tk.Button(fam_page, text='Branch Length Threshold', font=('System', 15))
-entryFt4 = tk.Entry(fam_page, textvariable=branchMinLen, font=('System', 15))
-entryFt4.insert(1, '1')
+# Form Frame
+form_frame = tk.Frame(fam_page)
+form_frame.place(relx=0.5, rely=0.45, anchor='center')
 
+# Row 0: Select Tracking Results
+buttonFt2 = tk.Button(form_frame, text="Select Tracking Results", font=('System', 12), command=selectCsvFile)
+buttonFt2.grid(row=0, column=0, padx=5, pady=5, sticky='w')
+entryFt2 = tk.Entry(form_frame, textvariable=excelFile, font=('System', 12), width=20)
+entryFt2.grid(row=0, column=1, padx=5, pady=5, sticky='w')
 
-buttonFt8 = tk.Button(fam_page, text='Enter Object ID', font=('System', 15))
-entryFt5 = tk.Entry(fam_page, textvariable=objId, font=('System', 15))
+# Row 1: Select Output Folder
+buttonFt3 = tk.Button(form_frame, text="Folder to Save", font=('System', 12), command=selectFtOutputFolder)
+buttonFt3.grid(row=1, column=0, padx=5, pady=5, sticky='w')
+entryFt3 = tk.Entry(form_frame, textvariable=ftOpFolder, font=('System', 12), width=20)
+entryFt3.grid(row=1, column=1, padx=5, pady=5, sticky='w')
 
-buttonFt6 = tk.Button(fam_page, text="Generate Family Tree for Entered ID(s)", font=('System', 15),
-                      command=lambda: generateFamilyTree(excelFile=excelFile.get(), ftFolder=ftOpFolder.get(), tidlist=objId.get()),
-                      background='blue', foreground='white')
-buttonFt7 = tk.Button(fam_page, text="Generate  Family Trees for All Target IDs",
-                      command=lambda: generateFamilyTrees(excelFile=excelFile.get(), ftFolder=ftOpFolder.get()),
-                      font=('System', 15), background="navy", foreground="white")
+# Row 2: Branch Length Threshold
+buttonFt4 = tk.Button(form_frame, text='Branch Length Threshold', font=('System', 12))
+buttonFt4.grid(row=2, column=0, padx=5, pady=5, sticky='w')
+entryFt4 = tk.Entry(form_frame, textvariable=branchMinLen, font=('System', 12), width=20)
+entryFt4.insert(0, '1')
+entryFt4.grid(row=2, column=1, padx=5, pady=5, sticky='w')
 
-labelFTB6 = tk.Label(fam_page, text=" Valid Inputs :  |   76   |   1, 2, 13, 62   |   1-29   |   1-4, 23-27, 88-121   |   1-4, 19, 88-121   |   all   |", font=('System', 10))
+# Row 3: Object ID
+buttonFt8 = tk.Button(form_frame, text='Enter Object ID', font=('System', 12))
+buttonFt8.grid(row=3, column=0, padx=5, pady=5, sticky='w')
+entryFt5 = tk.Entry(form_frame, textvariable=objId, font=('System', 12), width=20)
+entryFt5.grid(row=3, column=1, padx=5, pady=5, sticky='w')
 
-buttonFt1.place(x=50, y=50)
-buttonFt2.place(x=50, y=200)
-entryFt2.place(x=400, y=200, width=300)
-buttonFt3.place(x=50, y=250)
-entryFt3.place(x=400, y=250, width=300)
-buttonFt4.place(x=50, y=300)
-entryFt4.place(x=400, y=300, width=100)
-buttonFt6.place(x=50, y=450)
-# buttonFt7.place(x=50, y=500) # This is the 'generate for all' button
-buttonFt8.place(x=50, y=350)
-entryFt5.place(x=400, y=350)
-labelFTB6.place(x=50, y=400)
-CreateToolTip(buttonFt2, text='Select the excel file that contains the tracking data.\n'
-                              'You can find it in the folder you selected to save the tracking results.!')
-CreateToolTip(buttonFt3,
-              text='Click here to select a folder to store your family trees. \nPlease select an empty folder!')
-CreateToolTip(buttonFt4,
-              text='Select the minimum time frames an object has to exist \nto be considered for the family tree.')
+# Row 4: Label for valid input format
+labelFTB6 = tk.Label(form_frame, text="Valid Inputs:  | 76 | 1,2,13 | 1-29 | 1-4,23-27,88-121 | all |", font=('System', 10))
+labelFTB6.grid(row=4, column=1, columnspan=2, pady=(10, 5), sticky='w')
+
+# Action Buttons Frame
+button_frame = tk.Frame(fam_page)
+button_frame.place(relx=0.5, rely=0.82, anchor='center')
+
+# Button: Generate for IDs
+buttonFt6 = tk.Button(button_frame, text="Generate Family Tree for Entered ID(s)", font=('System', 12),
+                      background='blue', foreground='white',
+                      command=lambda: generateFamilyTree(
+                          excelFile=excelFile.get(),
+                          ftFolder=ftOpFolder.get(),
+                          tidlist=objId.get()))
+buttonFt6.pack(side='left', padx=10)
+
+# Optional: Button to generate all (uncomment if needed)
+# buttonFt7 = tk.Button(button_frame, text="Generate Family Trees for All Target IDs", font=('System', 12),
+#                       background='navy', foreground='white',
+#                       command=lambda: generateFamilyTrees(
+#                           excelFile=excelFile.get(),
+#                           ftFolder=ftOpFolder.get()))
+# buttonFt7.pack(side='left', padx=10)
+
+# Tooltips
+CreateToolTip(buttonFt2, text='Select the CSV file that contains the tracking data.\nYou can find it in the tracking results folder.')
+CreateToolTip(buttonFt3, text='Click here to select a folder to store your family trees.\nPlease select an empty folder.')
+CreateToolTip(buttonFt4, text='Set the minimum number of frames an object must exist\nto be considered in the family tree.')
 # CreateToolTip(buttonFt7, text='Click here to draw family trees for ALL target IDs! \n Target IDs are object IDs that start as new objects, not a result of split event. '
 #                               '\n Use "Generate Family Tree" button with "all" as object ID to generate family tree for every single object.')
 # CreateToolTip(buttonFt6, text='Click here to draw family trees for the entered IDs! \n' \
@@ -661,57 +732,57 @@ CreateToolTip(buttonFt4,
 ########################################################################################################################
 
 
-# Analysis
-# corss corr
-ftOpFolderCC = tk.StringVar()
-segOPfolderCC = tk.StringVar()
-excelFileCC = tk.StringVar()
+# # Analysis
+# # corss corr
+# ftOpFolderCC = tk.StringVar()
+# segOPfolderCC = tk.StringVar()
+# excelFileCC = tk.StringVar()
 
 
-def selectSegmentationFolderCC():
-    None
+# def selectSegmentationFolderCC():
+#     None
 
 
-def selectExcelFileCC():
-    None
+# def selectExcelFileCC():
+#     None
 
 
-def selectFTFolderCC():
-    None
+# def selectFTFolderCC():
+#     None
 
 
-cross_corr_greet = tk.Label(cross_corr_page, text='Cross-Correlation Analysis', font=('Courier', 40, 'bold'))
-cross_corr_greet.place(x=50, y=120)
+# cross_corr_greet = tk.Label(cross_corr_page, text='Cross-Correlation Analysis', font=('Courier', 40, 'bold'))
+# cross_corr_greet.place(x=50, y=120)
 
-buttonCC1 = tk.Button(cross_corr_page, text="Back", command=lambda: show_frame(homepage), font=('System', 15))
+# buttonCC1 = tk.Button(cross_corr_page, text="Back", command=lambda: show_frame(homepage), font=('System', 12))
 
-buttonCC2 = tk.Button(cross_corr_page, text="Select Segmentation Results Folder",
-                      command=lambda: selectSegmentationFolderCC(), font=('System', 15))
-entryCC2 = tk.Entry(cross_corr_page, textvariable=segOPfolderCC, font=('System', 15))
-buttonCC3 = tk.Button(cross_corr_page, text="Select Tracking Results", command=lambda: selectExcelFileCC(),
-                      font=('System', 15))
+# buttonCC2 = tk.Button(cross_corr_page, text="Select Segmentation Results Folder",
+#                       command=lambda: selectSegmentationFolderCC(), font=('System', 12))
+# entryCC2 = tk.Entry(cross_corr_page, textvariable=segOPfolderCC, font=('System', 12))
+# buttonCC3 = tk.Button(cross_corr_page, text="Select Tracking Results", command=lambda: selectExcelFileCC(),
+#                       font=('System', 12))
 
-entryCC3 = tk.Entry(cross_corr_page, textvariable=excelFileCC, font=('System', 15))
-buttonCC4 = tk.Button(cross_corr_page, text='Select Family Tree Folder', font=('System', 15),
-                      command=lambda: selectFTFolderCC())
-entryCC4 = tk.Entry(cross_corr_page, textvariable=ftOpFolderCC, font=('System', 15))
-optionCC = tk.Label(cross_corr_page, borderwidth=1, relief='solid', text='Select Options to Run', font=('System', 15))
-c1 = tk.Checkbutton(cross_corr_page, text='Cross Correlation Calculation', onvalue=1, font=('System', 15))
-c2 = tk.Checkbutton(cross_corr_page, text='Statistical Analysis', onvalue=1, font=('System', 15))
+# entryCC3 = tk.Entry(cross_corr_page, textvariable=excelFileCC, font=('System', 12))
+# buttonCC4 = tk.Button(cross_corr_page, text='Select Family Tree Folder', font=('System', 12),
+#                       command=lambda: selectFTFolderCC())
+# entryCC4 = tk.Entry(cross_corr_page, textvariable=ftOpFolderCC, font=('System', 12))
+# optionCC = tk.Label(cross_corr_page, borderwidth=1, relief='solid', text='Select Options to Run', font=('System', 12))
+# c1 = tk.Checkbutton(cross_corr_page, text='Cross Correlation Calculation', onvalue=1, font=('System', 12))
+# c2 = tk.Checkbutton(cross_corr_page, text='Statistical Analysis', onvalue=1, font=('System', 12))
 
-buttonCC6 = tk.Button(cross_corr_page, width=10, text='RUN', font=('System', 15), background='blue', foreground='white')
+# buttonCC6 = tk.Button(cross_corr_page, width=10, text='RUN', font=('System', 12), background='blue', foreground='white')
 
-buttonCC1.place(x=50, y=50)
-buttonCC2.place(x=50, y=200);
-entryCC2.place(x=500, y=200)
-buttonCC3.place(x=50, y=250);
-entryCC3.place(x=500, y=250)
-buttonCC4.place(x=50, y=300);
-entryCC4.place(x=500, y=300)
-optionCC.place(x=50, y=350)
-c1.place(x=70, y=400)
-c2.place(x=70, y=450)
-buttonCC6.place(x=50, y=550)
+# buttonCC1.place(x=50, y=50)
+# buttonCC2.place(x=50, y=200);
+# entryCC2.place(x=500, y=200)
+# buttonCC3.place(x=50, y=250);
+# entryCC3.place(x=500, y=250)
+# buttonCC4.place(x=50, y=300);
+# entryCC4.place(x=500, y=300)
+# optionCC.place(x=50, y=350)
+# c1.place(x=70, y=400)
+# c2.place(x=70, y=450)
+# buttonCC6.place(x=50, y=550)
 
 ################ ANALYSIS ###########################################################################################
 
@@ -733,44 +804,65 @@ def browseOrigImage():
                                                                        ("TIFF Files", "*.tiff"),
                                                                        ("NIFTI Files", "*.nii")]))
 
-analysis_page_greet  = tk.Label(analysis_page, text='Analysis', font=('Courier', 40, 'bold'))
-analysis_page_greet.place(x=50, y=120)
+# Title
+analysis_page_greet = tk.Label(analysis_page, text='Analysis', font=('Courier', 40, 'bold'))
+analysis_page_greet.place(relx=0.5, rely=0.1, anchor='center')
 
-buttonA1 = tk.Button(analysis_page, text="Back", command=lambda: show_frame(homepage), font=('System', 15))
+# Back button
+buttonA1 = tk.Button(analysis_page, text="Back", command=lambda: show_frame(homepage), font=('System', 12))
+buttonA1.place(relx=0.05, rely=0.05, anchor='nw')
 
-buttonA2 = tk.Button(analysis_page, text="Select Original Images", command=lambda: browseOrigImage(), font=('System', 15))
-buttonA3 = tk.Button(analysis_page, text="Select Folder with Segmentation Results", command=lambda: setSegFolder(),
-                      font=('System', 15))
-buttonA4 = tk.Button(analysis_page, text="Select Folder with Tracking Results", command=lambda: setTrackFolder(),
-                      font=('System', 15))
-buttonA5 = tk.Button(analysis_page, width=10, text="RUN", font=('System', 15), background="blue", foreground="white",
-                      command=lambda: all_analysis_app(trackedimagepath=trackFolderA.get() + '/TrackedCombined.nii', segPath = segFolderA.get(), origImgPath=origImageA.get(), t1=int(at1.get()), t2=int(at2.get())))
-labelA1 = tk.Label(analysis_page, text = 'Start Time', font=('System', 15))
+# Form Frame
+form_frame = tk.Frame(analysis_page)
+form_frame.place(relx=0.5, rely=0.45, anchor='center')
 
-labelA2 = tk.Label(analysis_page, text = 'End Time', font=('System', 15))
+# Row 0: Original Image
+buttonA2 = tk.Button(form_frame, text="Select Original Images", font=('System', 12), command=browseOrigImage)
+buttonA2.grid(row=0, column=0, padx=5, pady=5, sticky='w')
+entryA2 = ttk.Entry(form_frame, textvariable=origImageA, font=('System', 10), width=20)
+entryA2.grid(row=0, column=1, padx=5, pady=5, sticky='w')
 
+# Row 1: Segmentation Folder
+buttonA3 = tk.Button(form_frame, text="Select Folder with Segmentation Results", font=('System', 12), command=setSegFolder)
+buttonA3.grid(row=1, column=0, padx=5, pady=5, sticky='w')
+entryA3 = ttk.Entry(form_frame, textvariable=segFolderA, font=('System', 10), width=20)
+entryA3.grid(row=1, column=1, padx=5, pady=5, sticky='w')
 
+# Row 2: Tracking Folder
+buttonA4 = tk.Button(form_frame, text="Select Folder with Tracking Results", font=('System', 12), command=setTrackFolder)
+buttonA4.grid(row=2, column=0, padx=5, pady=5, sticky='w')
+entryA4 = ttk.Entry(form_frame, textvariable=trackFolderA, font=('System', 10), width=20)
+entryA4.grid(row=2, column=1, padx=5, pady=5, sticky='w')
 
-entryA2 = ttk.Entry(analysis_page, textvariable=origImageA, font=('System', 15))
-entryA3 = ttk.Entry(analysis_page, textvariable=segFolderA, font=('System', 15))
-entryA4 = ttk.Entry(analysis_page, textvariable=trackFolderA, font=('System', 15))
-entryAL1 = ttk.Entry(analysis_page, textvariable=at1, font=('System', 15))
-entryAL1.insert(0,'1')
-entryAL2 = ttk.Entry(analysis_page, textvariable=at2, font=('System', 15))
-entryAL2.insert(0,'41')
+# Row 3: Start Time
+labelA1 = tk.Label(form_frame, text='Start Time', font=('System', 12))
+labelA1.grid(row=3, column=0, padx=5, pady=5, sticky='w')
+entryAL1 = ttk.Entry(form_frame, textvariable=at1, font=('System', 12), width=10)
+entryAL1.insert(0, '1')
+entryAL1.grid(row=3, column=1, padx=5, pady=5, sticky='w')
 
-buttonA1.place(x=50, y=50)
-buttonA2.place(x=50, y=200)
-entryA2.place(x=400, y=200, width=300)
-buttonA3.place(x=50, y=250)
-entryA3.place(x=400, y=250, width=300)
-buttonA4.place(x=50, y=300)
-entryA4.place(x=400, y=300, width=300)
-labelA1.place(x=50, y=350)
-entryAL1.place(x=400, y=350, width = 150)
-labelA2.place(x=50, y=400)
-entryAL2.place(x=400, y=400, width=150)
-buttonA5.place(x=50, y=450)
+# Row 4: End Time
+labelA2 = tk.Label(form_frame, text='End Time', font=('System', 12))
+labelA2.grid(row=4, column=0, padx=5, pady=5, sticky='w')
+entryAL2 = ttk.Entry(form_frame, textvariable=at2, font=('System', 12), width=10)
+entryAL2.insert(0, '41')
+entryAL2.grid(row=4, column=1, padx=5, pady=5, sticky='w')
+
+# Button Frame
+button_frame = tk.Frame(analysis_page)
+button_frame.place(relx=0.5, rely=0.82, anchor='center')
+
+buttonA5 = tk.Button(button_frame, width=10, text="RUN", font=('System', 12),
+                     background="blue", foreground="white",
+                     command=lambda: all_analysis_app(
+                         trackedimagepath=trackFolderA.get() + '/TrackedCombined.nii',
+                         segPath=segFolderA.get(),
+                         origImgPath=origImageA.get(),
+                         t1=int(at1.get()),
+                         t2=int(at2.get())
+                     ))
+buttonA5.pack()
+
 
 ########################################################################################################################
 
@@ -794,15 +886,15 @@ def selectFilesFolder():
 
 
 convert_page_greet = tk.Label(convert_page, text='Convert .czi and .tif to .nii', font=('Courier', 40, 'bold'))
-buttonCon1 = tk.Button(convert_page, text="Back", command=lambda: show_frame(homepage), font=('System', 15))
+buttonCon1 = tk.Button(convert_page, text="Back", command=lambda: show_frame(homepage), font=('System', 12))
 buttonCon2 = tk.Button(convert_page, text="Select Folder with Files", command=lambda: selectFilesFolder(),
-                       font=('System', 15))
-entryCon1 = tk.Entry(convert_page, textvariable=filesFolder, font=('System', 15))
+                       font=('System', 12))
+entryCon1 = tk.Entry(convert_page, textvariable=filesFolder, font=('System', 12))
 
 buttonCon3 = tk.Button(convert_page, text="Convert .czi to .nii", command=lambda: czi2nii(filesFolder.get()),
-                       font=('System', 15))
+                       font=('System', 12))
 buttonCon4 = tk.Button(convert_page, text="Convert .tif to .nii", command=lambda: tif2nii(filesFolder.get()),
-                       font=('System', 15))
+                       font=('System', 12))
 
 buttonCon1.place(x=50, y=50)
 buttonCon2.place(x=50, y=100)

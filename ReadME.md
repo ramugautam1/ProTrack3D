@@ -34,7 +34,7 @@ git clone https://github.com/ramugautam1/ProTrack3D.git
   git clone https://github.com/ramugautam1/ProTrack3D.git
   cd ProTrack3D
   pip install virtualenv
-  virtualenv venv
+  virtualenv -p python3.8 venv
   source venv/bin/activate
   pip install -r requirements.txt
   python main.py
@@ -43,6 +43,7 @@ git clone https://github.com/ramugautam1/ProTrack3D.git
 #### Otherwise
 ```
   cd ProTrack3D # get inside the project folder
+  source venv/bin/activate
   python main.py
 ```
 

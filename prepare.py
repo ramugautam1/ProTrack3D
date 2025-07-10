@@ -12,7 +12,6 @@ import pandas as pd
 import scipy.io as scio
 from PIL import Image
 from skimage.transform import resize
-from tifffile import imsave
 from functions import niftiread, niftiwriteF
 
 def prepare(imageName, imageNameO, protein1Name, protein2Name):

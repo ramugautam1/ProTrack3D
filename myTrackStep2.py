@@ -535,7 +535,7 @@ def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein
 
         finalMatrix[:, :, :, timepoint - startpoint] = tMatrix
 
-    # # THis block of code ensures the bigger object retains the ID during split.
+    # # This block of code ensures the bigger object retains the ID during split.
     # finalv, finalc = np.unique(newArray[newArray > 0], return_counts=True)
     # vcdict = {v: c for v, c in list(zip(finalv, finalc))}
     # for sfrom, soff, _ in splitList:  # If the bigger object is treated by the algorithm as secondary --> swap
@@ -551,7 +551,7 @@ def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein
     globalSplitList = [[splitEvent for splitEvent in timeSplitList if splitEvent[0] != 1] for timeSplitList in globalSplitList]
 
 
-# This section is constantly causing problem. Probably needs a redo
+# This section was causing problem. Not used.
     # print(globalIdList)
     # lst = [] #      Temporarily COmmented. Uncomment once done.
     # for i in range(1, len(globalIdList) + 1):
@@ -808,7 +808,7 @@ def myTrackStep2(seg_op_folder, track_op_folder, imageNameS, imageNameO, protein
         return np.asarray(nib.load(arg).dataobj).astype(np.uint16).squeeze()
 
     tI_fig = niftireadu16(track_op_folder + 'TrackedCombined.nii')
-    savePath3D = track_op_folder + '3DProjection'
+    savePath3D = track_op_folder + 'Projection3D'
     if not os.path.isdir(savePath3D):
         os.makedirs(savePath3D)
     colors = ["coral", "blue", "brown", "chartreuse", "aquamarine", "cyan", "darkorange", "darkred",

@@ -340,10 +340,10 @@ entry2 = ttk.Entry(form_frame, textvariable=gt_path, width=25, font=('System', 1
 entry2.grid(row=2, column=1, pady=5, sticky='w')
 
 # Output location
-button3 = tk.Button(form_frame, text="Output Folder", font=('System', 12), command=trainOutputLocation)
-button3.grid(row=3, column=0, pady=5, padx=5, sticky='w')
-entry3 = ttk.Entry(form_frame, textvariable=train_output_location, width=25, font=('System', 12))
-entry3.grid(row=3, column=1, pady=5, sticky='w')
+# button3 = tk.Button(form_frame, text="Output Folder", font=('System', 12), command=trainOutputLocation)
+# button3.grid(row=3, column=0, pady=5, padx=5, sticky='w')
+# entry3 = ttk.Entry(form_frame, textvariable=train_output_location, width=25, font=('System', 12))
+# entry3.grid(row=3, column=1, pady=5, sticky='w')
 
 # cboxes
 checkbox_frame1 = tk.Frame(form_frame)
@@ -400,7 +400,7 @@ button5.pack(side='left', padx=10)
 # Tooltips (maintained from original)
 CreateToolTip(train_page_greet, text='You can use your own data with ground truth to train a segmentation model.\nIf you want to use an already-trained model, please go back and select Predict.')
 CreateToolTip(button2, text='Select the folder that contains the training data.')
-CreateToolTip(button3, text='Select the folder to save the outputs of training.')
+# CreateToolTip(button3, text='Select the folder to save the outputs of training.')
 CreateToolTip(button4, text='Click to check the console if everything you selected is correct.')
 CreateToolTip(button5, text='Start training the selected model with your training data!')
 
@@ -564,7 +564,7 @@ entryTr4.grid(row=3, column=1, padx=5, pady=5, sticky='w')
 labelTr2 = tk.Label(form_frame, text="Total Frames to Track", font=('System', 12))
 labelTr2.grid(row=4, column=0, padx=5, pady=5, sticky='w')
 entryTr5 = ttk.Entry(form_frame, textvariable=enT, font=('System', 12), width=10)
-entryTr5.insert(0, '41')
+entryTr5.insert(0, '40')
 entryTr5.grid(row=4, column=1, padx=5, pady=5, sticky='w')
 # Row 5: Trackback Time
 labelTr3 = tk.Label(form_frame, text="Trackback Time", font=('System', 12))
@@ -574,10 +574,10 @@ entryTr6.insert(0, '2')
 entryTr6.grid(row=5, column=1, padx=5, pady=5, sticky='w')
 # Row 6: Min Object Size
 labelTr4 = tk.Label(form_frame, text="Min Size Threshold", font=('System', 12))
-labelTr4.grid(row=6, column=0, padx=5, pady=5, sticky='w')
+# labelTr4.grid(row=6, column=0, padx=5, pady=5, sticky='w')
 entryTr7 = ttk.Entry(form_frame, textvariable=ost, font=('System', 12), width=10)
 entryTr7.insert(0, '6')
-entryTr7.grid(row=6, column=1, padx=5, pady=5, sticky='w')
+# entryTr7.grid(row=6, column=1, padx=5, pady=5, sticky='w')
 # Bottom Button Frame
 button_frame = tk.Frame(track_page)
 button_frame.place(relx=0.5, rely=0.85, anchor='center')
@@ -605,10 +605,9 @@ CreateToolTip(buttonTr2, text='Select the image you want to track objects from.'
 CreateToolTip(buttonTr3, text='Select the folder that contains the output of segmentation process.')
 CreateToolTip(buttonTr4, text='Select a folder to save the output of tracking. \nThe folder must be empty.')
 CreateToolTip(labelTr1, text='Select time frame to start traking (default 1).')
-CreateToolTip(labelTr2, text='Select time frame to stop tracking (default 41).')
-CreateToolTip(labelTr3, text='Select the minimum size of the objects to consider for tracking (default 27).')
-CreateToolTip(labelTr4,
-              text='Select trackback Time (How many time frames do you want to look for the objects to track (default 2).')
+CreateToolTip(labelTr2, text='Select time frame to stop tracking (default 40).')
+# CreateToolTip(labelTr4, text='Select the minimum size of the objects to consider for tracking (default 27).')
+CreateToolTip(labelTr3, text='Select trackback Time (How many time frames do you want to look for the objects to track (default 2).')
 
 CreateToolTip(track_page_greet, text='This page is used for tracking the objects \n '
                                      'based on the original image and the segmentation output.\n'
@@ -617,7 +616,7 @@ CreateToolTip(track_page_greet, text='This page is used for tracking the objects
                                      '\t The folder that contains the output of segmentation process\n'
                                      '\t An empty folder to save the output of tracking\n'
                                      '\t Time frame to start traking (default 1)\n'
-                                     '\t Time frame to stop tracking (default 41)\n'
+                                     '\t Time frame to stop tracking (default 40)\n'
                                      '\t Minimum size of the objects to consider for tracking (default 27)\n'
                                      '\t Trackback Time (How many time frames to look for the objects to track (default 2).\n '
                                      'Tracking back more than 2 time frames SIGNIFICANTLY increases processing time'

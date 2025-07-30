@@ -94,9 +94,7 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
     newDF = pd.DataFrame(results)
     newDF.columns = columns
     conn.close()
-    # FlowObj = newDF[newDF['t'] > 2]  # .drop(columns=['t'])
     FlowObj = newDF[(newDF['t'] > t1) & (newDF['t'] <= t2)]
-    # splitObj.rolling(window=21, min_periods=1).mean().plot(color = color5, figsize=(10,6), title=f'Split')
 
     # Calculate fractions for sizeQ1
     FlowObj['Inc_Q1'] = np.where(FlowObj['count_Q1'] > 0, FlowObj['sizeInc_Q1'] / FlowObj['count_Q1'], 0)
@@ -151,7 +149,7 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
                                                          color=['green', 'orange', 'red'])
         #                 ax.axvline(x=acp, color='green', linestyle='--', label='apical constriction point')
         ax.set_title(titles[i] , fontsize=15)
-        ax.set_xlabel('timepoint', fontsize=15)
+        ax.set_xlabel('Timepoint', fontsize=15)
         ax.set_ylabel(y_axs[i], fontsize=15)
 
     plt.tight_layout()
@@ -198,7 +196,6 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
     # Close the connection
     conn.close()
     totObj = newDF[(newDF['t'] > 2) & (newDF['t'] >= t1) & (newDF['t']<=t2)]
-    # totObj.drop(columns=['t']).rolling(window=21, min_periods=1).mean().plot(color = colors, figsize=(10,6), title=f'Total obj')
     totObj
 
     #######################################################################
@@ -250,7 +247,6 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
     # Close the connection
     conn.close()
     splitObj = newDF[(newDF['t'] > 2) & (newDF['t'] >= t1) & (newDF['t']<=t2)]  # .drop(columns=['t'])
-    # splitObj.rolling(window=21, min_periods=1).mean().plot(color = color5, figsize=(10,6), title=f'Split')
     splitObj
 
     #######################################################################
@@ -302,7 +298,6 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
     # Close the connection
     conn.close()
     mergeObj = newDF[(newDF['t'] > 2) & (newDF['t'] >= t1) & (newDF['t']<=t2)]  # .drop(columns=['t'])
-    # mergeObj.rolling(window=21, min_periods=1).mean().plot(color = color5, figsize=(10,6), title=f'Merge')
     mergeObj
 
     #######################################################################
@@ -407,7 +402,6 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
     # Close the connection
     conn.close()
     mergeSecObj = newDF[(newDF['t'] > 2) & (newDF['t'] >= t1) & (newDF['t']<=t2)]  # .drop(columns=['t'])
-    # mergeSecObj.rolling(window=21, min_periods=1).mean().plot(color = color5, figsize=(10,6), title=f'Merge')
     mergeSecObj
 
     #######################################################################
@@ -457,7 +451,6 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
     # Close the connection
     conn.close()
     deadObj = newDF[(newDF['t'] > 2) & (newDF['t'] >= t1) & (newDF['t']<=t2)]  # .drop(columns=['t'])
-    # deadObj.rolling(window=21, min_periods=1).mean().plot(color = color5, figsize=(10,6), title=f'Dead')
     deadObj
 
     #######################################################################
@@ -489,7 +482,6 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
     # Close the connection
     conn.close()
     bornObj = newDF[(newDF['t'] > 2) & (newDF['t'] >= t1) & (newDF['t']<=t2)]  # .drop(columns=['t'])
-    # bornObj.rolling(window=21, min_periods=1).mean().plot(color = color5, figsize=(10,6), title=f'Dead')
     bornObj
 
     #######################################################################
@@ -517,7 +509,6 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
     # Close the connection
     conn.close()
     intDF = newDF[(newDF['t'] > 2) & (newDF['t'] >= t1) & (newDF['t']<=t2)]  # .drop(columns=['t'])
-    # intDF.rolling(window=21, min_periods=1).mean().plot(color = color5, figsize=(10,6), title=f'Dead')
     intDF
 
     #######################################################################
@@ -543,7 +534,6 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
     # Close the connection
     conn.close()
     totInt = newDF[(newDF['t'] > 2) & (newDF['t'] >= t1) & (newDF['t']<=t2)]  # .drop(columns=['t'])
-    # totInt.rolling(window=21, min_periods=1).mean().plot(color = color5, figsize=(10,6), title=f'Dead')
     totInt
 
     #######################################################################
@@ -572,7 +562,6 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
     # Close the connection
     conn.close()
     expDF = newDF[(newDF['t'] > 2) & (newDF['t'] >= t1) & (newDF['t']<=t2)]  # .drop(columns=['t'])
-    # expDF.rolling(window=21, min_periods=1).mean().plot(color = color5, figsize=(10,6), title=f'Dead')
     expDF
 
     #######################################################################
@@ -603,7 +592,6 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
     # Close the connection
     conn.close()
     expDFnew = newDF[(newDF['t'] > 2) & (newDF['t'] >= t1) & (newDF['t']<=t2)]  # .drop(columns=['t'])
-    # expDFnew.rolling(window=21, min_periods=1).mean().plot(color = color5, figsize=(10,6), title=f'Dead')
     expDFnew
     #######################################################################
 
@@ -632,7 +620,6 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
     # Close the connection
     conn.close()
     densityDF = newDF[(newDF['t'] > 2) & (newDF['t'] >= t1) & (newDF['t']<=t2)]  # .drop(columns=['t'])
-    # densityDF.rolling(window=21, min_periods=1).mean().plot(color = color5, figsize=(10,6), title=f'Dead')
     densityDF
 
     #######################################
@@ -686,7 +673,6 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
     # Close the connection
     conn.close()
     intensityIncDF = newDF[(newDF['t'] > 2) & (newDF['t'] >= t1) & (newDF['t']<=t2)]  # .drop(columns=['t'])
-    # intensityIncDF.rolling(window=21, min_periods=1).mean().plot(color = color5, figsize=(10,6), title=f'Merge')
     intensityIncDF
 
     #######################################################################
@@ -739,7 +725,6 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
     # Close the connection
     conn.close()
     intensityDecDF = newDF[(newDF['t'] > 2) & (newDF['t'] >= t1) & (newDF['t']<=t2)]  # .drop(columns=['t'])
-    # intensityDecDF.rolling(window=21, min_periods=1).mean().plot(color = color5, figsize=(10,6), title=f'Merge')
     intensityDecDF
 
     #######################################################################
@@ -791,7 +776,6 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
     # Close the connection
     conn.close()
     avgIntensityDF = newDF[(newDF['t'] > 2) & (newDF['t'] >= t1) & (newDF['t']<=t2)]  # .drop(columns=['t'])
-    # avgIntensityDF.rolling(window=21, min_periods=1).mean().plot(color = color5, figsize=(10,6), title=f'Merge')
     avgIntensityDF
     # print(avgIntensityDF)
     #######################################################################
@@ -822,7 +806,6 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
     # Close the connection
     conn.close()
     peakIntDF = newDF[(newDF['t'] > 2) & (newDF['t'] >= t1) & (newDF['t']<=t2)]  # .drop(columns=['t'])
-    # peakIntDF.rolling(window=21, min_periods=1).mean().plot(color = color5, figsize=(10,6), title=f'Merge')
     peakIntDF
 
     #######################################################################
@@ -867,7 +850,6 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
     # Close the connection
     conn.close()
     splitCombObj = newDF[(newDF['t'] > 2) & (newDF['t'] >= t1) & (newDF['t']<=t2)]  # .drop(columns=['t'])
-    # splitObj.rolling(window=21, min_periods=1).mean().plot(color = color5, figsize=(10,6), title=f'Split')
     splitCombObj
 
     #######################################################################
@@ -909,7 +891,6 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
     # Close the connection
     conn.close()
     mergeCombObj = newDF[(newDF['t'] > 2) & (newDF['t'] >= t1) & (newDF['t']<=t2)]  # .drop(columns=['t'])
-    # splitObj.rolling(window=21, min_periods=1).mean().plot(color = color5, figsize=(10,6), title=f'Split')
     mergeCombObj
 
     #######################################################################
@@ -934,7 +915,6 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
     # Close the connection
     conn.close()
     avgIntObj = newDF[(newDF['t'] > 2) & (newDF['t'] >= t1) & (newDF['t']<=t2)]  # .drop(columns=['t'])
-    # splitObj.rolling(window=21, min_periods=1).mean().plot(color = color5, figsize=(10,6), title=f'Split')
     avgIntObj
 
     #######################################################################
@@ -963,7 +943,6 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
     # Close the connection
     conn.close()
     avgSizeObj = newDF[(newDF['t'] > 2) & (newDF['t'] >= t1) & (newDF['t']<=t2)]  # .drop(columns=['t'])
-    # splitObj.rolling(window=21, min_periods=1).mean().plot(color = color5, figsize=(10,6), title=f'Split')
     avgSizeObj
 
 
@@ -1043,8 +1022,8 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
             df = dfs[i * jx + j].drop(columns=['t'])
             df.rolling(window=21, min_periods=1).mean().plot(ax=ax, color=colors)
             #                 ax.axvline(x=acp, color='green', linestyle='--', label='apical constriction point')
-            ax.set_title(titles[i * jx + j] + ' (Moving Average)', fontsize=15)
-            ax.set_xlabel('timepoint', fontsize=15)
+            ax.set_title(titles[i * jx + j] + ' (Moving average)', fontsize=15)
+            ax.set_xlabel('Timepoint', fontsize=15)
             ax.set_ylabel(y_axs[i * jx + j], fontsize=15)
             ax.legend(fontsize=15)
     plt.tight_layout()
@@ -1090,7 +1069,7 @@ def getEventIntensityPlots(plotsavepath, sT, trackedimagepath, origImgPath, t1=N
         df.rolling(window=21, min_periods=1).mean().plot(kind='line', ax=ax, color=['orange','green','red','blue','magenta'])
         #                 ax.axvline(x=acp, color='green', linestyle='--', label='apical constriction point')
         ax.set_title(titles[i] + ' (Moving Average)', fontsize=15)
-        ax.set_xlabel('timepoint', fontsize=15)
+        ax.set_xlabel('Timepoint', fontsize=15)
         ax.set_ylabel(y_axs[i], fontsize=15)
 
     plt.tight_layout()
@@ -1449,8 +1428,6 @@ def getIntensityChange(dbpath, sT, origImgPath, plotsavepath, t1=None, t2=None):
     #     SumBy = SplitBy + MergeBy + BirthBy + DeathBy + IncBy + DecBy
     # ===========================================================================================================
 
-    # SplitBy['CondQ4Val'].rolling(window=21, min_periods=1).mean(figsize=(10, 4)).plot()
-
     dfs = [SplitBy, MergeBy, BirthBy, DeathBy, IncBy, DecBy]
     alldf = pd.concat(
         [SplitBy.sum(axis=1), MergeBy.sum(axis=1), BirthBy.sum(axis=1), DeathBy.sum(axis=1), IncBy.sum(axis=1),
@@ -1498,14 +1475,8 @@ def getIntensityChange(dbpath, sT, origImgPath, plotsavepath, t1=None, t2=None):
                 ax.legend(fontsize=15)
     plt.tight_layout()
     plt.savefig(plotsavepath + '/' + 'BY_' + category.upper() + '_change_in_Intensity.png')
-    #     plt.savefig(dbpath + '/Change_in_Intensity_due_to_various_events' +  '.png')
-    #     plt.show()
-    # print('=================================================================================')
-
-    #     print(SplitBy.loc[20:30,:])
-    #     print(IncBy.loc[20:30,:])
-
-    # Fraction is just a variable copied from somewhere, doesn't mean anything.
+# ====================================================================================================
+    # Fraction is just a variable name, doesn't mean anything.
     Q = 'CondQ1Val'
     fractions1 = pd.concat([SplitBy[Q], MergeBy[Q], BirthBy[Q], DeathBy[Q], IncBy[Q], DecBy[Q]], axis=1)
     fractions1.columns = ['split', 'merge', 'birth', 'death', 'stayInc', 'stayDec']
@@ -1543,11 +1514,11 @@ def getIntensityChange(dbpath, sT, origImgPath, plotsavepath, t1=None, t2=None):
 
         df.plot(ax=ax, kind='bar', color=colors[i])
         ax.axhline(y=0, c="black", linewidth=0.5, zorder=0)
-        ax.set_ylabel('Total Change')
+        ax.set_ylabel('Total change')
         ax.set_title(sumtitle[i])
         ax.set_xlabel('Time (t)')
 
-        ax.legend(title='Total Change', bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=20)
+        ax.legend(title='Total change', bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=20)
     plt.tight_layout()
     plt.savefig(
         plotsavepath + '/' + 'BY_' + category.upper() + '_change_in_Intensity__SUM__BAR.png')
@@ -1586,7 +1557,7 @@ def getIntensityChange(dbpath, sT, origImgPath, plotsavepath, t1=None, t2=None):
 
         df.plot(ax=ax, kind='line', color=color6 if i < 4 else 'black')
         ax.axhline(y=0, c="black", linewidth=0.5, zorder=0)
-        ax.set_ylabel('Change Value')
+        ax.set_ylabel('Change value')
         ax.set_title(title[i])
         ax.set_xlabel('Time (t)')
 
@@ -1991,7 +1962,6 @@ def getIntensityChangeAvg(dbpath, sT, origImgPath, plotsavepath, t1=None, t2=Non
                 ax.legend(fontsize=15)
     plt.tight_layout()
     plt.savefig(plotsavepath + '/' + 'BY_' + category.upper() + '_PER_EVENT_change_in_Intensity.png')
-    #     plt.savefig(dbpath + '/Change_in_Intensity_due_to_various_events' +  '.png')
     #     plt.show()
 
     ##################################################################
@@ -2028,7 +1998,7 @@ def getIntensityChangeAvg(dbpath, sT, origImgPath, plotsavepath, t1=None, t2=Non
         df.plot(ax=ax, kind='bar', stacked=True, color=color6)
         ax.set_title(title[i])
         ax.set_xlabel('Time (t)')
-        ax.set_ylabel('Change Value')
+        ax.set_ylabel('Change value')
         ax.legend(title='Change', bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=20)
     plt.tight_layout()
     plt.savefig(
@@ -2044,7 +2014,7 @@ def getIntensityChangeAvg(dbpath, sT, origImgPath, plotsavepath, t1=None, t2=Non
 
         df.plot(ax=ax, kind='line', color=color6 if i < 4 else 'black')
         ax.axhline(y=0, c="black", linewidth=0.5, zorder=0)
-        ax.set_ylabel('Change Value')
+        ax.set_ylabel('Change value')
         ax.set_title(title[i])
         ax.set_xlabel('Time (t)')
 
@@ -2100,7 +2070,6 @@ def getIntensityChangeContribution(dbpath, sT, origImgPath, plotsavepath, t1=Non
     # Close the connection
     conn.close()
     TotalIntensity = newDF[(newDF['t'] > 2) & (newDF['t'] >= t1) & (newDF['t']<=t2)]  # .drop(columns=['t'])
-    #     TotalIntensity.rolling(window=21, min_periods=1).mean().plot(color = color5, figsize=(10,6), title=f'0911-04 Total Intensity')
     TotalIntensity
 
     # ===========================================================================================================
@@ -2156,7 +2125,6 @@ def getIntensityChangeContribution(dbpath, sT, origImgPath, plotsavepath, t1=Non
     conn.close()
     RealBy = newDF[(newDF['t'] > 2) & (newDF['t'] >= t1) & (newDF['t']<=t2)]  # .drop(columns=['t'])
     max_t = RealBy['t'].max()
-    #     RealBy.rolling(window=21, min_periods=1).mean().plot(color = color5, figsize=(10,6), title=f'real intensity change')
     # RealBy=RealBy.drop(columns=['t'])
     RealBy, max_t
 
@@ -2220,7 +2188,6 @@ def getIntensityChangeContribution(dbpath, sT, origImgPath, plotsavepath, t1=Non
     conn.close()
     color5 = ['green', 'blue', 'purple', 'magenta', 'red']
     colors = ['blue', 'purple', 'magenta', 'red']
-    #     newDF.rolling(window=21, min_periods=1).mean().plot(color=color5, figsize=(10,6), title=f'intensity change due to split')
     SplitBy = newDF[(newDF['t'] > 2) & (newDF['t'] >= t1) & (newDF['t']<=t2)]  # .drop(columns=['t'])
     SplitBy
 
@@ -2283,7 +2250,6 @@ def getIntensityChangeContribution(dbpath, sT, origImgPath, plotsavepath, t1=Non
     conn.close()
     color5 = ['green', 'blue', 'purple', 'magenta', 'red']
     colors = ['blue', 'purple', 'magenta', 'red']
-    #     newDF.rolling(window=21, min_periods=1).mean().plot(color=color5, figsize=(10,6), title=f'intensity change due to merge')
     MergeBy = newDF[(newDF['t'] > 2) & (newDF['t'] >= t1) & (newDF['t']<=t2)]  # .drop(columns=['t'])
     MergeBy
 
@@ -2410,13 +2376,9 @@ def getIntensityChangeContribution(dbpath, sT, origImgPath, plotsavepath, t1=Non
     results = cursor.fetchall()
     newDF = pd.DataFrame(results)
     newDF.columns = columns
-    # newDF=newDF.drop(columns=['t'])
-    # print(newDF)
-
     # Close the connection
     conn.close()
-    #     newDF.rolling(window=21, min_periods=1).mean().plot(color=color5, figsize=(10,6), title=f'intensity change due to Double action')
-    #     plt.show()
+
     DoubleBy = newDF[(newDF['t'] > 2) & (newDF['t'] >= t1) & (newDF['t']<=t2)]  # .drop(columns=['t'])
     DoubleBy
 
@@ -2445,13 +2407,8 @@ def getIntensityChangeContribution(dbpath, sT, origImgPath, plotsavepath, t1=Non
     results = cursor.fetchall()
     newDF = pd.DataFrame(results)
     newDF.columns = columns
-    # newDF=newDF.drop(columns=['t'])
-
     # Close the connection
     conn.close()
-    #     newDF.rolling(window=21, min_periods=1).mean().plot(color=color5, figsize=(10,6), title=f'intensity change due to born objects')
-    #     plt.show()
-
     BirthBy = newDF[(newDF['t'] > 2) & (newDF['t'] >= t1) & (newDF['t']<=t2)]  # .drop(columns=['t'])
     BirthBy
 
@@ -2479,12 +2436,9 @@ def getIntensityChangeContribution(dbpath, sT, origImgPath, plotsavepath, t1=Non
     results = cursor.fetchall()
     newDF = pd.DataFrame(results)
     newDF.columns = columns
-    # newDF=newDF.drop(columns=['t'])
 
     # Close the connection
     conn.close()
-    #     newDF.rolling(window=21, min_periods=1).mean().plot(color=color5, figsize=(10,6), title=f' intensity change due to dead objects')
-    #     plt.show()
 
     DeathBy = newDF[(newDF['t'] > 2) & (newDF['t'] >= t1) & (newDF['t']<=t2)]  # .drop(columns=['t'])
     DeathBy
@@ -2515,12 +2469,7 @@ def getIntensityChangeContribution(dbpath, sT, origImgPath, plotsavepath, t1=Non
     results = cursor.fetchall()
     newDF = pd.DataFrame(results)
     newDF.columns = columns
-    # newDF=newDF.drop(columns=['t'])
-
-    # Close the connection
     conn.close()
-    #     newDF.rolling(window=21, min_periods=1).mean().plot(color=color5, figsize=(10,6), title=f' intensity change due to in-migrating objects')
-    #     plt.show()
     MigrateInBy = newDF[(newDF['t'] > 2) & (newDF['t'] >= t1) & (newDF['t']<=t2)]  # .drop(columns=['t'])
     MigrateInBy
 
@@ -2550,12 +2499,7 @@ def getIntensityChangeContribution(dbpath, sT, origImgPath, plotsavepath, t1=Non
     results = cursor.fetchall()
     newDF = pd.DataFrame(results)
     newDF.columns = columns
-    # newDF=newDF.drop(columns=['t'])
-
-    # Close the connection
     conn.close()
-    #     newDF.rolling(window=21, min_periods=1).mean().plot(color=color5, figsize=(10,6), title=f' intensity change due to out-migrating objects')
-    #     plt.show()
     MigrateOutBy = newDF[(newDF['t'] > 2) & (newDF['t'] >= t1) & (newDF['t']<=t2)]  # .drop(columns=['t'])
     MigrateOutBy
 
@@ -2613,12 +2557,7 @@ def getIntensityChangeContribution(dbpath, sT, origImgPath, plotsavepath, t1=Non
     results = cursor.fetchall()
     newDF = pd.DataFrame(results)
     newDF.columns = columns
-    # newDF=newDF.drop(columns=['t'])
-
-    # Close the connection
     conn.close()
-    #     newDF.rolling(window=21, min_periods=1).mean().plot(color=color5, figsize=(10,6), title=f'overall intensity change due to STAY objects')
-    #     plt.show()
     StayBy = newDF[(newDF['t'] > 2) & (newDF['t'] >= t1) & (newDF['t']<=t2)]  # .drop(columns=['t'])
     StayBy
 
@@ -2637,15 +2576,9 @@ def getIntensityChangeContribution(dbpath, sT, origImgPath, plotsavepath, t1=Non
         df.astype(int)
     # ============
 
-    # rows, cols = SplitBy.shape
-    # # Create a new DataFrame with the same shape, filled with zeros
-    # DoubleBy = pd.DataFrame(np.zeros((rows, cols)), columns=SplitBy.columns)
-
     SumBy = SplitBy + MergeBy + DoubleBy + StayBy + MigrateInBy + MigrateOutBy + BirthBy + DeathBy
-    #     SumBy.rolling(window=21,min_periods=1).mean().plot( figsize=(10,6),color=colors, title='SUM') # ylim=(-1e6,1e6),
     RealBy.set_index('t', inplace=True)
-    #     RealBy.rolling(window=21,min_periods=1).mean().plot( figsize=(10,6), color=colors, title='REAL') # ylim=(-1e6,1e6),
-    #     plt.show()
+
     # ===========================================================================================================
 
     dfs = [TotalIntensity, SplitBy, MergeBy, DoubleBy, BirthBy, DeathBy, MigrateInBy, MigrateOutBy, StayBy, SumBy,
@@ -2682,21 +2615,14 @@ def getIntensityChangeContribution(dbpath, sT, origImgPath, plotsavepath, t1=Non
                 df = dfs[i * jx + j]  # .drop(columns=['t'])
                 df.rolling(window=21, min_periods=1).mean().plot(ax=ax, color=colors)
                 #                 ax.axvline(x=acp, color='green', linestyle='--', label='apical constriction point')
-                ax.set_title(titles[i * jx + j] + ' (Moving Average)', fontsize=15)
-                ax.set_xlabel('timepoint', fontsize=15)
+                ax.set_title(titles[i * jx + j] + ' (Moving average)', fontsize=15)
+                ax.set_xlabel('Timepoint', fontsize=15)
 
                 ax.set_ylabel(y_axs[i * jx + j], fontsize=15)
                 ax.legend(fontsize=15)
     plt.tight_layout()
     plt.savefig(
         plotsavepath + '/' + '(CARE WHERE OBJS END UP)BY_' + category.upper() + '_CONTRIBUTION_TO_GROUP_INTENSITY_CHANGE.png')
-
-
-#     pd.concat([RealBy, SumBy, ], axis=1).to_csv('D:\\TrackTool\\LATEST\\BASEDONNEWGT\\ANALYSIS\\SizeDistribution_of_EventsAndIntensity\\sumandreal.csv')
-#     pd.concat([TotalIntensity, SplitBy, MergeBy, DoubleBy, BirthBy, DeathBy, MigrateInBy, MigrateOutBy, StayBy, SumBy, RealBy], axis=1).to_csv('D:\\TrackTool\\LATEST\\BASEDONNEWGT\\ANALYSIS\\SizeDistribution_of_EventsAndIntensity\\alldfs.csv')
-# pd.concatto_csv()
-#     plt.savefig(dbpath + '/Change_in_Intensity_due_to_various_events' +  '.png')
-
 
 def niftireadu32(arg):
     return np.asarray(nib.load(arg).dataobj).astype(np.uint32).squeeze()
@@ -2738,8 +2664,8 @@ def getHistogram(trackedimagepath, plotsavepath, t1=None, t2=None):
 
     # Customize the plot
     plt.xticks(range(len(data)), [f'Timepoint {i + 1}' for i in range(len(data))])
-    plt.xlabel('Time Point')
-    plt.ylabel('Value Range')
+    plt.xlabel('Timepoint')
+    plt.ylabel('Value range')
     plt.title('Size count histogram (3 pixel buckets (5-8,9-11, etc))')
     plt.grid(axis='y', linestyle='--', alpha=0.7)
     plt.savefig(plotsavepath + '/' + 'sizeHistogram.png')
@@ -2765,7 +2691,7 @@ def getHistogramUno(dbpath, plotsavepath, t1=None, t2=None):
     for akey in dict1.keys():
         data.append(dict1[akey])
 
-    plt.figure(figsize=(10, 10))
+    plt.figure(figsize=(20, 8))
     cmap = plt.get_cmap('rainbow')
     n_bins = t2 - t1 + 1
     cmap_name = 'rainbow'
@@ -2776,7 +2702,8 @@ def getHistogramUno(dbpath, plotsavepath, t1=None, t2=None):
     # Define a custom wide marker
     custom_marker = Path(
         [
-            (-1, -0.3), (1, -0.3), (1, 0.3), (-1, 0.3), (-1, -0.3)
+            # (-1, -0.3), (1, -0.3), (1, 0.3), (-1, 0.3), (-1, -0.3)
+        (-1, -0.5), (1, -0.5), (1, 0.5), (-1, 0.5), (-1, -0.5)
         ],
         [Path.MOVETO, Path.LINETO, Path.LINETO, Path.LINETO, Path.CLOSEPOLY]
     )
@@ -2796,84 +2723,17 @@ def getHistogramUno(dbpath, plotsavepath, t1=None, t2=None):
     # newDF.to_csv(plotsavepath + '/' + 'sizeHistogramNotBucket.csv')
 
     # Add color bar to show the count scale
-    plt.colorbar(scatter, label='Count')
+    plt.colorbar(scatter, label='count')
     plt.xticks(
-        [i for i in range(len(data)) if (i + 1) % 5 == 0],
-        [f'{t1 + i }' for i in range(len(data)) if (i + 1) % 5 == 0]
+        [i for i in range(len(data)) if (i + 1) % 10 == 0],
+        [f'{t1 + i }' for i in range(len(data)) if (i + 1) % 10 == 0]
     )
-    plt.ylim(0,300)
-    plt.xlabel('Time Point')
-    plt.ylabel('Value')
-    plt.title('Color coded scatter plots of size counts')
+    plt.ylim(0,150)
+    plt.xlabel('Timepoint')
+    plt.ylabel('Object size')
+    # plt.title('Color coded scatter plots of size counts')
     plt.grid(axis='y', linestyle='--', alpha=0.7)
     plt.savefig(plotsavepath + '/' + 'sizeHistogramNotBucket.png')
-
-
-    #########################
-    # image = niftireadu32(trackedimagepath)
-    # sizelist = []
-    #
-    # for t_ in range(t1-1,t2):
-    #     u, c = np.unique(image[:, :, :, t_], return_counts=True)
-    #     c = c[1:]
-    #     sizelist.append(list(c))
-    #
-    #
-    # # print(sizelist)
-    #
-    # # Your data with time points
-    # data = sizelist
-    #
-    # # Initialize the plot
-    # plt.figure(figsize=(10, 6))
-    #
-    # # Define a colormap
-    # cmap = plt.get_cmap('rainbow')
-    # n_bins = t2-t1+1
-    # cmap_name = 'rainbow'
-    # colors = ["Violet", "Blue", "Cyan", "Green", "Yellow", "Orange", "Red"]
-    #
-    # cmap = LinearSegmentedColormap.from_list(cmap_name, colors, N=n_bins)
-    #
-    # cmap = plt.get_cmap('rainbow')
-    #
-    # # print(
-    # #     '################################################\n################################################\n################################################\n################################################\n################################################\n################################################\n')
-    # # Iterate over each time point
-    # biglist = {}
-    # for time_index, values in enumerate(data):
-    #     # Count occurrences of each value
-    #     unique, counts = np.unique(values, return_counts=True)
-    #
-    #     # Create a scatter plot with color coding
-    #     scatter = plt.scatter([time_index] * len(values), values,
-    #                           c=[counts[np.where(unique == v)[0][0]] for v in values],
-    #                           cmap=cmap, marker='s', s=10, edgecolor='none', alpha=0.7,
-    #                           label=f'Timepoint {time_index + 1}')
-    #     biglist[time_index+t1] = [counts[np.where(unique == v)[0][0]] for v in values]
-    #
-    # keys_ = biglist.keys()
-    # values_ = zip_longest(*biglist.values(), fillvalue=None)
-    # df_ = pd.DataFrame(values_, columns=keys_)
-    # df_.to_csv(plotsavepath + '/' + 'sizeHistogramNotBucket.csv')
-    #
-    # # Add color bar to show the count scale
-    # plt.colorbar(scatter, label='Count')
-    #
-    # # Customize the plot
-    # # plt.xticks(range(len(data)), [f'Timepoint {i + 1}' for i in range(len(data)) if i%5==4])
-    # plt.xticks(
-    #     [i for i in range(len(data)) if (i + 1) % 5 == 0],
-    #     [f'{t1 + i }' for i in range(len(data)) if (i + 1) % 5 == 0]
-    # )
-    # plt.ylim(0,300)
-    # plt.xlabel('Time Point')
-    # plt.ylabel('Value')
-    # plt.title('Color coded scatter plots of size counts')
-    # # plt.legend()
-    # plt.grid(axis='y', linestyle='--', alpha=0.7)
-    # plt.savefig(plotsavepath + '/' + 'sizeHistogramNotBucket.png')
-
 
 def all_analysis_app(trackedimagepath, segPath, origImgPath, t1=None, t2=None):
 

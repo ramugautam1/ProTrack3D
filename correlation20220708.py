@@ -80,9 +80,9 @@ def correlation(Fullsize_1, Fullsize_2, Fullsize_regression_1, Fullsize_regressi
                                    VoxelList[i][index][2] - 1:VoxelList[i][index][2] + 1 + 1,
                                    :])
 
-            for m1 in range(-3, 4):
+            for m1 in range(-2, 3):
                 x = 2 * m1
-                for m2 in range(-3, 4):
+                for m2 in range(-2, 3):
                     y = 2 * m2
                     for m3 in range(-1, 2):
                         z = m3

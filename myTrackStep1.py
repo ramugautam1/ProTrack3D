@@ -57,7 +57,7 @@ def myTrackStep1(segmentationOutputAddress, trackingOutputAddress, startTime, en
 
         c_file = 0
 
-        for i1 in range(0, I3dw[0], I3d[0]):
+        for i1 in range(0, I3dw[0], I3d[0]): # for i in range 0, 512, 320
             for i2 in range(0, I3dw[1], I3d[1]):
                 a = i1
                 b = i1 + I3d[0]
@@ -72,6 +72,14 @@ def myTrackStep1(segmentationOutputAddress, trackingOutputAddress, startTime, en
                     Weights[a:b, c:d, :, iy] = V2_arr
 
                 c_file = c_file + 4
+
+        # Normalize Weights
+        for chan in range(Weights.shape[3]):
+            channel = Weights[:, :, :, chan]
+            ch_min = channel.min()
+            ch_max = channel.max()
+            if ch_max > ch_min:  # avoid division by zero
+                Weights[:, :, :, chan] = (channel - ch_min) / (ch_max - ch_min)
 
         stack_after = Fullsize.copy()
 

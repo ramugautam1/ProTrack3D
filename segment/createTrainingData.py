@@ -352,8 +352,6 @@ def cutAndDry(addr, newdir):
 
         savename = tif_files[0][:-4]
 
-        print('here')
-
         for i,tif_file in enumerate(tif_files):
             if i<tifTcount:
                 source_path = os.path.join(addr, tif_file)

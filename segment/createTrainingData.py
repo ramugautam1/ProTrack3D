@@ -344,7 +344,7 @@ def cutAndDry(addr, newdir):
     try:
         tif_files = [f for f in os.listdir(addr) if f.endswith('.tif')]
         tifcount = len(tif_files)
-        tifVcount = np.ceil(tifcount*0.15)
+        tifVcount = int(np.ceil(tifcount*0.15))
         tifTcount = tifcount - tifVcount
         tile_size = 32;
         step = 14;
@@ -374,28 +374,28 @@ def cutAndDry(addr, newdir):
                         tifffile.imwrite(filepathF, tileF, imagej=True, metadata={'axes': 'ZCYX'})
 
                         tile_id +=2
-                else:
-                    source_path = os.path.join(addr, tif_file)
-                    destination_path = os.path.join(newdir, 'v_' + tif_file)
+            else:
+                source_path = os.path.join(addr, tif_file)
+                destination_path = os.path.join(newdir, 'v_' + tif_file)
 
-                    tifIn = tifffile.imread(source_path)
-                    tifInFlip = tifIn[::-1, :, :, :]
-                    Z, C, H, W = tifIn.shape
-                    for y in range(0, H - tile_size + 1, step):
-                        for x in range(0, W - tile_size + 1, step):
-                            tile = tifIn[:, :, y:y + tile_size, x:x + tile_size]
-                            tileF = tifInFlip[:, :, y:y + tile_size, x:x + tile_size]
-                            tn = f'{tile_id:04d}.tif'
-                            tnf = f'{(tile_id + 1):04d}.tif'
-                            filename = f'v_{savename}_{tn}.tif'
-                            filenameF = f'v_{savename}_{tnf}.tif'
-                            filepath = os.path.join(newdir, filename)
-                            filepathF = os.path.join(newdir, filenameF)
+                tifIn = tifffile.imread(source_path)
+                tifInFlip = tifIn[::-1, :, :, :]
+                Z, C, H, W = tifIn.shape
+                for y in range(0, H - tile_size + 1, step):
+                    for x in range(0, W - tile_size + 1, step):
+                        tile = tifIn[:, :, y:y + tile_size, x:x + tile_size]
+                        tileF = tifInFlip[:, :, y:y + tile_size, x:x + tile_size]
+                        tn = f'{tile_id:04d}.tif'
+                        tnf = f'{(tile_id + 1):04d}.tif'
+                        filename = f'v_{savename}_{tn}.tif'
+                        filenameF = f'v_{savename}_{tnf}.tif'
+                        filepath = os.path.join(newdir, filename)
+                        filepathF = os.path.join(newdir, filenameF)
 
-                            tifffile.imwrite(filepath, tile, imagej=True, metadata={'axes': 'ZCYX'})
-                            tifffile.imwrite(filepathF, tileF, imagej=True, metadata={'axes': 'ZCYX'})
+                        tifffile.imwrite(filepath, tile, imagej=True, metadata={'axes': 'ZCYX'})
+                        tifffile.imwrite(filepathF, tileF, imagej=True, metadata={'axes': 'ZCYX'})
 
-                            tile_id += 2
+                        tile_id += 2
     except Exception as e:
         print(f"An error occurred: {str(e)}")
 

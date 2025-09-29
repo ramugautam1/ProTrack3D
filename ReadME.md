@@ -1,5 +1,7 @@
 # PROTRACK3D
 
+----------------------------
+
 
 System requirements: 8 GB RAM
 
@@ -10,6 +12,8 @@ CUDA compatible NVIDIA GPU
 ----------------------------------------------------
 
 
+## Video Guide
+https://drive.google.com/drive/folders/1P1xnie3QyOVtE7kxuKFWwB8wfDo5jfoI?usp=sharing
 
 
 

@@ -16,7 +16,6 @@ CUDA compatible NVIDIA GPU
 https://drive.google.com/drive/folders/1P1xnie3QyOVtE7kxuKFWwB8wfDo5jfoI?usp=sharing
 
 
-
 ## Install Python
 [Download Python] (https://www.python.org/ftp/python/3.8.0/python-3.8.0-amd64.exe)
 * Run the executable to install python
